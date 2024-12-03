@@ -16,6 +16,10 @@ interactive_command 📈 nload
 interactive_command 🤖 adb
 interactive_command 🤖 gdb
 
+# ls does not accept input, but it is expected to finish quickly and have higher prio than cp and dd
+# treat it as an interactive command
+interactive_command '' ls
+
 # shells are listed as batch commands
 # since these are often used to call a heavy batch script
 # for interactive use, call the shell as 'exec bash'
