@@ -91,7 +91,9 @@ function _PROMPT_ALERT() {
 
 # TODO: make callback
 function _PROMPT_MAGIC_SHELLBALL() {
-	local ANSWER
+	local ANSWER SPACES i
+    SPACES=""
+	i=0
 	case "${RANDOM}" in
 	*[0-4])
 		case "${RANDOM}" in
@@ -122,8 +124,7 @@ function _PROMPT_MAGIC_SHELLBALL() {
 		esac
 		;;
 	esac
-	local SPACES=""
-	local i=0
+
 	while [ ${i} -lt $((COLUMNS / 2 - ${#ANSWER} / 2)) ]; do
 		SPACES="${SPACES} "
 		i=$((i + 1))
@@ -132,14 +133,14 @@ function _PROMPT_MAGIC_SHELLBALL() {
 }
 
 function _PROMPT_COMMAND() {
-	local CMD_STATUS
+	local CMD_STATUS _SOURCED
 	CMD_STATUS=$?
 	# disconnect other clients and resize window to current size
 	([ -n "$TMUX" ] && {
 		LC_ALL=C tmux detach-client -a
 		for CLIENT in 1 2 3; do LC_ALL=C tmux -L "$CLIENT" resize-window -A; done
 	} &>/dev/null &)
-	local _SOURCED=1
+	_SOURCED=1
 	# add trailing newline for last command if missing
 	\printf "%$((COLUMNS - 1))s\\r"
 	# https://unix.stackexchange.com/questions/226909/tell-if-last-command-was-empty-in-prompt-command
@@ -189,7 +190,6 @@ function _PROMPT_COMMAND() {
 	if [[ $BASH_VERSION ]]; then
 		history -a
 	fi
-
 }
 
 function preexec() {
@@ -223,9 +223,7 @@ function preexec() {
 		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\033')/<ESC>}"
 		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\007')/<BEL>}"
 		(
-			local CHAR
-			local SHORT_HOSTNAME
-			local CMD
+			local CHAR SHORT_HOSTNAME CMD
 			case "${_TIMER_CMD}" in
 			"c "* | "cd "* | ".."*) : ;;
 			*)
@@ -255,8 +253,9 @@ function preexec() {
 				LINE="${LINE} on ${SCHROOT_ALIAS_NAME}"
 			fi
 			CUSTOM_TITLE=0
-			local CMD=${_TIMER_CMD%% *}
-			local CMD=${CMD%%;*}
+            local CMD
+			CMD=${_TIMER_CMD%% *}
+			CMD=${CMD%%;*}
 			alias "${CMD}" &>/dev/null && CUSTOM_TITLE=1
 			for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}"; do
 				if [ "${COMMAND}" = "${_TIMER_CMD:0:${#COMMAND}}" ]; then
@@ -278,15 +277,10 @@ function preexec() {
 
 function _PROMPT_STOP_TIMER() {
 	{
-		local SECONDS_M
-		local DURATION_H
-		local DURATION_M
-		local DURATION_S
-		local CURRENT_SECONDS
-		local DURATION
+		local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 		CURRENT_SECONDS=${SECONDS}
-		local DIFF=$((CURRENT_SECONDS - _START_SECONDS))
-		if [[ ${_MEASURE-0} -gt 0 ]] && [[ ${DIFF} -gt 29 ]]; then
+		DIFF=$((CURRENT_SECONDS - _START_SECONDS))
+		if [[ ${_MEASURE-0} -gt 0 ]] && [[ ${DIFF} -gt ${_PROMPT_TIMEOUT-29} ]]; then
 			SECONDS_M=$((DIFF % 3600))
 
 			DURATION_H=$((DIFF / 3600))
@@ -329,17 +323,16 @@ _PROMPT() {
 	case "${PWD}" in
 	/run/user/*/gvfs/*) _PROMPT_GIT_PS1="" ;;
 	*)
-		local _PROMPT_PWD
-		local _PROMPT_REPO
-		_PROMPT_PWD="${PWD}"
-		_PROMPT_REPO=""
+		local PROMPT_PWD PROMPT_REPO
+		PROMPT_PWD="${PWD}"
+		PROMPT_REPO=""
 
-		while [ -n "${_PROMPT_PWD}" ]; do
-			if [ -d "${_PROMPT_PWD}/.repo" ]; then
-				_PROMPT_REPO=1
+		while [ -n "${PROMPT_PWD}" ]; do
+			if [ -d "${PROMPT_PWD}/.repo" ]; then
+				PROMPT_REPO=1
 				break
 			fi
-			_PROMPT_PWD="${_PROMPT_PWD%/*}"
+			PROMPT_PWD="${PROMPT_PWD%/*}"
 		done
 		_PROMPT_GIT_PS1=$(NO_TITLE=1 LC_ALL=C __git_ps1 "" 2>/dev/null)
 		;;
@@ -352,7 +345,7 @@ _PROMPT() {
 		else
 			SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
 		fi
-		if [ -n "${_PROMPT_REPO}" ]; then
+		if [ -n "${PROMPT_REPO}" ]; then
 			TITLE="🏗️  ${PWD##*/}"
 			if [ -n "$SSH_CLIENT" ]; then
 				TITLE="${TITLE} on ${SHORT_HOSTNAME}"
@@ -411,30 +404,32 @@ _PROMPT() {
 	else
 		TITLE="${TITLE_OVERRIDE}"
 	fi
+
+	local ESC CR PREFG PREBG POST PREHIDE POSTHIDE
+	ESC=$(\printf '\e')
+	CR=$(\printf '\r')
+	PREFG="${ESC}[38;2;"
+	PREBG="${ESC}[48;2;"
+	POST="m"
+	if [[ $ZSH_NAME ]]; then
+		PREHIDE='%{'
+		POSTHIDE='%}'
+	else
+		PREHIDE='\['
+		POSTHIDE='\]'
+	fi
+
+    if [[ $_PROMPT_OLD_COLUMNS != $COLUMNS ]]
+    then
 	if [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
 		CHAR="▁"
-		command printf "\e[0m"
+		\printf "\e[0m"
 	elif [[ $TERM = vt100 ]]; then
 		CHAR=$(\printf "\xF3")
 	else
 		CHAR="_"
 	fi
 
-	local ESC
-	ESC=$(\printf '\e')
-	local CR
-	CR=$(\printf '\r')
-
-	if [[ $ZSH_NAME ]]; then
-		local PREHIDE='%{'
-		local POSTHIDE='%}'
-	else
-		local PREHIDE='\['
-		local POSTHIDE='\]'
-	fi
-	local PREFG="${ESC}[38;2;"
-	local PREBG="${ESC}[48;2;"
-	local POST="m"
 	local INDEX=0
 	if [ "$TERM" = vt100 ]; then
 		_PROMPT_LINE="${ESC}#6${ESC}(0"
@@ -457,23 +452,18 @@ _PROMPT() {
 		fi
 		INDEX=$((INDEX + 1))
 	done
+    _PROMPT_OLD_COLUMNS=$COLUMNS
+    fi
 	local PWD_BASENAME="${PWD##*/}"
 	[ -z "${PWD_BASENAME}" ] && PWD_BASENAME=/
 	case ${PWD} in
 	"${HOME}") _PROMPT_PWD_BASENAME="~" ;;
 	*) _PROMPT_PWD_BASENAME="${NAME-${PWD_BASENAME}}" ;;
 	esac
-	PROMPT_TEXT=" ${_PROMPT_PWD_BASENAME}${_PROMPT_GIT_PS1} "$([ $UID = 0 ] && \echo "# ")
+	_PROMPT_TEXT=" ${_PROMPT_PWD_BASENAME}${_PROMPT_GIT_PS1} "$([ $UID = 0 ] && \echo "# ")
+	local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR
 
-	local CURSORPOS
-	local RGB_CUR_COLOR
-	local RGB_CUR_R
-	local RGB_CUR_GB
-	local RGB_CUR_G
-	local RGB_CUR_B
-	local HEX_CUR_COLOR
-
-	CURSORPOS=$((${#PROMPT_TEXT} + 1))
+	CURSORPOS=$((${#_PROMPT_TEXT} + 1))
 	RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * CURSORPOS / $((COLUMNS + 1))))]}
 	RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 	RGB_CUR_GB=${RGB_CUR_COLOR#*;}
@@ -481,15 +471,19 @@ _PROMPT() {
 	RGB_CUR_B=${RGB_CUR_GB##*;}
 	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
 	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
-	if [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
+    if  [ "$MC_TMPDIR" ]; then :
+    elif [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
 		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
 	fi
 
-	_PROMPT_TEXT=""
+if [[ ${_PROMPT_OLD_TEXT} != ${_PROMPT_TEXT} ]]
+    then
+    _PROMPT_OLD_TEXT=$_PROMPT_TEXT
+	_PROMPT_TEXT_FORMATTED=""
 	local INDEX=0
-	while [ ${INDEX} -lt ${#PROMPT_TEXT} ]; do
-		if [ "$TERM" = "vt100" ] || [ "$TERM" = "linux" ]; then
-			_PROMPT_TEXT="${_PROMPT_TEXT}${PROMPT_TEXT:${INDEX}:1}"
+	while [ ${INDEX} -lt ${#_PROMPT_TEXT} ]; do
+		if [ "$TERM" = "vt100" ] || [ "$TERM" = "linux" ] || [ "$MC_TMPDIR" ]; then
+			_PROMPT_TEXT_FORMATTED="${_PROMPT_TEXT_FORMATTED}${_PROMPT_TEXT:${INDEX}:1}"
 		else
 			local LUT &>/dev/null
 			LUT=$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))
@@ -498,24 +492,26 @@ _PROMPT() {
 				_PROMPT_TEXT_LUT[0]=$(\printf "%d;%d;%d" "${_PROMPT_BGCOLOR:0:2}" "${_PROMPT_BGCOLOR:2:2}" "${_PROMPT_BGCOLOR:4:2}")
 			fi
 			local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
-			_PROMPT_TEXT="${_PROMPT_TEXT}${PREHIDE}${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${POSTHIDE}${PROMPT_TEXT:${INDEX}:1}"
+			_PROMPT_TEXT_FORMATTED="${_PROMPT_TEXT_FORMATTED}${PREHIDE}${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${POSTHIDE}${_PROMPT_TEXT:${INDEX}:1}"
 		fi
 		INDEX=$((INDEX + 1))
 	done
+    fi
 
 	if [[ "$TERM" =~ "xterm"* ]] || [[ "$TERM" = "alacritty" ]] || [[ "$TERM" = "vt100" ]]; then
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_PROMPT_LINE}'"
-${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
+${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 	else
 		PS1='${_PROMPT_LINE}'"
-${PROMPT_TEXT}| "
+${_PROMPT_TEXT}| "
 	fi
 
 }
 
-PROMPT_COMMAND[0]="_PROMPT_STOP_TIMER;_PROMPT_COMMAND;_PROMPT"
 precmd() {
-	eval "${PROMPT_COMMAND[0]}"
+    _PROMPT_STOP_TIMER
+    _PROMPT_COMMAND
+    _PROMPT
 }
 _TITLE_RAW() {
 	if [[ -z "$NO_TITLE" ]] && [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then

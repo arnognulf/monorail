@@ -38,6 +38,8 @@ batch_command 🛠️ g++
 batch_command 🛠️ snapcraft
 batch_command 🛠️ ninja
 batch_command 🛠️ make
+batch_command 🛠️ just
+batch_command 🛠️ jhbuild
 batch_command 🛠️ bitbake
 
 batch_command 🗜️ gzip
