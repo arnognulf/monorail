@@ -85,12 +85,12 @@ alias batch_command=_BATCH_COMMAND
 # load system git sh prompt
 [ -f /usr/lib/git-core/git-sh-prompt ] && . /usr/lib/git-core/git-sh-prompt
 
-function _PROMPT_ALERT() {
+_PROMPT_ALERT() {
 	(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg &>/dev/null &)
 }
 
 # TODO: make callback
-function _PROMPT_MAGIC_SHELLBALL() {
+_PROMPT_MAGIC_SHELLBALL() {
 	local ANSWER SPACES i
     SPACES=""
 	i=0
@@ -132,7 +132,7 @@ function _PROMPT_MAGIC_SHELLBALL() {
 	\echo -e "\e[?25l\e[3A\r\e[K${SPACES}${ANSWER}"
 }
 
-function _PROMPT_COMMAND() {
+_PROMPT_COMMAND() {
 	local CMD_STATUS _SOURCED
 	CMD_STATUS=$?
 	# disconnect other clients and resize window to current size
@@ -192,45 +192,43 @@ function _PROMPT_COMMAND() {
 	fi
 }
 
-function preexec() {
+preexec() {
 	{
-		_TIMER_CMD="${1/$(\printf '\\\\a')/\\\\\a}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\b')/\\\\\b}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\c')/\\\\\c}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\d')/\\\\\d}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\e')/\\\\\e}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\f')/\\\\\f}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\g')/\\\\\g}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\h')/\\\\\h}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\i')/\\\\\i}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\j')/\\\\\j}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\k')/\\\\\k}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\l')/\\\\\l}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\m')/\\\\\m}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\n')/\\\\\n}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\o')/\\\\\o}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\p')/\\\\\p}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\q')/\\\\\q}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\r')/\\\\\r}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\s')/\\\\\s}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\t')/\\\\\t}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\u')/\\\\\u}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\v')/\\\\\v}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\w')/\\\\\w}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\x')/\\\\\x}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\y')/\\\\\y}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\z')/\\\\\z}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\033')/<ESC>}"
-		_TIMER_CMD="${_TIMER_CMD/$(\printf '\\\\007')/<BEL>}"
+		_TIMER_CMD="${1/\\\a/\\\\\a}"
+		_TIMER_CMD="${_TIMER_CMD/\\\b/\\\\\b}"
+		_TIMER_CMD="${_TIMER_CMD/\\\c/\\\\\c}"
+		_TIMER_CMD="${_TIMER_CMD/\\\d/\\\\\d}"
+		_TIMER_CMD="${_TIMER_CMD/\\\e/\\\\\e}"
+		_TIMER_CMD="${_TIMER_CMD/\\\f/\\\\\f}"
+		_TIMER_CMD="${_TIMER_CMD/\\\g/\\\\\g}"
+		_TIMER_CMD="${_TIMER_CMD/\\\h/\\\\\h}"
+		_TIMER_CMD="${_TIMER_CMD/\\\i/\\\\\i}"
+		_TIMER_CMD="${_TIMER_CMD/\\\j/\\\\\j}"
+		_TIMER_CMD="${_TIMER_CMD/\\\k/\\\\\k}"
+		_TIMER_CMD="${_TIMER_CMD/\\\l/\\\\\l}"
+		_TIMER_CMD="${_TIMER_CMD/\\\m/\\\\\m}"
+		_TIMER_CMD="${_TIMER_CMD/\\\n/\\\\\n}"
+		_TIMER_CMD="${_TIMER_CMD/\\\o/\\\\\o}"
+		_TIMER_CMD="${_TIMER_CMD/\\\p/\\\\\p}"
+		_TIMER_CMD="${_TIMER_CMD/\\\q/\\\\\q}"
+		_TIMER_CMD="${_TIMER_CMD/\\\r/\\\\\r}"
+		_TIMER_CMD="${_TIMER_CMD/\\\s/\\\\\s}"
+		_TIMER_CMD="${_TIMER_CMD/\\\t/\\\\\t}"
+		_TIMER_CMD="${_TIMER_CMD/\\\u/\\\\\u}"
+		_TIMER_CMD="${_TIMER_CMD/\\\v/\\\\\v}"
+		_TIMER_CMD="${_TIMER_CMD/\\\w/\\\\\w}"
+		_TIMER_CMD="${_TIMER_CMD/\\\x/\\\\\x}"
+		_TIMER_CMD="${_TIMER_CMD/\\\y/\\\\\y}"
+		_TIMER_CMD="${_TIMER_CMD/\\\z/\\\\\z}"
+		_TIMER_CMD="${_TIMER_CMD/\\\033/<ESC>}"
+		_TIMER_CMD="${_TIMER_CMD/\\\007/<BEL>}"
 		(
 			local CHAR SHORT_HOSTNAME CMD
 			case "${_TIMER_CMD}" in
 			"c "* | "cd "* | ".."*) : ;;
 			*)
-				# TODO: break out
-				local DATE
-				DATE=$(date +%m-%d)
-				case ${DATE} in
+				[[ -z "${_PROMPT_DATE}" ]] && _PROMPT_DATE=$(date +%m-%d)
+				case ${_PROMPT_DATE} in
 				10-2* | 10-3*)
 					CHAR=🎃
 					;;
@@ -268,14 +266,14 @@ function preexec() {
 		)
 		_MEASURE=1
 		_START_SECONDS=$SECONDS
-		if [[ $COLORTERM = truecolor ]]; then
+		if [[ $COLORTERM = truecolor ]] && [[ $TERM != vt100 ]]; then
 			\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${_PROMPT_FGCOLOR}"
 		fi
     # bypass STDOUT/STDERR
 	} &>"${TTY}"
 }
 
-function _PROMPT_STOP_TIMER() {
+_PROMPT_STOP_TIMER() {
 	{
 		local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 		CURRENT_SECONDS=${SECONDS}
@@ -300,7 +298,7 @@ function _PROMPT_STOP_TIMER() {
 	} 2>/dev/null
 }
 
-function title() {
+title() {
 	TITLE_OVERRIDE="$*"
 }
 _PROMPT() {
@@ -434,7 +432,14 @@ _PROMPT() {
 	if [ "$TERM" = vt100 ]; then
 		_PROMPT_LINE="${ESC}#6${ESC}(0"
 		_PROMPT_ATTRIBUTE="${ESC}[7m"
+    elif [ "$MC_TMPDIR" ]; then
+		_PROMPT_ATTRIBUTE="${ESC}[7m"
+		_PROMPT_LINE=""
+    elif [ "$COLORTERM" = truecolor ];then
+		_PROMPT_ATTRIBUTE=""
+		_PROMPT_LINE=""
 	else
+		_PROMPT_ATTRIBUTE="${ESC}[7m"
 		_PROMPT_LINE=""
 	fi
 	while [ ${INDEX} -lt ${COLUMNS} ]; do
@@ -445,14 +450,15 @@ _PROMPT() {
 			else
 				:
 			fi
-		elif [[ $TERM = "linux" ]] || [[ "$TERM" = dumb ]] || [[ $TERM = vt52 ]]; then
-			_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
 		elif [[ $COLORTERM = truecolor ]]; then
 			_PROMPT_LINE="${_PROMPT_LINE}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))]}${POST}${CHAR}"
+		else
+			_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
 		fi
 		INDEX=$((INDEX + 1))
 	done
-    _PROMPT_OLD_COLUMNS=$COLUMNS
+    _PROMPT_OLD_COLUMNS=${COLUMNS--1}
+    unset _PROMPT_OLD_TEXT _PROMPT_DATE
     fi
 	local PWD_BASENAME="${PWD##*/}"
 	[ -z "${PWD_BASENAME}" ] && PWD_BASENAME=/
@@ -503,7 +509,7 @@ if [[ ${_PROMPT_OLD_TEXT} != ${_PROMPT_TEXT} ]]
 ${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 	else
 		PS1='${_PROMPT_LINE}'"
-${_PROMPT_TEXT}| "
+${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 	fi
 
 }
