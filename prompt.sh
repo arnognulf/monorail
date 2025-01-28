@@ -24,8 +24,8 @@
 if ! [[ $_MONORAIL_DIR ]]; then
 	if [[ ${BASH_ARGV[0]} != "/"* ]]; then
 		_MONORAIL_DIR=$PWD/${BASH_ARGV[0]}
-    else
-	    _MONORAIL_DIR="${BASH_ARGV[0]}"
+	else
+		_MONORAIL_DIR="${BASH_ARGV[0]}"
 	fi
 
 	_MONORAIL_DIR="${_MONORAIL_DIR%/*}"
@@ -44,40 +44,34 @@ fi
 # avoid opening /dev/null for stdout/stderr for each call to 'command -v'
 # this improves startup time
 {
-# chrt(1) sets lowest priority on Linux and FreeBSD
-if command -v chrt
-then
-_LOW_PRIO ()
-{
-    chrt -i 0 "$@"
-}
-else
-# nice(1) is a fallback with higher priority than chrt can achieve
-_LOW_PRIO ()
-{
-    nice -n19 "$@"
-}
-fi
-_INTERACTIVE_COMMAND ()
-{
-# Disable nonsensical error from shellcheck:
-#In prompt.sh line 68:
-# command -v "${2}" && alias "${2}=_ICON ${1} _LOW_PRIO ${2}"
-#                             ^--^ SC2139 (warning): This expands when defined, not when used. Consider escaping.
-#
-#shellcheck disable=SC2139
-command -v "${2}" && alias "${2}=_NO_MEASURE _ICON ${1} ${2}"
-}
-_BATCH_COMMAND ()
-{
-#shellcheck disable=SC2139
-command -v "${2}" && alias "${2}=_ICON ${1} _LOW_PRIO ${2}"
-}
-alias interactive_command=_INTERACTIVE_COMMAND
-alias batch_command=_BATCH_COMMAND
-. "${_MONORAIL_DIR}"/default_commands.sh
-}
-#&>/dev/null
+	# chrt(1) sets lowest priority on Linux and FreeBSD
+	if command -v chrt; then
+		_LOW_PRIO() {
+			ionice -c idle chrt -i 0 "$@"
+		}
+	else
+		# nice(1) is a fallback with higher priority than chrt can achieve
+		_LOW_PRIO() {
+			nice -n19 "$@"
+		}
+	fi
+	_INTERACTIVE_COMMAND() {
+		# Disable nonsensical error from shellcheck:
+		#In prompt.sh line 68:
+		# command -v "${2}" && alias "${2}=_ICON ${1} _LOW_PRIO ${2}"
+		#                             ^--^ SC2139 (warning): This expands when defined, not when used. Consider escaping.
+		#
+		#shellcheck disable=SC2139
+		command -v "${2}" && alias "${2}=_NO_MEASURE _ICON ${1} ${2}"
+	}
+	_BATCH_COMMAND() {
+		#shellcheck disable=SC2139
+		command -v "${2}" && alias "${2}=_ICON ${1} _LOW_PRIO ${2}"
+	}
+	alias interactive_command=_INTERACTIVE_COMMAND
+	alias batch_command=_BATCH_COMMAND
+	. "${_MONORAIL_DIR}"/default_commands.sh
+} &>/dev/null
 
 # vendored from https://github.com/rcaloras/bash-preexec (8926de0)
 . "${_MONORAIL_DIR}"/bash-preexec/bash-preexec.sh
@@ -92,7 +86,7 @@ _PROMPT_ALERT() {
 # TODO: make callback
 _PROMPT_MAGIC_SHELLBALL() {
 	local ANSWER SPACES i
-    SPACES=""
+	SPACES=""
 	i=0
 	case "${RANDOM}" in
 	*[0-4])
@@ -133,14 +127,13 @@ _PROMPT_MAGIC_SHELLBALL() {
 }
 
 _PROMPT_COMMAND() {
-	local CMD_STATUS _SOURCED
+	local CMD_STATUS
 	CMD_STATUS=$?
 	# disconnect other clients and resize window to current size
 	([ -n "$TMUX" ] && {
 		LC_ALL=C tmux detach-client -a
 		for CLIENT in 1 2 3; do LC_ALL=C tmux -L "$CLIENT" resize-window -A; done
 	} &>/dev/null &)
-	_SOURCED=1
 	# add trailing newline for last command if missing
 	\printf "%$((COLUMNS - 1))s\\r"
 	# https://unix.stackexchange.com/questions/226909/tell-if-last-command-was-empty-in-prompt-command
@@ -189,6 +182,26 @@ _PROMPT_COMMAND() {
 	LC_ALL=C stty echo 2>/dev/null
 	if [[ $BASH_VERSION ]]; then
 		history -a
+	fi
+}
+
+_PROMPT_SUPPORTED_TERMINAL() {
+	# Most modern terminals support truecolor and UTF-8.
+	# Instead of falsely detecting truecolor and UTF-8 not supported,
+	# default to truecolor and UTF-8 being supported and make exceptions for known
+	# non-supported terminals.
+	if [[ $TERM != vt100 ]] &&
+		[[ $TERM != linux ]] &&
+		[[ -z $MC_TMPDIR ]] &&
+		[[ $TERM != "xterm-color" ]] &&
+		[[ $TERM != "xterm-16color" ]] &&
+		[[ $TERM_PROGRAM != "Apple_Terminal" ]]; then
+		return 0
+	elif [[ $TERM = "alacritty" ]] &&
+		[[ $COLORTERM = "rxvt-xpm" ]]; then
+		return 0
+	else
+		return 1
 	fi
 }
 
@@ -251,7 +264,7 @@ preexec() {
 				LINE="${LINE} on ${SCHROOT_ALIAS_NAME}"
 			fi
 			CUSTOM_TITLE=0
-            local CMD
+			local CMD
 			CMD=${_TIMER_CMD%% *}
 			CMD=${CMD%%;*}
 			alias "${CMD}" &>/dev/null && CUSTOM_TITLE=1
@@ -266,10 +279,10 @@ preexec() {
 		)
 		_MEASURE=1
 		_START_SECONDS=$SECONDS
-		if [[ $COLORTERM = truecolor ]] && [[ $TERM != vt100 ]]; then
+		if _PROMPT_SUPPORTED_TERMINAL; then
 			\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${_PROMPT_FGCOLOR}"
 		fi
-    # bypass STDOUT/STDERR
+		# bypass STDOUT/STDERR
 	} &>"${TTY}"
 }
 
@@ -417,49 +430,45 @@ _PROMPT() {
 		POSTHIDE='\]'
 	fi
 
-    if [[ $_PROMPT_OLD_COLUMNS != $COLUMNS ]]
-    then
-	if [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
-		CHAR="▁"
-		\printf "\e[0m"
-	elif [[ $TERM = vt100 ]]; then
-		CHAR=$(\printf "\xF3")
-	else
-		CHAR="_"
-	fi
-
-	local INDEX=0
-	if [ "$TERM" = vt100 ]; then
-		_PROMPT_LINE="${ESC}#6${ESC}(0"
-		_PROMPT_ATTRIBUTE="${ESC}[7m"
-    elif [ "$MC_TMPDIR" ]; then
-		_PROMPT_ATTRIBUTE="${ESC}[7m"
-		_PROMPT_LINE=""
-    elif [ "$COLORTERM" = truecolor ];then
-		_PROMPT_ATTRIBUTE=""
-		_PROMPT_LINE=""
-	else
-		_PROMPT_ATTRIBUTE="${ESC}[7m"
-		_PROMPT_LINE=""
-	fi
-	while [ ${INDEX} -lt ${COLUMNS} ]; do
-		# 16M colors broken in mosh
-		if [ "${TERM}" = vt100 ]; then
-			if [ ${INDEX} -lt $((COLUMNS / 2)) ]; then
-				_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
-			else
-				:
-			fi
-		elif [[ $COLORTERM = truecolor ]]; then
-			_PROMPT_LINE="${_PROMPT_LINE}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))]}${POST}${CHAR}"
+	if [[ $_PROMPT_OLD_COLUMNS != $COLUMNS ]]; then
+		if _PROMPT_SUPPORTED_TERMINAL; then
+			CHAR="▁"
+			\printf "\e[0m"
+		elif [[ $TERM = vt100 ]]; then
+			CHAR=$(\printf "\xF3")
 		else
-			_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
+			CHAR="_"
 		fi
-		INDEX=$((INDEX + 1))
-	done
-    _PROMPT_OLD_COLUMNS=${COLUMNS--1}
-    unset _PROMPT_OLD_TEXT _PROMPT_DATE
-    fi
+
+		local INDEX=0
+		if [[ "$TERM" = vt100 ]]; then
+			_PROMPT_LINE="${ESC}#6${ESC}(0"
+			_PROMPT_ATTRIBUTE="${ESC}[7m"
+		elif _PROMPT_SUPPORTED_TERMINAL; then
+			_PROMPT_ATTRIBUTE=""
+			_PROMPT_LINE=""
+		else
+			_PROMPT_ATTRIBUTE="${ESC}[7m"
+			_PROMPT_LINE=""
+		fi
+		while [ ${INDEX} -lt ${COLUMNS} ]; do
+			# 16M colors broken in mosh
+			if [ "${TERM}" = vt100 ]; then
+				if [ ${INDEX} -lt $((COLUMNS / 2)) ]; then
+					_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
+				else
+					:
+				fi
+			elif _PROMPT_SUPPORTED_TERMINAL; then
+				_PROMPT_LINE="${_PROMPT_LINE}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))]}${POST}${CHAR}"
+			else
+				_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
+			fi
+			INDEX=$((INDEX + 1))
+		done
+		_PROMPT_OLD_COLUMNS=${COLUMNS--1}
+		unset _PROMPT_OLD_TEXT _PROMPT_DATE
+	fi
 	local PWD_BASENAME="${PWD##*/}"
 	[ -z "${PWD_BASENAME}" ] && PWD_BASENAME=/
 	case ${PWD} in
@@ -477,32 +486,32 @@ _PROMPT() {
 	RGB_CUR_B=${RGB_CUR_GB##*;}
 	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
 	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
-    if  [ "$MC_TMPDIR" ]; then :
-    elif [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
+	if [ "$MC_TMPDIR" ]; then
+		:
+	elif [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
 		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
 	fi
 
-if [[ ${_PROMPT_OLD_TEXT} != ${_PROMPT_TEXT} ]]
-    then
-    _PROMPT_OLD_TEXT=$_PROMPT_TEXT
-	_PROMPT_TEXT_FORMATTED=""
-	local INDEX=0
-	while [ ${INDEX} -lt ${#_PROMPT_TEXT} ]; do
-		if [ "$TERM" = "vt100" ] || [ "$TERM" = "linux" ] || [ "$MC_TMPDIR" ]; then
-			_PROMPT_TEXT_FORMATTED="${_PROMPT_TEXT_FORMATTED}${_PROMPT_TEXT:${INDEX}:1}"
-		else
-			local LUT &>/dev/null
-			LUT=$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))
-			if [ -z "${_PROMPT_TEXT_LUT[0]}" ]; then
-				local _PROMPT_TEXT_LUT
-				_PROMPT_TEXT_LUT[0]=$(\printf "%d;%d;%d" "${_PROMPT_BGCOLOR:0:2}" "${_PROMPT_BGCOLOR:2:2}" "${_PROMPT_BGCOLOR:4:2}")
+	if [[ ${_PROMPT_OLD_TEXT} != ${_PROMPT_TEXT} ]]; then
+		_PROMPT_OLD_TEXT=$_PROMPT_TEXT
+		_PROMPT_TEXT_FORMATTED=""
+		local INDEX=0
+		while [ ${INDEX} -lt ${#_PROMPT_TEXT} ]; do
+			if [ "$TERM" = "vt100" ] || [ "$TERM" = "linux" ] || [ "$MC_TMPDIR" ]; then
+				_PROMPT_TEXT_FORMATTED="${_PROMPT_TEXT_FORMATTED}${_PROMPT_TEXT:${INDEX}:1}"
+			else
+				local LUT &>/dev/null
+				LUT=$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))
+				if [ -z "${_PROMPT_TEXT_LUT[0]}" ]; then
+					local _PROMPT_TEXT_LUT
+					_PROMPT_TEXT_LUT[0]=$(\printf "%d;%d;%d" "${_PROMPT_BGCOLOR:0:2}" "${_PROMPT_BGCOLOR:2:2}" "${_PROMPT_BGCOLOR:4:2}")
+				fi
+				local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
+				_PROMPT_TEXT_FORMATTED="${_PROMPT_TEXT_FORMATTED}${PREHIDE}${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${POSTHIDE}${_PROMPT_TEXT:${INDEX}:1}"
 			fi
-			local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
-			_PROMPT_TEXT_FORMATTED="${_PROMPT_TEXT_FORMATTED}${PREHIDE}${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${POSTHIDE}${_PROMPT_TEXT:${INDEX}:1}"
-		fi
-		INDEX=$((INDEX + 1))
-	done
-    fi
+			INDEX=$((INDEX + 1))
+		done
+	fi
 
 	if [[ "$TERM" =~ "xterm"* ]] || [[ "$TERM" = "alacritty" ]] || [[ "$TERM" = "vt100" ]]; then
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_PROMPT_LINE}'"
@@ -515,9 +524,9 @@ ${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT}${PREHIDE}${ESC}
 }
 
 precmd() {
-    _PROMPT_STOP_TIMER
-    _PROMPT_COMMAND
-    _PROMPT
+	_PROMPT_STOP_TIMER
+	_PROMPT_COMMAND
+	_PROMPT
 }
 _TITLE_RAW() {
 	if [[ -z "$NO_TITLE" ]] && [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
@@ -607,40 +616,41 @@ _TITLE() {
 	_TITLE_RAW "$* in ${PWD##*/} at $(date +%H:%M)"
 }
 
-_NO_MEASURE ()
-{
-    _MEASURE=0
-    "$@"
+_NO_MEASURE() {
+	_MEASURE=0
+	"$@"
 }
 
 _ICON() {
-	local ICON="$1"
-	shift
-	local FIRST_ARG="${1}"
-	(
-		case "${FIRST_ARG}" in
-		_*)
-			shift
-			;;
-		esac
-		FIRST_ARG="${1}"
-
-		FIRST_NON_OPTION="${2}"
-		while [ "${FIRST_NON_OPTION:0:1}" = '-' ] || [ "${FIRST_NON_OPTION:0:1}" = '_' ] || [ "${FIRST_NON_OPTION}" = '.' ]; do
-			if [ "${FIRST_NON_OPTION}" = '-u' ]; then
-				shift 2
-			else
+	if [[ "${FUNCNAME[1]}" ]]; then
+		local ICON="$1"
+		shift
+		local FIRST_ARG="${1}"
+		(
+			case "${FIRST_ARG}" in
+			_*)
 				shift
-			fi
-			FIRST_NON_OPTION="${2}"
-		done
+				;;
+			esac
+			FIRST_ARG="${1}"
 
-		if [ -z "$FIRST_NON_OPTION" ]; then
-			_TITLE "${ICON}  ${FIRST_ARG##*/}"
-		else
-			_TITLE "${ICON}  ${FIRST_NON_OPTION##*/}"
-		fi
-	) &>"${TTY}"
+			FIRST_NON_OPTION="${2}"
+			while [ "${FIRST_NON_OPTION:0:1}" = '-' ] || [ "${FIRST_NON_OPTION:0:1}" = '_' ] || [ "${FIRST_NON_OPTION}" = '.' ]; do
+				if [ "${FIRST_NON_OPTION}" = '-u' ]; then
+					shift 2
+				else
+					shift
+				fi
+				FIRST_NON_OPTION="${2}"
+			done
+
+			if [ -z "$FIRST_NON_OPTION" ]; then
+				_TITLE "${ICON}  ${FIRST_ARG##*/}"
+			else
+				_TITLE "${ICON}  ${FIRST_NON_OPTION##*/}"
+			fi
+		) &>"${TTY}"
+	fi
 	"$@"
 }
 
