@@ -131,8 +131,8 @@ _PROMPT_COMMAND() {
 	CMD_STATUS=$?
 	# disconnect other clients and resize window to current size
 	([ -n "$TMUX" ] && {
-		LC_ALL=C tmux detach-client -a
-		for CLIENT in 1 2 3; do LC_ALL=C tmux -L "$CLIENT" resize-window -A; done
+		LC_MESSAGES=C LC_ALL=C tmux detach-client -a
+		for CLIENT in 1 2 3; do LC_MESSAGES=C LC_ALL=C tmux -L "$CLIENT" resize-window -A; done
 	} &>/dev/null &)
 	# add trailing newline for last command if missing
 	\printf "%$((COLUMNS - 1))s\\r"
@@ -153,7 +153,7 @@ _PROMPT_COMMAND() {
 			0)
 				_LS_HIDDEN -w${COLUMNS}
 				CR_LEVEL=3
-				if LC_ALL=C \git status &>/dev/null; then
+				if LC_MESSAGES=C LC_ALL=C \git status &>/dev/null; then
 					CR_LEVEL=1
 				else
 					\printf "\e[J\n\n"
@@ -179,7 +179,7 @@ _PROMPT_COMMAND() {
 	HISTCMD_before_last=$_PROMPT_HISTCMD_PREV
 	trap "_PROMPT_CTRLC=1;\echo -n" INT
 	trap "_PROMPT_CTRLC=1;\echo -n" ERR
-	LC_ALL=C stty echo 2>/dev/null
+	LC_MESSAGES=C LC_ALL=C stty echo 2>/dev/null
 	if [[ $BASH_VERSION ]]; then
 		history -a
 	fi
@@ -235,48 +235,46 @@ preexec() {
 		_TIMER_CMD="${_TIMER_CMD/\\\z/\\\\\z}"
 		_TIMER_CMD="${_TIMER_CMD/\\\033/<ESC>}"
 		_TIMER_CMD="${_TIMER_CMD/\\\007/<BEL>}"
-		(
-			local CHAR SHORT_HOSTNAME CMD
-			case "${_TIMER_CMD}" in
-			"c "* | "cd "* | ".."*) : ;;
+		local CHAR SHORT_HOSTNAME CMD
+		case "${_TIMER_CMD}" in
+		"c "* | "cd "* | ".."*) : ;;
+		*)
+			[[ -z "${_PROMPT_DATE}" ]] && _PROMPT_DATE=$(LC_MESSAGES=C LC_ALL=C date +%m-%d)
+			case ${_PROMPT_DATE} in
+			10-2* | 10-3*)
+				CHAR=🎃
+				;;
+			12*)
+				CHAR=🎄
+				;;
 			*)
-				[[ -z "${_PROMPT_DATE}" ]] && _PROMPT_DATE=$(date +%m-%d)
-				case ${_PROMPT_DATE} in
-				10-2* | 10-3*)
-					CHAR=🎃
-					;;
-				12*)
-					CHAR=🎄
-					;;
-				*)
-					CHAR=▶️
-					;;
-				esac
+				CHAR=▶️
 				;;
 			esac
-			LINE="${CHAR}  ${_TIMER_CMD}"
-			if [ -n "$TMUX" ]; then
-				SHORT_HOSTNAME=${HOSTNAME%%.*}
-				SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
-				LINE="${LINE} on ${SHORT_HOSTNAME}"
+			;;
+		esac
+		LINE="${CHAR}  ${_TIMER_CMD}"
+		if [ -n "$TMUX" ]; then
+			SHORT_HOSTNAME=${HOSTNAME%%.*}
+			SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
+			LINE="${LINE} on ${SHORT_HOSTNAME}"
+		fi
+		if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
+			LINE="${LINE} on ${SCHROOT_ALIAS_NAME}"
+		fi
+		CUSTOM_TITLE=0
+		local CMD
+		CMD=${_TIMER_CMD%% *}
+		CMD=${CMD%%;*}
+		alias "${CMD}" &>/dev/null && CUSTOM_TITLE=1
+		for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}"; do
+			if [ "${COMMAND}" = "${_TIMER_CMD:0:${#COMMAND}}" ]; then
+				CUSTOM_TITLE=1
 			fi
-			if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
-				LINE="${LINE} on ${SCHROOT_ALIAS_NAME}"
-			fi
-			CUSTOM_TITLE=0
-			local CMD
-			CMD=${_TIMER_CMD%% *}
-			CMD=${CMD%%;*}
-			alias "${CMD}" &>/dev/null && CUSTOM_TITLE=1
-			for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}"; do
-				if [ "${COMMAND}" = "${_TIMER_CMD:0:${#COMMAND}}" ]; then
-					CUSTOM_TITLE=1
-				fi
-			done
-			if [ ${CUSTOM_TITLE} = 0 ]; then
-				_TITLE "$LINE"
-			fi
-		)
+		done
+		if [ ${CUSTOM_TITLE} = 0 ]; then
+			_TITLE "$LINE"
+		fi
 		_MEASURE=1
 		_START_SECONDS=$SECONDS
 		if _PROMPT_SUPPORTED_TERMINAL; then
@@ -301,7 +299,7 @@ _PROMPT_STOP_TIMER() {
 			DURATION=""
 			[ ${DURATION_H} -gt 0 ] && DURATION="${DURATION}${DURATION_H}h "
 			[ ${DURATION_M} -gt 0 ] && DURATION="${DURATION}${DURATION_M}m "
-			DURATION="${DURATION}${DURATION_S}s, finished at "$(date +%H:%M).""
+			DURATION="${DURATION}${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).""
 			\echo "${DURATION}"
 			(exec notify-send -a "Completed ${_TIMER_CMD}" -i terminal "${_TIMER_CMD}" "Command took ${DURATION}" &)
 			_PROMPT_ALERT
@@ -345,7 +343,7 @@ _PROMPT() {
 			fi
 			PROMPT_PWD="${PROMPT_PWD%/*}"
 		done
-		_PROMPT_GIT_PS1=$(NO_TITLE=1 LC_ALL=C __git_ps1 "" 2>/dev/null)
+		_PROMPT_GIT_PS1=$(NO_TITLE=1 LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
 		;;
 	esac
 
@@ -430,7 +428,7 @@ _PROMPT() {
 		POSTHIDE='\]'
 	fi
 
-	if [[ $_PROMPT_OLD_COLUMNS != $COLUMNS ]]; then
+	if [[ $_PROMPT_OLD_COLUMNS != "$COLUMNS" ]]; then
 		if _PROMPT_SUPPORTED_TERMINAL; then
 			CHAR="▁"
 			\printf "\e[0m"
@@ -492,7 +490,7 @@ _PROMPT() {
 		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
 	fi
 
-	if [[ ${_PROMPT_OLD_TEXT} != ${_PROMPT_TEXT} ]]; then
+	if [[ $_PROMPT_OLD_TEXT != "$_PROMPT_TEXT" ]]; then
 		_PROMPT_OLD_TEXT=$_PROMPT_TEXT
 		_PROMPT_TEXT_FORMATTED=""
 		local INDEX=0
@@ -571,7 +569,7 @@ _PROMPT_CONTRAST() {
 
 _BGCOLOR() {
 	# reload in case user has manually modified colors.sh
-	. "${_MONORAIL_CONFIG}"/colors.sh
+	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 
 	if [[ "${#1}" != 6 ]]; then
 		\echo "ERROR: color must be hexadecimal and 6 hexadecimal characters" 1>&2 | tee 1>/dev/null
@@ -591,7 +589,7 @@ _BGCOLOR() {
 
 _FGCOLOR() {
 	# reload in case user has manually modified colors.sh
-	. "${_MONORAIL_CONFIG}"/colors.sh
+	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 
 	if [ "${#1}" != 6 ]; then
 		\echo "ERROR: color must be hexadecimal and 6 hexadecimal characters" 1>&2 | tee 1>/dev/null
@@ -622,9 +620,10 @@ _NO_MEASURE() {
 }
 
 _ICON() {
-	if [[ "${FUNCNAME[1]}" ]]; then
-		local ICON="$1"
-		shift
+	local ICON="$1"
+	shift
+	if [[ -z "${FUNCNAME[1]}" ]] || [[ "${FUNCNAME[1]}" = "_"* ]]; then
+
 		local FIRST_ARG="${1}"
 		(
 			case "${FIRST_ARG}" in
@@ -665,7 +664,7 @@ _INIT_CONFIG() {
 	if [[ ! -f "${_MONORAIL_DIR}"/colors.sh ]]; then
 		cp "${_MONORAIL_DIR}"/default_colors.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
-	. "${_MONORAIL_CONFIG}"/colors.sh
+	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 }
 _INIT_CONFIG
 
