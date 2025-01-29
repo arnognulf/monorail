@@ -37,7 +37,7 @@ if [[ $ZSH_NAME ]]; then
 fi
 [[ $_PROMPT_BGCOLOR ]] || _PROMPT_BGCOLOR=ffffff
 [[ $_PROMPT_FGCOLOR ]] || _PROMPT_FGCOLOR=444444
-[[ $TTY ]] || TTY=$(tty)
+[[ $TTY ]] || TTY=$(LC_MESSAGES=C LC_ALL=C tty)
 
 . "${_MONORAIL_DIR}"/gradient/gradient.sh
 
@@ -180,9 +180,7 @@ _PROMPT_COMMAND() {
 	trap "_PROMPT_CTRLC=1;\echo -n" INT
 	trap "_PROMPT_CTRLC=1;\echo -n" ERR
 	LC_MESSAGES=C LC_ALL=C stty echo 2>/dev/null
-	if [[ $BASH_VERSION ]]; then
-		history -a
-	fi
+    ( [[ $BASH_VERSION ]] && history -a )
 }
 
 _PROMPT_SUPPORTED_TERMINAL() {
@@ -415,8 +413,8 @@ _PROMPT() {
 	fi
 
 	local ESC CR PREFG PREBG POST PREHIDE POSTHIDE
-	ESC=$(\printf '\e')
-	CR=$(\printf '\r')
+	ESC=$'\e'
+	CR=$'\r'
 	PREFG="${ESC}[38;2;"
 	PREBG="${ESC}[48;2;"
 	POST="m"
@@ -433,7 +431,7 @@ _PROMPT() {
 			CHAR="▁"
 			\printf "\e[0m"
 		elif [[ $TERM = vt100 ]]; then
-			CHAR=$(\printf "\xF3")
+			CHAR=$'\xF3'
 		else
 			CHAR="_"
 		fi
@@ -611,7 +609,7 @@ alias bgcolor=_BGCOLOR
 alias fgcolor=_FGCOLOR
 
 _TITLE() {
-	_TITLE_RAW "$* in ${PWD##*/} at $(date +%H:%M)"
+	_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 }
 
 _NO_MEASURE() {
