@@ -82,9 +82,9 @@ fi
 _PROMPT_DUMB_TERMINAL() {
     # limited terminals that cannot even do simple terminal styling
 	if [[ $TERM = "tek"* ]] ||
-		[[ $TERM != "wyse60" ]] ||
-		[[ $TERM != "adm3a" ]]
-		[[ $TERM != "vt52" ]]
+		[[ $TERM = "wyse60" ]] ||
+		[[ $TERM = "adm3a" ]] ||
+		[[ $TERM = "vt52" ]]
     then
 		return 0
 	else
@@ -92,10 +92,9 @@ _PROMPT_DUMB_TERMINAL() {
 	fi
 }
 
-# disable bracketed paste on TEK40xx terminals
 if _PROMPT_DUMB_TERMINAL
 then
-bind 'set enable-bracketed-paste off'
+    bind 'set enable-bracketed-paste off'
 fi
 
 _PROMPT_ALERT() {
@@ -206,7 +205,7 @@ _PROMPT_SUPPORTED_TERMINAL() {
 	# Instead of falsely detecting truecolor and UTF-8 not supported,
 	# default to truecolor and UTF-8 being supported and make exceptions for known
 	# non-supported terminals.
-	if _PROMPT_DUMB_TERMINAL;
+	if _PROMPT_DUMB_TERMINAL
     then
         return 1
     elif [[ $TERM != vt100 ]] &&
@@ -536,17 +535,22 @@ _PROMPT() {
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_PROMPT_LINE}'"
 ${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
     elif _PROMPT_SUPPORTED_TERMINAL || [[ "$TERM" = "vt100" ]]; then
-		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_PROMPT_LINE}'"
+		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}${ESC}[0m"'${_PROMPT_LINE}'"
 ${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
-	elif _PROMPT_DUMB_TERMINAL
-    then
-		PS1='${_PROMPT_LINE}'"
-${_PROMPT_TEXT}| "
 	else
+        local REVERSE NORMAL
+        REVERSE=$(tput rev)
+        if [[ "$REVERSE" ]]
+        then
+            NORMAL="${PREHIDE}$(tput sgr0)${POSTHIDE}"
+            REVERSE="${PREHIDE}${REVERSE}${POSTHIDE}"
+        else
+            REVERSE=""
+            NORMAL="|"
+        fi
 		PS1='${_PROMPT_LINE}'"
-${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
+${REVERSE}${_PROMPT_TEXT}${NORMAL} "
 	fi
-
 }
 
 precmd() {
