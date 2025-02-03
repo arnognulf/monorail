@@ -79,6 +79,25 @@ fi
 # load system git sh prompt
 [ -f /usr/lib/git-core/git-sh-prompt ] && . /usr/lib/git-core/git-sh-prompt
 
+_PROMPT_DUMB_TERMINAL() {
+    # limited terminals that cannot even do simple terminal styling
+	if [[ $TERM = "tek"* ]] ||
+		[[ $TERM != "wyse60" ]] ||
+		[[ $TERM != "adm3a" ]]
+		[[ $TERM != "vt52" ]]
+    then
+		return 0
+	else
+		return 1
+	fi
+}
+
+# disable bracketed paste on TEK40xx terminals
+if _PROMPT_DUMB_TERMINAL
+then
+bind 'set enable-bracketed-paste off'
+fi
+
 _PROMPT_ALERT() {
 	(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg &>/dev/null &)
 }
@@ -179,7 +198,6 @@ _PROMPT_COMMAND() {
 	HISTCMD_before_last=$_PROMPT_HISTCMD_PREV
 	trap "_PROMPT_CTRLC=1;\echo -n" INT
 	trap "_PROMPT_CTRLC=1;\echo -n" ERR
-	LC_MESSAGES=C LC_ALL=C stty echo 2>/dev/null
     ( [[ $BASH_VERSION ]] && history -a )
 }
 
@@ -188,7 +206,10 @@ _PROMPT_SUPPORTED_TERMINAL() {
 	# Instead of falsely detecting truecolor and UTF-8 not supported,
 	# default to truecolor and UTF-8 being supported and make exceptions for known
 	# non-supported terminals.
-	if [[ $TERM != vt100 ]] &&
+	if _PROMPT_DUMB_TERMINAL;
+    then
+        return 1
+    elif [[ $TERM != vt100 ]] &&
 		[[ $TERM != linux ]] &&
 		[[ -z $MC_TMPDIR ]] &&
 		[[ $TERM != "xterm-color" ]] &&
@@ -202,6 +223,7 @@ _PROMPT_SUPPORTED_TERMINAL() {
 		return 1
 	fi
 }
+
 
 preexec() {
 	{
@@ -341,7 +363,7 @@ _PROMPT() {
 			fi
 			PROMPT_PWD="${PROMPT_PWD%/*}"
 		done
-		_PROMPT_GIT_PS1=$(NO_TITLE=1 LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
+		_PROMPT_GIT_PS1=$(NO_TITLE=1 TERM=dumb LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
 		;;
 	esac
 
@@ -447,22 +469,24 @@ _PROMPT() {
 			_PROMPT_ATTRIBUTE="${ESC}[7m"
 			_PROMPT_LINE=""
 		fi
-		while [ ${INDEX} -lt ${COLUMNS} ]; do
+        local TEMP_COLUMNS=$COLUMNS
+        _PROMPT_DUMB_TERMINAL && TEMP_COLUMNS=$((COLUMNS - 2))
+		while [ ${INDEX} -lt ${TEMP_COLUMNS} ]; do
 			# 16M colors broken in mosh
 			if [ "${TERM}" = vt100 ]; then
-				if [ ${INDEX} -lt $((COLUMNS / 2)) ]; then
+				if [ ${INDEX} -lt $((TEMP_COLUMNS / 2)) ]; then
 					_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
 				else
 					:
 				fi
 			elif _PROMPT_SUPPORTED_TERMINAL; then
-				_PROMPT_LINE="${_PROMPT_LINE}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))]}${POST}${CHAR}"
+				_PROMPT_LINE="${_PROMPT_LINE}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((TEMP_COLUMNS + 1))))]}${POST}${CHAR}"
 			else
 				_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
 			fi
 			INDEX=$((INDEX + 1))
 		done
-		_PROMPT_OLD_COLUMNS=${COLUMNS--1}
+		_PROMPT_OLD_COLUMNS=${TEMP_COLUMNS--1}
 		unset _PROMPT_OLD_TEXT _PROMPT_DATE
 	fi
 	local PWD_BASENAME="${PWD##*/}"
@@ -482,9 +506,7 @@ _PROMPT() {
 	RGB_CUR_B=${RGB_CUR_GB##*;}
 	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
 	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
-	if [ "$MC_TMPDIR" ]; then
-		:
-	elif [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
+    if _PROMPT_SUPPORTED_TERMINAL; then
 		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
 	fi
 
@@ -509,12 +531,20 @@ _PROMPT() {
 		done
 	fi
 
-	if [[ "$TERM" =~ "xterm"* ]] || [[ "$TERM" = "alacritty" ]] || [[ "$TERM" = "vt100" ]]; then
+	LC_MESSAGES=C LC_ALL=C stty echo 2>/dev/null
+    if [[ "$TERM" = "mlterm" ]]; then
+		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_PROMPT_LINE}'"
+${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
+    elif _PROMPT_SUPPORTED_TERMINAL || [[ "$TERM" = "vt100" ]]; then
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_PROMPT_LINE}'"
 ${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
+	elif _PROMPT_DUMB_TERMINAL
+    then
+		PS1='${_PROMPT_LINE}'"
+${_PROMPT_TEXT}| "
 	else
 		PS1='${_PROMPT_LINE}'"
-${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
+${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 	fi
 
 }
