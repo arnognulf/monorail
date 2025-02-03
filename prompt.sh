@@ -39,6 +39,49 @@ fi
 [[ $_PROMPT_FGCOLOR ]] || _PROMPT_FGCOLOR=444444
 [[ $TTY ]] || TTY=$(LC_MESSAGES=C LC_ALL=C tty)
 
+# keep these functions early so they still work in case of parsing errors below
+_TITLE() {
+	_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+}
+
+_NO_MEASURE() {
+	_MEASURE=0
+	"$@"
+}
+
+_ICON() {
+	local ICON="$1"
+	shift
+	if [[ -z "${FUNCNAME[1]}" ]] || [[ "${FUNCNAME[1]}" = "_"* ]]; then
+
+		local FIRST_ARG="${1}"
+		(
+			case "${FIRST_ARG}" in
+			_*)
+				shift
+				;;
+			esac
+			FIRST_ARG="${1}"
+
+			FIRST_NON_OPTION="${2}"
+			while [ "${FIRST_NON_OPTION:0:1}" = '-' ] || [ "${FIRST_NON_OPTION:0:1}" = '_' ] || [ "${FIRST_NON_OPTION}" = '.' ]; do
+				if [ "${FIRST_NON_OPTION}" = '-u' ]; then
+					shift 2
+				else
+					shift
+				fi
+				FIRST_NON_OPTION="${2}"
+			done
+
+			if [ -z "$FIRST_NON_OPTION" ]; then
+				_TITLE "${ICON}  ${FIRST_ARG##*/}"
+			else
+				_TITLE "${ICON}  ${FIRST_NON_OPTION##*/}"
+			fi
+		) &>"${TTY}"
+	fi
+	"$@"
+}
 . "${_MONORAIL_DIR}"/gradient/gradient.sh
 
 # avoid opening /dev/null for stdout/stderr for each call to 'command -v'
@@ -642,48 +685,7 @@ _FGCOLOR() {
 alias bgcolor=_BGCOLOR
 alias fgcolor=_FGCOLOR
 
-_TITLE() {
-	_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-}
 
-_NO_MEASURE() {
-	_MEASURE=0
-	"$@"
-}
-
-_ICON() {
-	local ICON="$1"
-	shift
-	if [[ -z "${FUNCNAME[1]}" ]] || [[ "${FUNCNAME[1]}" = "_"* ]]; then
-
-		local FIRST_ARG="${1}"
-		(
-			case "${FIRST_ARG}" in
-			_*)
-				shift
-				;;
-			esac
-			FIRST_ARG="${1}"
-
-			FIRST_NON_OPTION="${2}"
-			while [ "${FIRST_NON_OPTION:0:1}" = '-' ] || [ "${FIRST_NON_OPTION:0:1}" = '_' ] || [ "${FIRST_NON_OPTION}" = '.' ]; do
-				if [ "${FIRST_NON_OPTION}" = '-u' ]; then
-					shift 2
-				else
-					shift
-				fi
-				FIRST_NON_OPTION="${2}"
-			done
-
-			if [ -z "$FIRST_NON_OPTION" ]; then
-				_TITLE "${ICON}  ${FIRST_ARG##*/}"
-			else
-				_TITLE "${ICON}  ${FIRST_NON_OPTION##*/}"
-			fi
-		) &>"${TTY}"
-	fi
-	"$@"
-}
 
 _INIT_CONFIG() {
 	if [[ -n $XDG_CONFIG_HOME ]]; then
