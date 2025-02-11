@@ -82,6 +82,10 @@ _ICON() {
 	fi
 	"$@"
 }
+_PROMPT_INVALIDATE_CACHE ()
+{
+    unset _PROMPT_DATE _PROMPT_CACHE
+}
 . "${_MONORAIL_DIR}"/gradient/gradient.sh
 
 # avoid opening /dev/null for stdout/stderr for each call to 'command -v'
@@ -495,8 +499,29 @@ _PROMPT() {
 		PREHIDE='\['
 		POSTHIDE='\]'
 	fi
+	local PWD_BASENAME="${PWD##*/}"
+	[ -z "${PWD_BASENAME}" ] && PWD_BASENAME=/
+	case ${PWD} in
+	"${HOME}") _PROMPT_PWD_BASENAME="~" ;;
+	*) _PROMPT_PWD_BASENAME="${NAME-${PWD_BASENAME}}" ;;
+	esac
+	_PROMPT_TEXT=" ${_PROMPT_PWD_BASENAME}${_PROMPT_GIT_PS1} "$([ $UID = 0 ] && \echo "# ")
+	local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR
 
-	if [[ $_PROMPT_OLD_COLUMNS != "$COLUMNS" ]]; then
+	CURSORPOS=$((${#_PROMPT_TEXT} + 1))
+	RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * CURSORPOS / $((COLUMNS + 1))))]}
+	RGB_CUR_R=${RGB_CUR_COLOR%%;*}
+	RGB_CUR_GB=${RGB_CUR_COLOR#*;}
+	RGB_CUR_G=${RGB_CUR_GB%%;*}
+	RGB_CUR_B=${RGB_CUR_GB##*;}
+	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
+	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
+	if _PROMPT_SUPPORTED_TERMINAL; then
+		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
+	fi
+
+
+	if [[ $_PROMPT_CACHE != "$COLUMNS$_PROMPT_TEXT" ]]; then
 		if _PROMPT_SUPPORTED_TERMINAL; then
 			CHAR="▁"
 			\printf "\e[0m"
@@ -534,32 +559,6 @@ _PROMPT() {
 			fi
 			INDEX=$((INDEX + 1))
 		done
-		_PROMPT_OLD_COLUMNS=${TEMP_COLUMNS--1}
-		unset _PROMPT_OLD_TEXT _PROMPT_DATE
-	fi
-	local PWD_BASENAME="${PWD##*/}"
-	[ -z "${PWD_BASENAME}" ] && PWD_BASENAME=/
-	case ${PWD} in
-	"${HOME}") _PROMPT_PWD_BASENAME="~" ;;
-	*) _PROMPT_PWD_BASENAME="${NAME-${PWD_BASENAME}}" ;;
-	esac
-	_PROMPT_TEXT=" ${_PROMPT_PWD_BASENAME}${_PROMPT_GIT_PS1} "$([ $UID = 0 ] && \echo "# ")
-	local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR
-
-	CURSORPOS=$((${#_PROMPT_TEXT} + 1))
-	RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * CURSORPOS / $((COLUMNS + 1))))]}
-	RGB_CUR_R=${RGB_CUR_COLOR%%;*}
-	RGB_CUR_GB=${RGB_CUR_COLOR#*;}
-	RGB_CUR_G=${RGB_CUR_GB%%;*}
-	RGB_CUR_B=${RGB_CUR_GB##*;}
-	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
-	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
-	if _PROMPT_SUPPORTED_TERMINAL; then
-		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
-	fi
-
-	if [[ $_PROMPT_OLD_TEXT != "$_PROMPT_TEXT" ]]; then
-		_PROMPT_OLD_TEXT=$_PROMPT_TEXT
 		_PROMPT_TEXT_FORMATTED=""
 		local INDEX=0
 		while [ ${INDEX} -lt ${#_PROMPT_TEXT} ]; do
@@ -577,6 +576,8 @@ _PROMPT() {
 			fi
 			INDEX=$((INDEX + 1))
 		done
+        _PROMPT_INVALIDATE_CACHE
+		_PROMPT_CACHE="$COLUMNS$_PROMPT_TEXT"
 	fi
 
 	LC_MESSAGES=C LC_ALL=C stty echo 2>/dev/null
@@ -665,6 +666,7 @@ _BGCOLOR() {
 		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 	} >"${_MONORAIL_CONFIG}"/colors.sh
+    _PROMPT_INVALIDATE_CACHE
 }
 
 _FGCOLOR() {
@@ -685,6 +687,7 @@ _FGCOLOR() {
 		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 	} >"${_MONORAIL_CONFIG}"/colors.sh
+    _PROMPT_INVALIDATE_CACHE
 }
 
 alias bgcolor=_BGCOLOR
@@ -702,6 +705,7 @@ _INIT_CONFIG() {
 		\cp "${_MONORAIL_DIR}"/default_colors.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
 	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
+    _PROMPT_INVALIDATE_CACHE
 }
 _INIT_CONFIG
 

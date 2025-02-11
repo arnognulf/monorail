@@ -182,6 +182,7 @@ declare -p _PROMPT_TEXT_LUT|cut -d" " -f3-1024
 declare -p _PROMPT_FGCOLOR|cut -d" " -f3-1024
 declare -p _PROMPT_BGCOLOR|cut -d" " -f3-1024
 } >${_MONORAIL_CONFIG}/colors.sh
+_PROMPT_INVALIDATE_CACHE
 }
 alias gradient=_GRADIENT
 alias gradienttext="_GRADIENT text"
