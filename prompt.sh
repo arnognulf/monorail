@@ -52,7 +52,7 @@ _NO_MEASURE() {
 _ICON() {
 	local ICON="$1"
 	shift
-	if [[ -z "${FUNCNAME[1]}" ]] || [[ "${FUNCNAME[1]}" = "_"* ]]; then
+	if [[ -z "${FUNCNAME[1]}" ]] || [[ "${FUNCNAME[1]}" = "_NO_MEASURE" ]]; then
 
 		local FIRST_ARG="${1}"
 		(
@@ -123,21 +123,19 @@ _ICON() {
 [ -f /usr/lib/git-core/git-sh-prompt ] && . /usr/lib/git-core/git-sh-prompt
 
 _PROMPT_DUMB_TERMINAL() {
-    # limited terminals that cannot even do simple terminal styling
 	if [[ $TERM = "tek"* ]] ||
+		[[ $TERM = "dumb" ]] ||
 		[[ $TERM = "wyse60" ]] ||
 		[[ $TERM = "adm3a" ]] ||
-		[[ $TERM = "vt52" ]]
-    then
+		[[ $TERM = "vt52" ]]; then
 		return 0
 	else
 		return 1
 	fi
 }
 
-if _PROMPT_DUMB_TERMINAL
-then
-    bind 'set enable-bracketed-paste off'
+if _PROMPT_DUMB_TERMINAL; then
+	bind 'set enable-bracketed-paste off'
 fi
 
 _PROMPT_ALERT() {
@@ -212,9 +210,10 @@ _PROMPT_COMMAND() {
 		if [[ -z "$CR_FIRST" ]] && [[ "$CMD_STATUS" = 0 ]] && [[ -z "$_PROMPT_CTRLC" ]]; then
 			case "${CR_LEVEL}" in
 			0)
-				_LS_HIDDEN -w${COLUMNS}
+				# call ls, do not ignore user alias by prepending a \
+				ls
 				CR_LEVEL=3
-				if LC_MESSAGES=C LC_ALL=C \git status &>/dev/null; then
+				if \git status &>/dev/null; then
 					CR_LEVEL=1
 				else
 					\printf "\e[J\n\n"
@@ -222,7 +221,13 @@ _PROMPT_COMMAND() {
 				;;
 			2)
 				CR_LEVEL=3
-				\git -c color.status=always status | \head -n$((LINES - 2)) | \head -n$((LINES - 4))
+				(
+					if _PROMPT_DUMB_TERMINAL; then
+						\git -c color.status=never status | \head -n$((LINES - 2)) | \head -n$((LINES - 4))
+					else
+						\git -c color.status=always status | \head -n$((LINES - 2)) | \head -n$((LINES - 4))
+					fi
+				)
 				\echo -e "        ...\n\n"
 				;;
 			*) _PROMPT_MAGIC_SHELLBALL ;;
@@ -240,7 +245,7 @@ _PROMPT_COMMAND() {
 	HISTCMD_before_last=$_PROMPT_HISTCMD_PREV
 	trap "_PROMPT_CTRLC=1;\echo -n" INT
 	trap "_PROMPT_CTRLC=1;\echo -n" ERR
-    ( [[ $BASH_VERSION ]] && history -a )
+	([[ $BASH_VERSION ]] && history -a)
 }
 
 _PROMPT_SUPPORTED_TERMINAL() {
@@ -248,11 +253,13 @@ _PROMPT_SUPPORTED_TERMINAL() {
 	# Instead of falsely detecting truecolor and UTF-8 not supported,
 	# default to truecolor and UTF-8 being supported and make exceptions for known
 	# non-supported terminals.
-	if _PROMPT_DUMB_TERMINAL
-    then
-        return 1
-    elif [[ $TERM != vt100 ]] &&
-		[[ $TERM != linux ]] &&
+	if _PROMPT_DUMB_TERMINAL; then
+		return 1
+	elif [[ $TERM != "vt100" ]] &&
+		[[ $TERM != "linux" ]] &&
+		[[ $TERM != "freebsd" ]] &&
+		[[ $TERM != "bsdos" ]] &&
+		[[ $TERM != "netbsd" ]] &&
 		[[ -z $MC_TMPDIR ]] &&
 		[[ $TERM != "xterm-color" ]] &&
 		[[ $TERM != "xterm-16color" ]] &&
@@ -265,7 +272,6 @@ _PROMPT_SUPPORTED_TERMINAL() {
 		return 1
 	fi
 }
-
 
 preexec() {
 	{
@@ -511,8 +517,8 @@ _PROMPT() {
 			_PROMPT_ATTRIBUTE="${ESC}[7m"
 			_PROMPT_LINE=""
 		fi
-        local TEMP_COLUMNS=$COLUMNS
-        _PROMPT_DUMB_TERMINAL && TEMP_COLUMNS=$((COLUMNS - 2))
+		local TEMP_COLUMNS=$COLUMNS
+		_PROMPT_DUMB_TERMINAL && TEMP_COLUMNS=$((COLUMNS - 2))
 		while [ ${INDEX} -lt ${TEMP_COLUMNS} ]; do
 			# 16M colors broken in mosh
 			if [ "${TERM}" = vt100 ]; then
@@ -548,7 +554,7 @@ _PROMPT() {
 	RGB_CUR_B=${RGB_CUR_GB##*;}
 	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
 	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
-    if _PROMPT_SUPPORTED_TERMINAL; then
+	if _PROMPT_SUPPORTED_TERMINAL; then
 		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
 	fi
 
@@ -574,23 +580,22 @@ _PROMPT() {
 	fi
 
 	LC_MESSAGES=C LC_ALL=C stty echo 2>/dev/null
-    if [[ "$TERM" = "mlterm" ]]; then
+	if [[ "$TERM" = "mlterm" ]]; then
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_PROMPT_LINE}'"
 ${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
-    elif _PROMPT_SUPPORTED_TERMINAL || [[ "$TERM" = "vt100" ]]; then
+	elif _PROMPT_SUPPORTED_TERMINAL || [[ "$TERM" = "vt100" ]]; then
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}${ESC}[0m"'${_PROMPT_LINE}'"
 ${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 	else
-        local REVERSE NORMAL
-        REVERSE=$(tput rev)
-        if [[ "$REVERSE" ]]
-        then
-            NORMAL="${PREHIDE}$(tput sgr0)${POSTHIDE}"
-            REVERSE="${PREHIDE}${REVERSE}${POSTHIDE}"
-        else
-            REVERSE=""
-            NORMAL="|"
-        fi
+		local REVERSE NORMAL
+		REVERSE=$(tput rev)
+		if [[ "$REVERSE" ]]; then
+			NORMAL="${PREHIDE}$(tput sgr0)${POSTHIDE}"
+			REVERSE="${PREHIDE}${REVERSE}${POSTHIDE}"
+		else
+			REVERSE=""
+			NORMAL="|"
+		fi
 		PS1='${_PROMPT_LINE}'"
 ${REVERSE}${_PROMPT_TEXT}${NORMAL} "
 	fi
@@ -685,8 +690,6 @@ _FGCOLOR() {
 alias bgcolor=_BGCOLOR
 alias fgcolor=_FGCOLOR
 
-
-
 _INIT_CONFIG() {
 	if [[ -n $XDG_CONFIG_HOME ]]; then
 		_MONORAIL_CONFIG="${XDG_CONFIG_HOME}/monorail"
@@ -696,7 +699,7 @@ _INIT_CONFIG() {
 	mkdir -p "${_MONORAIL_CONFIG}"
 	unset -f _INIT_CONFIG
 	if [[ ! -f "${_MONORAIL_DIR}"/colors.sh ]]; then
-		cp "${_MONORAIL_DIR}"/default_colors.sh "${_MONORAIL_CONFIG}"/colors.sh
+		\cp "${_MONORAIL_DIR}"/default_colors.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
 	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 }
