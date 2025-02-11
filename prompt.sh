@@ -82,9 +82,9 @@ _ICON() {
 	fi
 	"$@"
 }
-_PROMPT_INVALIDATE_CACHE ()
-{
-    unset _PROMPT_DATE _PROMPT_CACHE
+_PROMPT_INVALIDATE_CACHE() {
+	unset _PROMPT_DATE _PROMPT_CACHE
+	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 }
 . "${_MONORAIL_DIR}"/gradient/gradient.sh
 
@@ -249,7 +249,7 @@ _PROMPT_COMMAND() {
 	HISTCMD_before_last=$_PROMPT_HISTCMD_PREV
 	trap "_PROMPT_CTRLC=1;\echo -n" INT
 	trap "_PROMPT_CTRLC=1;\echo -n" ERR
-	([[ $BASH_VERSION ]] && history -a)
+	([[ $BASH_VERSION ]] && history -a &>/dev/null &)
 }
 
 _PROMPT_SUPPORTED_TERMINAL() {
@@ -520,7 +520,6 @@ _PROMPT() {
 		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
 	fi
 
-
 	if [[ $_PROMPT_CACHE != "$COLUMNS$_PROMPT_TEXT" ]]; then
 		if _PROMPT_SUPPORTED_TERMINAL; then
 			CHAR="▁"
@@ -576,7 +575,7 @@ _PROMPT() {
 			fi
 			INDEX=$((INDEX + 1))
 		done
-        _PROMPT_INVALIDATE_CACHE
+		_PROMPT_INVALIDATE_CACHE
 		_PROMPT_CACHE="$COLUMNS$_PROMPT_TEXT"
 	fi
 
@@ -666,7 +665,7 @@ _BGCOLOR() {
 		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 	} >"${_MONORAIL_CONFIG}"/colors.sh
-    _PROMPT_INVALIDATE_CACHE
+	_PROMPT_INVALIDATE_CACHE
 }
 
 _FGCOLOR() {
@@ -687,7 +686,7 @@ _FGCOLOR() {
 		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 	} >"${_MONORAIL_CONFIG}"/colors.sh
-    _PROMPT_INVALIDATE_CACHE
+	_PROMPT_INVALIDATE_CACHE
 }
 
 alias bgcolor=_BGCOLOR
@@ -701,11 +700,10 @@ _INIT_CONFIG() {
 	fi
 	mkdir -p "${_MONORAIL_CONFIG}"
 	unset -f _INIT_CONFIG
-	if [[ ! -f "${_MONORAIL_DIR}"/colors.sh ]]; then
+	if [[ ! -f "${_MONORAIL_CONFIG}"/colors.sh ]]; then
 		\cp "${_MONORAIL_DIR}"/default_colors.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
-	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
-    _PROMPT_INVALIDATE_CACHE
+	_PROMPT_INVALIDATE_CACHE
 }
 _INIT_CONFIG
 
