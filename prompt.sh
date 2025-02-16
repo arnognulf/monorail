@@ -82,8 +82,8 @@ _ICON() {
 	fi
 	"$@"
 }
-_PROMPT_INVALIDATE_CACHE() {
-	unset _PROMPT_DATE _PROMPT_CACHE
+_MONORAIL_INVALIDATE_CACHE() {
+	unset _MONORAIL_DATE _MONORAIL_CACHE
 	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 }
 . "${_MONORAIL_DIR}"/gradient/gradient.sh
@@ -126,11 +126,12 @@ _PROMPT_INVALIDATE_CACHE() {
 # load system git sh prompt
 [ -f /usr/lib/git-core/git-sh-prompt ] && . /usr/lib/git-core/git-sh-prompt
 
-_PROMPT_DUMB_TERMINAL() {
+_MONORAIL_DUMB_TERMINAL() {
 	if [[ $TERM = "tek"* ]] ||
 		[[ $TERM = "dumb" ]] ||
 		[[ $TERM = "wyse60" ]] ||
 		[[ $TERM = "adm3a" ]] ||
+		[[ $TERM = "vt50" ]] ||
 		[[ $TERM = "vt52" ]]; then
 		return 0
 	else
@@ -138,16 +139,16 @@ _PROMPT_DUMB_TERMINAL() {
 	fi
 }
 
-if _PROMPT_DUMB_TERMINAL; then
+if _MONORAIL_DUMB_TERMINAL; then
 	bind 'set enable-bracketed-paste off'
 fi
 
-_PROMPT_ALERT() {
+_MONORAIL_ALERT() {
 	(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg &>/dev/null &)
 }
 
 # TODO: make callback
-_PROMPT_MAGIC_SHELLBALL() {
+_MONORAIL_MAGIC_SHELLBALL() {
 	local ANSWER SPACES i
 	SPACES=""
 	i=0
@@ -189,7 +190,7 @@ _PROMPT_MAGIC_SHELLBALL() {
 	\echo -e "\e[?25l\e[3A\r\e[K${SPACES}${ANSWER}"
 }
 
-_PROMPT_COMMAND() {
+_MONORAIL_COMMAND() {
 	local CMD_STATUS
 	CMD_STATUS=$?
 	# disconnect other clients and resize window to current size
@@ -201,17 +202,17 @@ _PROMPT_COMMAND() {
 	\printf "%$((COLUMNS - 1))s\\r"
 	# https://unix.stackexchange.com/questions/226909/tell-if-last-command-was-empty-in-prompt-command
 	HISTCONTROL=
-	_PROMPT_HISTCMD_PREV=$(fc -l -1)
-	_PROMPT_HISTCMD_PREV=${_PROMPT_HISTCMD_PREV%%$'[\t ]'*}
-	if [[ -z $HISTCMD_before_last ]]; then
+	_MONORAIL_HISTCMD_PREV=$(fc -l -1)
+	_MONORAIL_HISTCMD_PREV=${_MONORAIL_HISTCMD_PREV%%$'[\t ]'*}
+	if [[ -z $_MONORAIL_PENULTIMATE ]]; then
 		# initial prompt
 		CR_FIRST=1
 		CR_LEVEL=0
-		_PROMPT_CTRLC=""
+		_MONORAIL_CTRLC=""
 		:
-	elif [[ $HISTCMD_before_last = "$_PROMPT_HISTCMD_PREV" ]]; then
+	elif [[ $_MONORAIL_PENULTIMATE = "$_MONORAIL_HISTCMD_PREV" ]]; then
 		# cancelled prompt
-		if [[ -z "$CR_FIRST" ]] && [[ "$CMD_STATUS" = 0 ]] && [[ -z "$_PROMPT_CTRLC" ]]; then
+		if [[ -z "$CR_FIRST" ]] && [[ "$CMD_STATUS" = 0 ]] && [[ -z "$_MONORAIL_CTRLC" ]]; then
 			case "${CR_LEVEL}" in
 			0)
 				# call ls, do not ignore user alias by prepending a \
@@ -226,7 +227,7 @@ _PROMPT_COMMAND() {
 			2)
 				CR_LEVEL=3
 				(
-					if _PROMPT_DUMB_TERMINAL; then
+					if _MONORAIL_DUMB_TERMINAL; then
 						\git -c color.status=never status | \head -n$((LINES - 2)) | \head -n$((LINES - 4))
 					else
 						\git -c color.status=always status | \head -n$((LINES - 2)) | \head -n$((LINES - 4))
@@ -234,7 +235,7 @@ _PROMPT_COMMAND() {
 				)
 				\echo -e "        ...\n\n"
 				;;
-			*) _PROMPT_MAGIC_SHELLBALL ;;
+			*) _MONORAIL_MAGIC_SHELLBALL ;;
 			esac
 			CR_LEVEL=$((CR_LEVEL + 1))
 		fi
@@ -245,19 +246,19 @@ _PROMPT_COMMAND() {
 		unset CR_FIRST
 		CR_LEVEL=0
 	fi
-	_PROMPT_CTRLC=""
-	HISTCMD_before_last=$_PROMPT_HISTCMD_PREV
-	trap "_PROMPT_CTRLC=1;\echo -n" INT
-	trap "_PROMPT_CTRLC=1;\echo -n" ERR
+	_MONORAIL_CTRLC=""
+	_MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
+	trap "_MONORAIL_CTRLC=1;\echo -n" INT
+	trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 	([[ $BASH_VERSION ]] && history -a &>/dev/null &)
 }
 
-_PROMPT_SUPPORTED_TERMINAL() {
+_MONORAIL_SUPPORTED_TERMINAL() {
 	# Most modern terminals support truecolor and UTF-8.
 	# Instead of falsely detecting truecolor and UTF-8 not supported,
 	# default to truecolor and UTF-8 being supported and make exceptions for known
 	# non-supported terminals.
-	if _PROMPT_DUMB_TERMINAL; then
+	if _MONORAIL_DUMB_TERMINAL; then
 		return 1
 	elif [[ $TERM != "vt100" ]] &&
 		[[ $TERM != "linux" ]] &&
@@ -311,8 +312,8 @@ preexec() {
 		case "${_TIMER_CMD}" in
 		"c "* | "cd "* | ".."*) : ;;
 		*)
-			[[ -z "${_PROMPT_DATE}" ]] && _PROMPT_DATE=$(LC_MESSAGES=C LC_ALL=C date +%m-%d)
-			case ${_PROMPT_DATE} in
+			[[ -z "${_MONORAIL_DATE}" ]] && _MONORAIL_DATE=$(LC_MESSAGES=C LC_ALL=C date +%m-%d)
+			case ${_MONORAIL_DATE} in
 			10-2* | 10-3*)
 				CHAR=🎃
 				;;
@@ -349,19 +350,19 @@ preexec() {
 		fi
 		_MEASURE=1
 		_START_SECONDS=$SECONDS
-		if _PROMPT_SUPPORTED_TERMINAL; then
+		if _MONORAIL_SUPPORTED_TERMINAL; then
 			\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${_PROMPT_FGCOLOR}"
 		fi
 		# bypass STDOUT/STDERR
 	} &>"${TTY}"
 }
 
-_PROMPT_STOP_TIMER() {
+_MONORAIL_STOP_TIMER() {
 	{
 		local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 		CURRENT_SECONDS=${SECONDS}
 		DIFF=$((CURRENT_SECONDS - _START_SECONDS))
-		if [[ ${_MEASURE-0} -gt 0 ]] && [[ ${DIFF} -gt ${_PROMPT_TIMEOUT-29} ]]; then
+		if [[ ${_MEASURE-0} -gt 0 ]] && [[ ${DIFF} -gt ${_MONORAIL_TIMEOUT-29} ]]; then
 			SECONDS_M=$((DIFF % 3600))
 
 			DURATION_H=$((DIFF / 3600))
@@ -374,8 +375,8 @@ _PROMPT_STOP_TIMER() {
 			DURATION="${DURATION}${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).""
 			\echo "${DURATION}"
 			(exec notify-send -a "Completed ${_TIMER_CMD}" -i terminal "${_TIMER_CMD}" "Command took ${DURATION}" &)
-			_PROMPT_ALERT
-			_PROMPT_LONGRUNNING=1
+			_MONORAIL_ALERT
+			_MONORAIL_LONGRUNNING=1
 		fi
 		_MEASURE=0
 	} 2>/dev/null
@@ -384,8 +385,8 @@ _PROMPT_STOP_TIMER() {
 title() {
 	TITLE_OVERRIDE="$*"
 }
-_PROMPT() {
-	if [ -n "${_PROMPT_LONGRUNNING}" ]; then
+_MONORAIL() {
+	if [ -n "${_MONORAIL_LONGRUNNING}" ]; then
 		TITLE="✅ Completed ${_TIMER_CMD}"
 		if [ -n "$SSH_CLIENT" ]; then
 			local SHORT_HOSTNAME=${HOSTNAME%%.*}
@@ -396,13 +397,13 @@ _PROMPT() {
 			TITLE="${TITLE} on ${SCHROOT_ALIAS_NAME}"
 		fi
 
-		unset _PROMPT_LONGRUNNING
+		unset _MONORAIL_LONGRUNNING
 		return 0
 	fi
-	local _PROMPT_REALPWD
-	_PROMPT_REALPWD="${PWD}"
+	local _MONORAIL_REALPWD
+	_MONORAIL_REALPWD="${PWD}"
 	case "${PWD}" in
-	/run/user/*/gvfs/*) _PROMPT_GIT_PS1="" ;;
+	/run/user/*/gvfs/*) _MONORAIL_GIT_PS1="" ;;
 	*)
 		local PROMPT_PWD PROMPT_REPO
 		PROMPT_PWD="${PWD}"
@@ -415,7 +416,7 @@ _PROMPT() {
 			fi
 			PROMPT_PWD="${PROMPT_PWD%/*}"
 		done
-		_PROMPT_GIT_PS1=$(NO_TITLE=1 TERM=dumb LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
+		_MONORAIL_GIT_PS1=$(NO_TITLE=1 TERM=dumb LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
 		;;
 	esac
 
@@ -434,7 +435,7 @@ _PROMPT() {
 			if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
 				TITLE="${TITLE} on ${SCHROOT_ALIAS_NAME}"
 			fi
-		elif [ -n "${_PROMPT_GIT_PS1}" ]; then
+		elif [ -n "${_MONORAIL_GIT_PS1}" ]; then
 			TITLE="🚧  ${PWD##*/}"
 			if [ -n "$SSH_CLIENT" ]; then
 				TITLE="${TITLE} on ${SHORT_HOSTNAME}"
@@ -464,7 +465,7 @@ _PROMPT() {
 			*/Downloads | */Downloads/* | "${XDG_DOWNLOAD_DIR}" | "${XDG_DOWNLOAD_DIR}"/*) TITLE="📦  ${PWD##*/}" ;;
 			*) TITLE="📂  ${PWD##*/}" ;;
 			esac
-			case "${_PROMPT_REALPWD}" in
+			case "${_MONORAIL_REALPWD}" in
 			"${HOME}")
 				if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
 					TITLE="🏠  ${SCHROOT_ALIAS_NAME}"
@@ -502,13 +503,13 @@ _PROMPT() {
 	local PWD_BASENAME="${PWD##*/}"
 	[ -z "${PWD_BASENAME}" ] && PWD_BASENAME=/
 	case ${PWD} in
-	"${HOME}") _PROMPT_PWD_BASENAME="~" ;;
-	*) _PROMPT_PWD_BASENAME="${NAME-${PWD_BASENAME}}" ;;
+	"${HOME}") _MONORAIL_PWD_BASENAME="~" ;;
+	*) _MONORAIL_PWD_BASENAME="${NAME-${PWD_BASENAME}}" ;;
 	esac
-	_PROMPT_TEXT=" ${_PROMPT_PWD_BASENAME}${_PROMPT_GIT_PS1} "$([ $UID = 0 ] && \echo "# ")
+	_MONORAIL_TEXT=" ${_MONORAIL_PWD_BASENAME}${_MONORAIL_GIT_PS1} "$([ $UID = 0 ] && \echo "# ")
 	local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR
 
-	CURSORPOS=$((${#_PROMPT_TEXT} + 1))
+	CURSORPOS=$((${#_MONORAIL_TEXT} + 1))
 	RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * CURSORPOS / $((COLUMNS + 1))))]}
 	RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 	RGB_CUR_GB=${RGB_CUR_COLOR#*;}
@@ -516,12 +517,13 @@ _PROMPT() {
 	RGB_CUR_B=${RGB_CUR_GB##*;}
 	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
 	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
-	if _PROMPT_SUPPORTED_TERMINAL; then
+	if _MONORAIL_SUPPORTED_TERMINAL; then
 		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
 	fi
+    local CHAR
 
-	if [[ $_PROMPT_CACHE != "$COLUMNS$_PROMPT_TEXT" ]]; then
-		if _PROMPT_SUPPORTED_TERMINAL; then
+	if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]]; then
+		if _MONORAIL_SUPPORTED_TERMINAL; then
 			CHAR="▁"
 			\printf "\e[0m"
 		elif [[ $TERM = vt100 ]]; then
@@ -532,37 +534,37 @@ _PROMPT() {
 
 		local INDEX=0
 		if [[ "$TERM" = vt100 ]]; then
-			_PROMPT_LINE="${ESC}#6${ESC}(0"
-			_PROMPT_ATTRIBUTE="${ESC}[7m"
-		elif _PROMPT_SUPPORTED_TERMINAL; then
-			_PROMPT_ATTRIBUTE=""
-			_PROMPT_LINE=""
+			_MONORAIL_LINE="${ESC}#6${ESC}(0"
+			_MONORAIL_ATTRIBUTE="${ESC}[7m"
+		elif _MONORAIL_SUPPORTED_TERMINAL; then
+			_MONORAIL_ATTRIBUTE=""
+			_MONORAIL_LINE=""
 		else
-			_PROMPT_ATTRIBUTE="${ESC}[7m"
-			_PROMPT_LINE=""
+			_MONORAIL_ATTRIBUTE="${ESC}[7m"
+			_MONORAIL_LINE=""
 		fi
 		local TEMP_COLUMNS=$COLUMNS
-		_PROMPT_DUMB_TERMINAL && TEMP_COLUMNS=$((COLUMNS - 2))
+		_MONORAIL_DUMB_TERMINAL && TEMP_COLUMNS=$((COLUMNS - 2))
 		while [ ${INDEX} -lt ${TEMP_COLUMNS} ]; do
 			# 16M colors broken in mosh
 			if [ "${TERM}" = vt100 ]; then
 				if [ ${INDEX} -lt $((TEMP_COLUMNS / 2)) ]; then
-					_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
+					_MONORAIL_LINE="${_MONORAIL_LINE}${CHAR}"
 				else
 					:
 				fi
-			elif _PROMPT_SUPPORTED_TERMINAL; then
-				_PROMPT_LINE="${_PROMPT_LINE}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((TEMP_COLUMNS + 1))))]}${POST}${CHAR}"
+			elif _MONORAIL_SUPPORTED_TERMINAL; then
+				_MONORAIL_LINE="${_MONORAIL_LINE}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((TEMP_COLUMNS + 1))))]}${POST}${CHAR}"
 			else
-				_PROMPT_LINE="${_PROMPT_LINE}${CHAR}"
+				_MONORAIL_LINE="${_MONORAIL_LINE}${CHAR}"
 			fi
 			INDEX=$((INDEX + 1))
 		done
-		_PROMPT_TEXT_FORMATTED=""
+		_MONORAIL_TEXT_FORMATTED=""
 		local INDEX=0
-		while [ ${INDEX} -lt ${#_PROMPT_TEXT} ]; do
+		while [ ${INDEX} -lt ${#_MONORAIL_TEXT} ]; do
 			if [ "$TERM" = "vt100" ] || [ "$TERM" = "linux" ] || [ "$MC_TMPDIR" ]; then
-				_PROMPT_TEXT_FORMATTED="${_PROMPT_TEXT_FORMATTED}${_PROMPT_TEXT:${INDEX}:1}"
+				_MONORAIL_TEXT_FORMATTED="${_MONORAIL_TEXT_FORMATTED}${_MONORAIL_TEXT:${INDEX}:1}"
 			else
 				local LUT &>/dev/null
 				LUT=$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))
@@ -571,21 +573,21 @@ _PROMPT() {
 					_PROMPT_TEXT_LUT[0]=$(\printf "%d;%d;%d" "${_PROMPT_BGCOLOR:0:2}" "${_PROMPT_BGCOLOR:2:2}" "${_PROMPT_BGCOLOR:4:2}")
 				fi
 				local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
-				_PROMPT_TEXT_FORMATTED="${_PROMPT_TEXT_FORMATTED}${PREHIDE}${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${POSTHIDE}${_PROMPT_TEXT:${INDEX}:1}"
+				_MONORAIL_TEXT_FORMATTED="${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${POSTHIDE}${_MONORAIL_TEXT:${INDEX}:1}"
 			fi
 			INDEX=$((INDEX + 1))
 		done
-		_PROMPT_INVALIDATE_CACHE
-		_PROMPT_CACHE="$COLUMNS$_PROMPT_TEXT"
+		_MONORAIL_INVALIDATE_CACHE
+		_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 	fi
 
 	LC_MESSAGES=C LC_ALL=C stty echo 2>/dev/null
 	if [[ "$TERM" = "mlterm" ]]; then
-		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_PROMPT_LINE}'"
-${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
-	elif _PROMPT_SUPPORTED_TERMINAL || [[ "$TERM" = "vt100" ]]; then
-		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}${ESC}[0m"'${_PROMPT_LINE}'"
-${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
+		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_MONORAIL_LINE}'"
+${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
+	elif _MONORAIL_SUPPORTED_TERMINAL || [[ "$TERM" = "vt100" ]]; then
+		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}${ESC}[0m"'${_MONORAIL_LINE}'"
+${PREHIDE}${ESC}(1${_MONORAIL_ATTRIBUTE}${POSTHIDE}${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 	else
 		local REVERSE NORMAL
 		REVERSE=$(tput rev)
@@ -596,15 +598,15 @@ ${PREHIDE}${ESC}(1${_PROMPT_ATTRIBUTE}${POSTHIDE}${_PROMPT_TEXT_FORMATTED}${PREH
 			REVERSE=""
 			NORMAL="|"
 		fi
-		PS1='${_PROMPT_LINE}'"
-${REVERSE}${_PROMPT_TEXT}${NORMAL} "
+		PS1='${_MONORAIL_LINE}'"
+${REVERSE}${_MONORAIL_TEXT}${NORMAL} "
 	fi
 }
 
 precmd() {
-	_PROMPT_STOP_TIMER
-	_PROMPT_COMMAND
-	_PROMPT
+	_MONORAIL_STOP_TIMER
+	_MONORAIL_COMMAND
+	_MONORAIL
 }
 _TITLE_RAW() {
 	if [[ -z "$NO_TITLE" ]] && [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
@@ -612,7 +614,7 @@ _TITLE_RAW() {
 	fi
 }
 
-_PROMPT_CONTRAST() {
+_MONORAIL_CONTRAST() {
 	COLOR1=$1
 	COLOR2=$2
 
@@ -656,7 +658,7 @@ _BGCOLOR() {
 		return 1
 	fi
 
-	_PROMPT_CONTRAST "${_PROMPT_FGCOLOR}" "$1" || return 1
+	_MONORAIL_CONTRAST "${_PROMPT_FGCOLOR}" "$1" || return 1
 
 	_PROMPT_BGCOLOR="$1"
 	{
@@ -665,7 +667,7 @@ _BGCOLOR() {
 		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 	} >"${_MONORAIL_CONFIG}"/colors.sh
-	_PROMPT_INVALIDATE_CACHE
+	_MONORAIL_INVALIDATE_CACHE
 }
 
 _FGCOLOR() {
@@ -677,7 +679,7 @@ _FGCOLOR() {
 		return 1
 	fi
 
-	_PROMPT_CONTRAST "${_PROMPT_BGCOLOR}" "$1" || return 1
+	_MONORAIL_CONTRAST "${_PROMPT_BGCOLOR}" "$1" || return 1
 
 	_PROMPT_FGCOLOR="$1"
 	{
@@ -686,7 +688,7 @@ _FGCOLOR() {
 		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 	} >"${_MONORAIL_CONFIG}"/colors.sh
-	_PROMPT_INVALIDATE_CACHE
+	_MONORAIL_INVALIDATE_CACHE
 }
 
 alias bgcolor=_BGCOLOR
@@ -703,7 +705,7 @@ _INIT_CONFIG() {
 	if [[ ! -f "${_MONORAIL_CONFIG}"/colors.sh ]]; then
 		\cp "${_MONORAIL_DIR}"/default_colors.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
-	_PROMPT_INVALIDATE_CACHE
+	_MONORAIL_INVALIDATE_CACHE
 }
 _INIT_CONFIG
 
