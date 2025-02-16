@@ -416,7 +416,7 @@ _MONORAIL() {
 			fi
 			PROMPT_PWD="${PROMPT_PWD%/*}"
 		done
-		_MONORAIL_GIT_PS1=$(NO_TITLE=1 TERM=dumb LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
+		_MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL= LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
 		;;
 	esac
 
@@ -609,7 +609,7 @@ precmd() {
 	_MONORAIL
 }
 _TITLE_RAW() {
-	if [[ -z "$NO_TITLE" ]] && [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
+	if [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
 		\printf "\e]0;%s\a" "$*" 1>"${TTY}" 2>/dev/null
 	fi
 }
