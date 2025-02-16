@@ -19,7 +19,7 @@ git clone https://github.com/arnognulf/monorail
 Add the following line to ~/.bashrc or ~/.zshrc
 
 ```
-. ~/.local/share/monorail/prompt.sh
+. ~/.local/share/monorail/monorail.sh
 ```
 
 Open a new terminal for changes to take effect.
