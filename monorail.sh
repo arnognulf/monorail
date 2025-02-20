@@ -83,10 +83,10 @@ _ICON() {
 	"$@"
 }
 _MONORAIL_INVALIDATE_CACHE() {
-	unset _MONORAIL_DATE _MONORAIL_CACHE
+	unset _MONORAIL_DATE _MONORAIL_CACHE _PROMPT_LUT[*] _PROMPT_TEXT_LUT[*]
 	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 }
-. "${_MONORAIL_DIR}"/gradient/gradient.sh
+. "${_MONORAIL_DIR}"/scripts/gradient.sh
 
 # avoid opening /dev/null for stdout/stderr for each call to 'command -v'
 # this improves startup time
@@ -570,7 +570,7 @@ _MONORAIL() {
 				LUT=$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))
 				if [ -z "${_PROMPT_TEXT_LUT[0]}" ]; then
 					local _PROMPT_TEXT_LUT
-					_PROMPT_TEXT_LUT[0]=$(\printf "%d;%d;%d" "${_PROMPT_BGCOLOR:0:2}" "${_PROMPT_BGCOLOR:2:2}" "${_PROMPT_BGCOLOR:4:2}")
+					_PROMPT_TEXT_LUT[0]="255;255;255"
 				fi
 				local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
 				_MONORAIL_TEXT_FORMATTED="${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${POSTHIDE}${_MONORAIL_TEXT:${INDEX}:1}"
@@ -703,7 +703,7 @@ _INIT_CONFIG() {
 	mkdir -p "${_MONORAIL_CONFIG}"
 	unset -f _INIT_CONFIG
 	if [[ ! -f "${_MONORAIL_CONFIG}"/colors.sh ]]; then
-		\cp "${_MONORAIL_DIR}"/default_colors.sh "${_MONORAIL_CONFIG}"/colors.sh
+		\cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
 	_MONORAIL_INVALIDATE_CACHE
 }
