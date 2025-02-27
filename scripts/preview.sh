@@ -19,10 +19,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-if [[ "$3" = "000_README.md" ]]
-then
-    cat "$3"
-    exit 1
+if [[ "$3" = "000_README.md" ]]; then
+	cat "$3"
+	exit 1
 fi
 _PROMPT_FGCOLOR="$1"
 _PROMPT_BGCOLOR="$2"
@@ -40,26 +39,23 @@ PRE_LINES=3
 FGCOLOR_RGB="$((0x${_PROMPT_FGCOLOR:0:2}));$((0x${_PROMPT_FGCOLOR:2:2}));$((0x${_PROMPT_FGCOLOR:4:2}))"
 BGCOLOR_RGB="$((0x${_PROMPT_BGCOLOR:0:2}));$((0x${_PROMPT_BGCOLOR:2:2}));$((0x${_PROMPT_BGCOLOR:4:2}))"
 I=0
-while [[ $I -lt $PRE_LINES ]]
-do
-J=0
-while [[ $J -lt $COLUMNS ]]
-do
-printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}$POST "
-J=$((J + 1))
-done
-printf "\n"
-I=$((I + 1))
+while [[ $I -lt $PRE_LINES ]]; do
+	J=0
+	while [[ $J -lt $COLUMNS ]]; do
+		printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}$POST "
+		J=$((J + 1))
+	done
+	printf "\n"
+	I=$((I + 1))
 done
 
 TEXT0="Lorem ipsum dolor sit amet,"
 printf "$TEXT0"
 
 J=${#TEXT0}
-while [[ $J -lt $COLUMNS ]]
-do
-printf "${PREBG}${BGCOLOR_RGB}$POST "
-J=$((J + 1))
+while [[ $J -lt $COLUMNS ]]; do
+	printf "${PREBG}${BGCOLOR_RGB}$POST "
+	J=$((J + 1))
 done
 printf "\n"
 
@@ -79,29 +75,28 @@ while [[ $INDEX -lt $COLUMNS ]]; do
 		_PROMPT_TEXT_LUT[0]="255;255;255"
 	fi
 	TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
-	printf "${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${TEXT1:${INDEX}:1}"
+	if [[ ${#_PROMPT_LUT[@]} = 0 ]]; then
+		printf "${ESC}[7m${TEXT1:${INDEX}:1}"
+	else
+		printf "${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${TEXT1:${INDEX}:1}"
+	fi
 	INDEX=$((INDEX + 1))
 done
 printf "\033[0m${PREBG}${BGCOLOR_RGB}$POST "
 TEXT2="adipiscing elit,"
 printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}${POST}${TEXT2}"
 I=$((${#TEXT1} + ${#TEXT2}))
-while [[ $I -lt $COLUMNS ]]
-do
-printf " "
-I=$((I + 1))
+while [[ $I -lt $COLUMNS ]]; do
+	printf " "
+	I=$((I + 1))
 done
 I=0
-while [[ $I -lt $((LINES - PRE_LINES - 3)) ]]
-do
-J=0
-while [[ $J -lt $COLUMNS ]]
-do
-printf "${PREBG}${BGCOLOR_RGB}$POST "
-J=$((J + 1))
+while [[ $I -lt $((LINES - PRE_LINES - 3)) ]]; do
+	J=0
+	while [[ $J -lt $COLUMNS ]]; do
+		printf "${PREBG}${BGCOLOR_RGB}$POST "
+		J=$((J + 1))
+	done
+	printf "\n"
+	I=$((I + 1))
 done
-printf "\n"
-I=$((I + 1))
-done
-
-

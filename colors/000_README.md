@@ -31,3 +31,5 @@ gradient  0 b1e874  100 ff00d3
 gradient --dark
 gradient --bgcolor=020024 --fgcolor=00d4ff
 
+To disable gradients and use the foreground color, select:
+gradient None

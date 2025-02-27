@@ -20,12 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-_main ()
-{
-case "$1" in
-""|--help|-h)
-cat <<EOF
+_main() {
+	case "$1" in
+	"" | --help | -h)
+		cat <<EOF
 BROKEN: This worked on chafa \< 1.14.5; seems broken now
 
 Usage: img2lut <IMAGE>
@@ -35,9 +33,10 @@ eval \$(./img2lut)
 ./img2lut \>my_colors.sh
 
 EOF
-exit 1
-esac
-\echo -n "_PROMPT_LUT=(\""; \chafa --optimize=0 --scale=max --fg-only --symbols=solid --fill=solid "${1}" |\tail -n$((LINES / 2)) |\head -n1|LC_ALL=C \sed -e "s/$(\printf '\e')\[0m//g" -e 's/█/" "/g' -e 's/m//g' -e 's/38;2;//g' -e "s/$(\printf '\e')\[//g" -e 's/\"39$/)/g'
+		exit 1
+		;;
+	esac
+	\echo -n "_PROMPT_LUT=(\""
+	\chafa --optimize=0 --scale=max --fg-only --symbols=solid --fill=solid "${1}" | \tail -n$((LINES / 2)) | \head -n1 | LC_ALL=C \sed -e "s/$(\printf '\e')\[0m//g" -e 's/█/" "/g' -e 's/m//g' -e 's/38;2;//g' -e "s/$(\printf '\e')\[//g" -e 's/\"39$/)/g'
 }
 _main "$@"
-

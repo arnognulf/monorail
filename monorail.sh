@@ -64,7 +64,7 @@ _ICON() {
 			FIRST_ARG="${1}"
 
 			FIRST_NON_OPTION="${2}"
-			while [ "${FIRST_NON_OPTION:0:1}" = '-' ] || [ "${FIRST_NON_OPTION:0:1}" = '_' ] || [ "${FIRST_NON_OPTION}" = '.' ]; do
+			while [[ "${FIRST_NON_OPTION:0:1}" = '-' ]] || [ "${FIRST_NON_OPTION:0:1}" = '_' ] || [ "${FIRST_NON_OPTION}" = '.' ]; do
 				if [ "${FIRST_NON_OPTION}" = '-u' ]; then
 					shift 2
 				else
@@ -83,7 +83,7 @@ _ICON() {
 	"$@"
 }
 _MONORAIL_INVALIDATE_CACHE() {
-	unset _MONORAIL_DATE _MONORAIL_CACHE _PROMPT_LUT[*] _PROMPT_TEXT_LUT[*]
+	unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 }
 . "${_MONORAIL_DIR}"/scripts/gradient.sh
@@ -124,10 +124,11 @@ _MONORAIL_INVALIDATE_CACHE() {
 . "${_MONORAIL_DIR}"/bash-preexec/bash-preexec.sh
 
 # load system git sh prompt
-[ -f /usr/lib/git-core/git-sh-prompt ] && . /usr/lib/git-core/git-sh-prompt
+[[ -f /usr/lib/git-core/git-sh-prompt ]] && . /usr/lib/git-core/git-sh-prompt
 
 _MONORAIL_DUMB_TERMINAL() {
 	if [[ $TERM = "tek"* ]] ||
+		[[ $TERM = "ibm-327"* ]] ||
 		[[ $TERM = "dumb" ]] ||
 		[[ $TERM = "wyse60" ]] ||
 		[[ $TERM = "adm3a" ]] ||
@@ -183,7 +184,7 @@ _MONORAIL_MAGIC_SHELLBALL() {
 		;;
 	esac
 
-	while [ ${i} -lt $((COLUMNS / 2 - ${#ANSWER} / 2)) ]; do
+	while [[ ${i} -lt $((COLUMNS / 2 - ${#ANSWER} / 2)) ]]; do
 		SPACES="${SPACES} "
 		i=$((i + 1))
 	done
@@ -260,7 +261,7 @@ _MONORAIL_SUPPORTED_TERMINAL() {
 	# non-supported terminals.
 	if _MONORAIL_DUMB_TERMINAL; then
 		return 1
-	elif [[ $TERM != "vt100" ]] &&
+	elif [[ $TERM != "vt"??? ]] &&
 		[[ $TERM != "linux" ]] &&
 		[[ $TERM != "freebsd" ]] &&
 		[[ $TERM != "bsdos" ]] &&
@@ -327,12 +328,12 @@ preexec() {
 			;;
 		esac
 		LINE="${CHAR}  ${_TIMER_CMD}"
-		if [ -n "$TMUX" ]; then
+		if [[ "$TMUX" ]]; then
 			SHORT_HOSTNAME=${HOSTNAME%%.*}
 			SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
 			LINE="${LINE} on ${SHORT_HOSTNAME}"
 		fi
-		if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
+		if [[ "${SCHROOT_ALIAS_NAME}" ]]; then
 			LINE="${LINE} on ${SCHROOT_ALIAS_NAME}"
 		fi
 		CUSTOM_TITLE=0
@@ -341,11 +342,11 @@ preexec() {
 		CMD=${CMD%%;*}
 		alias "${CMD}" &>/dev/null && CUSTOM_TITLE=1
 		for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}"; do
-			if [ "${COMMAND}" = "${_TIMER_CMD:0:${#COMMAND}}" ]; then
+			if [[ "${COMMAND}" = "${_TIMER_CMD:0:${#COMMAND}}" ]]; then
 				CUSTOM_TITLE=1
 			fi
 		done
-		if [ ${CUSTOM_TITLE} = 0 ]; then
+		if [[ ${CUSTOM_TITLE} = 0 ]]; then
 			_TITLE "$LINE"
 		fi
 		_MEASURE=1
@@ -386,14 +387,14 @@ title() {
 	TITLE_OVERRIDE="$*"
 }
 _MONORAIL() {
-	if [ -n "${_MONORAIL_LONGRUNNING}" ]; then
+	if [[ "${_MONORAIL_LONGRUNNING}" ]]; then
 		TITLE="✅ Completed ${_TIMER_CMD}"
-		if [ -n "$SSH_CLIENT" ]; then
+		if [[ "$SSH_CLIENT" ]]; then
 			local SHORT_HOSTNAME=${HOSTNAME%%.*}
 			SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
 			TITLE="${TITLE} on ${SHORT_HOSTNAME}"
 		fi
-		if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
+		if [[ "${SCHROOT_ALIAS_NAME}" ]]; then
 			TITLE="${TITLE} on ${SCHROOT_ALIAS_NAME}"
 		fi
 
@@ -409,38 +410,38 @@ _MONORAIL() {
 		PROMPT_PWD="${PWD}"
 		PROMPT_REPO=""
 
-		while [ -n "${PROMPT_PWD}" ]; do
-			if [ -d "${PROMPT_PWD}/.repo" ]; then
+		while [[ "${PROMPT_PWD}" ]]; do
+			if [[ -d "${PROMPT_PWD}/.repo" ]]; then
 				PROMPT_REPO=1
 				break
 			fi
 			PROMPT_PWD="${PROMPT_PWD%/*}"
 		done
-		_MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL= LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
+		_MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
 		;;
 	esac
 
-	if [ "${TITLE_OVERRIDE}" = "" ]; then
+	if [[ "${TITLE_OVERRIDE}" = "" ]]; then
 		local SHORT_HOSTNAME=${HOSTNAME%%.*}
 		if [[ $ZSH_NAME ]]; then
 			SHORT_HOSTNAME=$SHORT_HOSTNAME:l
 		else
 			SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
 		fi
-		if [ -n "${PROMPT_REPO}" ]; then
+		if [[ "${PROMPT_REPO}" ]]; then
 			TITLE="🏗️  ${PWD##*/}"
-			if [ -n "$SSH_CLIENT" ]; then
+			if [[ "$SSH_CLIENT" ]]; then
 				TITLE="${TITLE} on ${SHORT_HOSTNAME}"
 			fi
-			if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
+			if [[ "${SCHROOT_ALIAS_NAME}" ]]; then
 				TITLE="${TITLE} on ${SCHROOT_ALIAS_NAME}"
 			fi
-		elif [ -n "${_MONORAIL_GIT_PS1}" ]; then
+		elif [[ "${_MONORAIL_GIT_PS1}" ]]; then
 			TITLE="🚧  ${PWD##*/}"
-			if [ -n "$SSH_CLIENT" ]; then
+			if [[ "$SSH_CLIENT" ]]; then
 				TITLE="${TITLE} on ${SHORT_HOSTNAME}"
 			fi
-			if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
+			if [[ "${SCHROOT_ALIAS_NAME}" ]]; then
 				TITLE="${TITLE} on ${SCHROOT_ALIAS_NAME}"
 			fi
 		else
@@ -467,17 +468,17 @@ _MONORAIL() {
 			esac
 			case "${_MONORAIL_REALPWD}" in
 			"${HOME}")
-				if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
+				if [[ "${SCHROOT_ALIAS_NAME}" ]]; then
 					TITLE="🏠  ${SCHROOT_ALIAS_NAME}"
 				else
 					TITLE="🏠  ${SHORT_HOSTNAME}"
 				fi
 				;;
 			*)
-				if [ -n "$SSH_CLIENT" ]; then
+				if [[ "$SSH_CLIENT" ]]; then
 					TITLE="${TITLE} on ${SHORT_HOSTNAME}"
 				fi
-				if [ -n "${SCHROOT_ALIAS_NAME}" ]; then
+				if [[ "${SCHROOT_ALIAS_NAME}" ]]; then
 					TITLE="${TITLE} on ${SCHROOT_ALIAS_NAME}"
 				fi
 				;;
@@ -517,26 +518,27 @@ _MONORAIL() {
 	RGB_CUR_B=${RGB_CUR_GB##*;}
 	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
 	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
+	[[ ${#_PROMPT_LUT[@]} = 0 ]] && HEX_CUR_COLOR=${_PROMPT_FGCOLOR}
 	if _MONORAIL_SUPPORTED_TERMINAL; then
 		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
 	fi
-    local CHAR
+	local CHAR
 
 	if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]]; then
 		if _MONORAIL_SUPPORTED_TERMINAL; then
-			CHAR="▁"
-			\printf "\e[0m"
-		elif [[ $TERM = vt100 ]]; then
-			CHAR=$'\xF3'
+			CHAR=$'\xe2\x96\x81'
+		elif [[ $TERM = "vt"??? ]]; then
+			CHAR=s
 		else
 			CHAR="_"
 		fi
 
 		local INDEX=0
-		if [[ "$TERM" = vt100 ]]; then
-			_MONORAIL_LINE="${ESC}#6${ESC}(0"
-			_MONORAIL_ATTRIBUTE="${ESC}[7m"
-		elif _MONORAIL_SUPPORTED_TERMINAL; then
+		if [[ $TERM = "vt"??? ]]; then
+			# reset attr; bold; double width; dec special graphics
+			_MONORAIL_LINE="${ESC}[0;1m${ESC}#6${ESC}(0"
+			_MONORAIL_ATTRIBUTE="${ESC}(1${ESC}[0;7m"
+		elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]] && _MONORAIL_SUPPORTED_TERMINAL; then
 			_MONORAIL_ATTRIBUTE=""
 			_MONORAIL_LINE=""
 		else
@@ -547,7 +549,7 @@ _MONORAIL() {
 		_MONORAIL_DUMB_TERMINAL && TEMP_COLUMNS=$((COLUMNS - 2))
 		while [ ${INDEX} -lt ${TEMP_COLUMNS} ]; do
 			# 16M colors broken in mosh
-			if [ "${TERM}" = vt100 ]; then
+			if [[ "${TERM}" = "vt"??? ]]; then
 				if [ ${INDEX} -lt $((TEMP_COLUMNS / 2)) ]; then
 					_MONORAIL_LINE="${_MONORAIL_LINE}${CHAR}"
 				else
@@ -563,7 +565,7 @@ _MONORAIL() {
 		_MONORAIL_TEXT_FORMATTED=""
 		local INDEX=0
 		while [ ${INDEX} -lt ${#_MONORAIL_TEXT} ]; do
-			if [ "$TERM" = "vt100" ] || [ "$TERM" = "linux" ] || [ "$MC_TMPDIR" ]; then
+			if [[ ${#_PROMPT_LUT[@]} = 0 ]] || [[ "$TERM" = "vt"??? ]] || [[ "$TERM" = "linux" ]] || [[ "$MC_TMPDIR" ]]; then
 				_MONORAIL_TEXT_FORMATTED="${_MONORAIL_TEXT_FORMATTED}${_MONORAIL_TEXT:${INDEX}:1}"
 			else
 				local LUT &>/dev/null
@@ -585,14 +587,14 @@ _MONORAIL() {
 	if [[ "$TERM" = "mlterm" ]]; then
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_MONORAIL_LINE}'"
 ${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
-	elif _MONORAIL_SUPPORTED_TERMINAL || [[ "$TERM" = "vt100" ]]; then
+	elif _MONORAIL_SUPPORTED_TERMINAL || [[ "$TERM" = "vt"??? ]]; then
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}${ESC}[0m"'${_MONORAIL_LINE}'"
-${PREHIDE}${ESC}(1${_MONORAIL_ATTRIBUTE}${POSTHIDE}${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
+${PREHIDE}${_MONORAIL_ATTRIBUTE}${POSTHIDE}${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 	else
 		local REVERSE NORMAL
-		REVERSE=$(tput rev)
+		REVERSE=$(tput rev 2>/dev/null)
 		if [[ "$REVERSE" ]]; then
-			NORMAL="${PREHIDE}$(tput sgr0)${POSTHIDE}"
+			NORMAL="${PREHIDE}$(tput sgr0 2>/dev/null)${POSTHIDE}"
 			REVERSE="${PREHIDE}${REVERSE}${POSTHIDE}"
 		else
 			REVERSE=""
@@ -661,6 +663,8 @@ _BGCOLOR() {
 	_MONORAIL_CONTRAST "${_PROMPT_FGCOLOR}" "$1" || return 1
 
 	_PROMPT_BGCOLOR="$1"
+	[[ ${#_PROMPT_TEXT_LUT[@]} ]] && _PROMPT_TEXT_LUT=()
+	[[ ${#_PROMPT_LUT[@]} ]] && _PROMPT_LUT=()
 	{
 		declare -p _PROMPT_LUT | cut -d" " -f3-1024
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
@@ -674,7 +678,7 @@ _FGCOLOR() {
 	# reload in case user has manually modified colors.sh
 	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 
-	if [ "${#1}" != 6 ]; then
+	if [[ "${#1}" != 6 ]]; then
 		\echo "ERROR: color must be hexadecimal and 6 hexadecimal characters" 1>&2 | tee 1>/dev/null
 		return 1
 	fi
