@@ -194,11 +194,6 @@ _MONORAIL_MAGIC_SHELLBALL() {
 _MONORAIL_COMMAND() {
 	local CMD_STATUS
 	CMD_STATUS=$?
-	# disconnect other clients and resize window to current size
-	([ -n "$TMUX" ] && {
-		LC_MESSAGES=C LC_ALL=C tmux detach-client -a
-		for CLIENT in 1 2 3; do LC_MESSAGES=C LC_ALL=C tmux -L "$CLIENT" resize-window -A; done
-	} &>/dev/null &)
 	# add trailing newline for last command if missing
 	\printf "%$((COLUMNS - 1))s\\r"
 	# https://unix.stackexchange.com/questions/226909/tell-if-last-command-was-empty-in-prompt-command
