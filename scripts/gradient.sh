@@ -145,7 +145,6 @@ _GRADIENT() {
 		fi
 		;;
 	esac
-	_MONORAIL_INVALIDATE_CACHE
 	if [[ "${#@}" = 1 ]]; then
 		if [[ -f "${_MONORAIL_DIR}/colors/${1}.sh" ]]; then
 			ln -sf "${_MONORAIL_DIR}/colors/${1}".sh "${_MONORAIL_CONFIG}/colors.sh"
@@ -169,7 +168,6 @@ or \"None\" to use text color"
 			return 1
 		fi
 		. ${_MONORAIL_CONFIG}/colors.sh
-		_MONORAIL_INVALIDATE_CACHE
 		return 0
 	fi
 	# reload in case user has manually modified colors.sh
@@ -251,7 +249,8 @@ or \"None\" to use text color"
 			declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 		fi
 	} >"${DEST}" 2>/dev/null
-	_MONORAIL_INVALIDATE_CACHE
+    killall -s WINCH bash zsh &>/dev/null
 }
+_GRADIENT "$@"
 alias gradient=_GRADIENT
 alias gradienttext="_GRADIENT --text"

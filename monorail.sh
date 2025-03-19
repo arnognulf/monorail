@@ -86,7 +86,7 @@ _MONORAIL_INVALIDATE_CACHE() {
 	unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
 }
-. "${_MONORAIL_DIR}"/scripts/gradient.sh
+trap _MONORAIL_INVALIDATE_CACHE WINCH
 
 # avoid opening /dev/null for stdout/stderr for each call to 'command -v'
 # this improves startup time
@@ -118,6 +118,7 @@ _MONORAIL_INVALIDATE_CACHE() {
 	alias interactive_command=_INTERACTIVE_COMMAND
 	alias batch_command=_BATCH_COMMAND
 	. "${_MONORAIL_DIR}"/default_commands.sh
+    unalias interactive_command batch_command
 } &>/dev/null
 
 # vendored from https://github.com/rcaloras/bash-preexec (8926de0)
@@ -320,35 +321,36 @@ preexec() {
 				CHAR=▶️
 				;;
 			esac
+			LINE="${CHAR}  ${_TIMER_CMD}"
+			if [[ "$TMUX" ]]; then
+				SHORT_HOSTNAME=${HOSTNAME%%.*}
+				SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
+				LINE="${LINE} on ${SHORT_HOSTNAME}"
+			fi
+			if [[ "${SCHROOT_ALIAS_NAME}" ]]; then
+				LINE="${LINE} on ${SCHROOT_ALIAS_NAME}"
+			fi
+			CUSTOM_TITLE=0
+			local CMD
+			CMD=${_TIMER_CMD%% *}
+			CMD=${CMD%%;*}
+			alias "${CMD}" &>/dev/null && CUSTOM_TITLE=1
+			for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}"; do
+				if [[ "${COMMAND}" = "${_TIMER_CMD:0:${#COMMAND}}" ]]; then
+					CUSTOM_TITLE=1
+				fi
+			done
+			if [[ ${CUSTOM_TITLE} = 0 ]]; then
+				_TITLE "$LINE"
+			fi
+			_MEASURE=1
+			_START_SECONDS=$SECONDS
+			if _MONORAIL_SUPPORTED_TERMINAL; then
+				\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${_PROMPT_FGCOLOR}"
+			fi
 			;;
 		esac
-		LINE="${CHAR}  ${_TIMER_CMD}"
-		if [[ "$TMUX" ]]; then
-			SHORT_HOSTNAME=${HOSTNAME%%.*}
-			SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
-			LINE="${LINE} on ${SHORT_HOSTNAME}"
-		fi
-		if [[ "${SCHROOT_ALIAS_NAME}" ]]; then
-			LINE="${LINE} on ${SCHROOT_ALIAS_NAME}"
-		fi
-		CUSTOM_TITLE=0
-		local CMD
-		CMD=${_TIMER_CMD%% *}
-		CMD=${CMD%%;*}
-		alias "${CMD}" &>/dev/null && CUSTOM_TITLE=1
-		for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}"; do
-			if [[ "${COMMAND}" = "${_TIMER_CMD:0:${#COMMAND}}" ]]; then
-				CUSTOM_TITLE=1
-			fi
-		done
-		if [[ ${CUSTOM_TITLE} = 0 ]]; then
-			_TITLE "$LINE"
-		fi
-		_MEASURE=1
-		_START_SECONDS=$SECONDS
-		if _MONORAIL_SUPPORTED_TERMINAL; then
-			\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${_PROMPT_FGCOLOR}"
-		fi
+
 		# bypass STDOUT/STDERR
 	} &>"${TTY}"
 }
@@ -520,6 +522,7 @@ _MONORAIL() {
 	local CHAR
 
 	if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]]; then
+		_MONORAIL_INVALIDATE_CACHE
 		if _MONORAIL_SUPPORTED_TERMINAL; then
 			CHAR=$'\xe2\x96\x81'
 		elif [[ $TERM = "vt"??? ]]; then
@@ -542,27 +545,37 @@ _MONORAIL() {
 		fi
 		local TEMP_COLUMNS=$COLUMNS
 		_MONORAIL_DUMB_TERMINAL && TEMP_COLUMNS=$((COLUMNS - 2))
-		while [ ${INDEX} -lt ${TEMP_COLUMNS} ]; do
-			# 16M colors broken in mosh
-			if [[ "${TERM}" = "vt"??? ]]; then
+		# keep the term check as check outside of while-loop to make traces easier to read
+		if [[ "${TERM}" = "vt"??? ]]; then
+			while [ ${INDEX} -lt ${TEMP_COLUMNS} ]; do
+				# 16M colors broken in mosh
 				if [ ${INDEX} -lt $((TEMP_COLUMNS / 2)) ]; then
 					_MONORAIL_LINE="${_MONORAIL_LINE}${CHAR}"
 				else
 					:
 				fi
-			elif _MONORAIL_SUPPORTED_TERMINAL; then
+				INDEX=$((INDEX + 1))
+			done
+		elif _MONORAIL_SUPPORTED_TERMINAL; then
+			while [ ${INDEX} -lt ${TEMP_COLUMNS} ]; do
 				_MONORAIL_LINE="${_MONORAIL_LINE}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((TEMP_COLUMNS + 1))))]}${POST}${CHAR}"
-			else
+				INDEX=$((INDEX + 1))
+			done
+		else
+			while [ ${INDEX} -lt ${TEMP_COLUMNS} ]; do
 				_MONORAIL_LINE="${_MONORAIL_LINE}${CHAR}"
-			fi
-			INDEX=$((INDEX + 1))
-		done
+				INDEX=$((INDEX + 1))
+			done
+		fi
 		_MONORAIL_TEXT_FORMATTED=""
 		local INDEX=0
-		while [ ${INDEX} -lt ${#_MONORAIL_TEXT} ]; do
-			if [[ ${#_PROMPT_LUT[@]} = 0 ]] || [[ "$TERM" = "vt"??? ]] || [[ "$TERM" = "linux" ]] || [[ "$MC_TMPDIR" ]]; then
+		if [[ ${#_PROMPT_LUT[@]} = 0 ]] || [[ "$TERM" = "vt"??? ]] || [[ "$TERM" = "linux" ]] || [[ "$MC_TMPDIR" ]]; then
+			while [ ${INDEX} -lt ${#_MONORAIL_TEXT} ]; do
 				_MONORAIL_TEXT_FORMATTED="${_MONORAIL_TEXT_FORMATTED}${_MONORAIL_TEXT:${INDEX}:1}"
-			else
+				INDEX=$((INDEX + 1))
+			done
+		else
+			while [ ${INDEX} -lt ${#_MONORAIL_TEXT} ]; do
 				local LUT &>/dev/null
 				LUT=$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))
 				if [ -z "${_PROMPT_TEXT_LUT[0]}" ]; then
@@ -571,10 +584,10 @@ _MONORAIL() {
 				fi
 				local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
 				_MONORAIL_TEXT_FORMATTED="${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${POSTHIDE}${_MONORAIL_TEXT:${INDEX}:1}"
-			fi
-			INDEX=$((INDEX + 1))
-		done
-		_MONORAIL_INVALIDATE_CACHE
+				INDEX=$((INDEX + 1))
+			done
+		fi
+
 		_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 	fi
 
@@ -646,55 +659,6 @@ _MONORAIL_CONTRAST() {
 	fi
 }
 
-_BGCOLOR() {
-	# reload in case user has manually modified colors.sh
-	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
-
-	if [[ "${#1}" != 6 ]]; then
-		\echo "ERROR: color must be hexadecimal and 6 hexadecimal characters" 1>&2 | tee 1>/dev/null
-		return 1
-	fi
-
-	_MONORAIL_CONTRAST "${_PROMPT_FGCOLOR}" "$1" || return 1
-
-	_PROMPT_BGCOLOR="$1"
-	[[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]] && _PROMPT_TEXT_LUT=()
-	[[ ${#_PROMPT_LUT[@]} = 0 ]] && _PROMPT_LUT=()
-	{
-		declare -p _PROMPT_LUT | cut -d" " -f3-1024
-		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
-		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
-		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
-	} >"${_MONORAIL_CONFIG}"/colors.sh
-	_MONORAIL_INVALIDATE_CACHE
-}
-
-_FGCOLOR() {
-	# reload in case user has manually modified colors.sh
-	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
-
-	if [[ "${#1}" != 6 ]]; then
-		\echo "ERROR: color must be hexadecimal and 6 hexadecimal characters" 1>&2 | tee 1>/dev/null
-		return 1
-	fi
-
-	_MONORAIL_CONTRAST "${_PROMPT_BGCOLOR}" "$1" || return 1
-
-	[[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]] && _PROMPT_TEXT_LUT=()
-	[[ ${#_PROMPT_LUT[@]} = 0 ]] && _PROMPT_LUT=()
-	_PROMPT_FGCOLOR="$1"
-	{
-		declare -p _PROMPT_LUT | cut -d" " -f3-1024
-		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
-		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
-		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
-	} >"${_MONORAIL_CONFIG}"/colors.sh
-	_MONORAIL_INVALIDATE_CACHE
-}
-
-alias bgcolor=_BGCOLOR
-alias fgcolor=_FGCOLOR
-
 _INIT_CONFIG() {
 	if [[ -n $XDG_CONFIG_HOME ]]; then
 		_MONORAIL_CONFIG="${XDG_CONFIG_HOME}/monorail"
@@ -706,7 +670,6 @@ _INIT_CONFIG() {
 	if [[ ! -f "${_MONORAIL_CONFIG}"/colors.sh ]]; then
 		\cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
-	_MONORAIL_INVALIDATE_CACHE
 }
 _INIT_CONFIG
 
@@ -714,11 +677,8 @@ name() {
 	NAME="$*"
 }
 
-task() {
-	title "$*"
+alias bgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/bgcolor.sh"
+alias fgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/fgcolor.sh"
+alias gradient="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/gradient.sh"
+alias gradienttext="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/gradient.sh --text"
 
-	name "$*"
-
-	alias c='echo "Terminal is locked to task: ${NAME}\a";: '
-	alias cd='echo "Terminal is locked to task: ${NAME}\a";: '
-}
