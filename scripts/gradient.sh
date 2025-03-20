@@ -86,20 +86,20 @@ _GRADIENT() {
 
 	while [[ "$1" = "-"* ]]; do
 		case "$1" in
-        --light)
+		--light)
 			local OVERRIDE_BGCOLOR=ffffff
 			local OVERRIDE_FGCOLOR=444444
-            printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-            printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
-            printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
+			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
+			printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
+			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
 			shift
-        ;;
+			;;
 		--dark)
 			local OVERRIDE_BGCOLOR=444444
 			local OVERRIDE_FGCOLOR=ffffff
-            printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-            printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
-            printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
+			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
+			printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
+			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
 			shift
 			;;
 
@@ -114,13 +114,14 @@ _GRADIENT() {
 			;;
 		--bgcolor=*)
 			OVERRIDE_BGCOLOR=${1##*=}
-            printf '\033]11;#${OVERRIDE_BGCOLOR}\007';read
+			printf '\033]11;#${OVERRIDE_BGCOLOR}\007'
+			read
 			shift 1
 			;;
 		--fgcolor=*)
 			OVERRIDE_FGCOLOR=${1##*=}
-            printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-            printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
+			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
+			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
 			shift 1
 			;;
 		--help | -h)
@@ -249,7 +250,7 @@ or \"None\" to use text color"
 			declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 		fi
 	} >"${DEST}" 2>/dev/null
-    killall -s WINCH bash zsh &>/dev/null
+	killall -s WINCH bash zsh &>/dev/null
 }
 _GRADIENT "$@"
 alias gradient=_GRADIENT

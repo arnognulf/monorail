@@ -84,7 +84,8 @@ _ICON() {
 }
 _MONORAIL_INVALIDATE_CACHE() {
 	unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
+	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] || \cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
+    . "$_MONORAIL_CONFIG"/colors.sh
 }
 trap _MONORAIL_INVALIDATE_CACHE WINCH
 
@@ -108,24 +109,36 @@ trap _MONORAIL_INVALIDATE_CACHE WINCH
 		# command -v "${2}" && alias "${2}=_ICON ${1} _LOW_PRIO ${2}"
 		#                             ^--^ SC2139 (warning): This expands when defined, not when used. Consider escaping.
 		#
-		#shellcheck disable=SC2139
+		#shellcheck disable=SC2139 disable=SC2317
 		command -v "${2}" && alias "${2}=_NO_MEASURE _ICON ${1} ${2}"
 	}
 	_BATCH_COMMAND() {
-		#shellcheck disable=SC2139
+		#shellcheck disable=SC2139 disable=SC2317
 		command -v "${2}" && alias "${2}=_ICON ${1} _LOW_PRIO ${2}"
 	}
 	alias interactive_command=_INTERACTIVE_COMMAND
 	alias batch_command=_BATCH_COMMAND
 	. "${_MONORAIL_DIR}"/default_commands.sh
-    unalias interactive_command batch_command
+	unalias interactive_command batch_command
+	unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
+
+	__git_ps1() { :; }
+    #shellcheck disable=SC2317
+	_MONORAIL_GIT_LAZYLOAD() {
+		local DIR
+		DIR="${PWD}"
+		while [[ "${DIR}" ]]; do
+			if [[ -e "${DIR}/.git" ]] && [[ -e /usr/lib/git-core/git-sh-prompt ]]; then
+				. /usr/lib/git-core/git-sh-prompt
+				_MONORAIL_GIT_LAZYLOAD() { :; }
+			fi
+			DIR=${DIR%/*}
+		done
+	}
 } &>/dev/null
 
 # vendored from https://github.com/rcaloras/bash-preexec (8926de0)
 . "${_MONORAIL_DIR}"/bash-preexec/bash-preexec.sh
-
-# load system git sh prompt
-[[ -f /usr/lib/git-core/git-sh-prompt ]] && . /usr/lib/git-core/git-sh-prompt
 
 _MONORAIL_DUMB_TERMINAL() {
 	if [[ $TERM = "tek"* ]] ||
@@ -133,8 +146,7 @@ _MONORAIL_DUMB_TERMINAL() {
 		[[ $TERM = "dumb" ]] ||
 		[[ $TERM = "wyse60" ]] ||
 		[[ $TERM = "adm3a" ]] ||
-		[[ $TERM = "vt50" ]] ||
-		[[ $TERM = "vt52" ]]; then
+		[[ $TERM = "vt"?? ]]; then
 		return 0
 	else
 		return 1
@@ -414,7 +426,9 @@ _MONORAIL() {
 			fi
 			PROMPT_PWD="${PROMPT_PWD%/*}"
 		done
-		_MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "" 2>/dev/null)
+
+		_MONORAIL_GIT_LAZYLOAD
+		_MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 		;;
 	esac
 
@@ -624,61 +638,24 @@ _TITLE_RAW() {
 	fi
 }
 
-_MONORAIL_CONTRAST() {
-	COLOR1=$1
-	COLOR2=$2
-
-	r1="$((0x${COLOR1:0:2}))"
-	g1="$((0x${COLOR1:2:2}))"
-	b1="$((0x${COLOR1:4:2}))"
-
-	r2="$((0x${COLOR2:0:2}))"
-	g2="$((0x${COLOR2:2:2}))"
-	b2="$((0x${COLOR2:4:2}))"
-
-	# translate sRGB to CIE XYZ (only Y-component)
-	Y1=$(echo "define vp(v){v=v/255.0;if(v<=0.04045)return v/12.92; return e(2.4*l((v+0.055)/1.055)) };0.2126729*vp($r1) + 0.71515122*vp($g1) + 0.0721750*vp($b1)" | bc -l)
-
-	Y2=$(echo "define vp(v){v=v/255.0;if(v<=0.04045)return v/12.92; return e(2.4*l((v+0.055)/1.055)) };0.2126729*vp($r2) + 0.71515122*vp($g2) + 0.0721750*vp($b2)" | bc -l)
-
-	# the contrast is the factor K of (Y_largest + 0.05) / (Y_smallest + 0.05)
-	# according to WCAG as found on https://www.leserlich.info/werkzeuge/kontrastrechner/index-en.php
-	CONTRAST=$(echo "
-    define int(x){auto s;s=scale=0;x/=1;scale=s;return x}
-    define round(x){return int(x+0.5)}
-    define max(x,y){if(x>y)return x;return y}
-    define min(x,y){if(x<y)return x;return y}
-    if($Y1>$Y2)($Y1 + 0.05)/($Y2 + 0.05) else ($Y2 + 0.05)/($Y1 + 0.05)" | bc -l)
-	INT_CONTRAST=$(\echo "define int(x){auto s;s=scale=0;x/=1;scale=s;return x};int(${CONTRAST}*100)" | \bc -l)
-	# contrast 1.5 is set sufficiently low to be visible, but high enough to avoid shooting yourself in the foot.
-	if [[ ${INT_CONTRAST} -lt 150 ]]; then
-		\echo "ERROR: background and foreground are too similar, try setting either background or foreground to '7f7f7f' and the other to '000000' or 'ffffff'" 1>&2 | tee 1>/dev/null
-		return 1
-	else
-		return 0
-	fi
-}
-
-_INIT_CONFIG() {
-	if [[ -n $XDG_CONFIG_HOME ]]; then
+	if [[ $XDG_CONFIG_HOME ]]; then
 		_MONORAIL_CONFIG="${XDG_CONFIG_HOME}/monorail"
 	else
 		_MONORAIL_CONFIG="${HOME}/.config/monorail"
 	fi
 	mkdir -p "${_MONORAIL_CONFIG}"
-	unset -f _INIT_CONFIG
 	if [[ ! -f "${_MONORAIL_CONFIG}"/colors.sh ]]; then
 		\cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
-}
-_INIT_CONFIG
 
 name() {
 	NAME="$*"
 }
-
+#shellcheck disable=SC2139
 alias bgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/bgcolor.sh"
+#shellcheck disable=SC2139
 alias fgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/fgcolor.sh"
+#shellcheck disable=SC2139
 alias gradient="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/gradient.sh"
+#shellcheck disable=SC2139
 alias gradienttext="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/gradient.sh --text"
-
