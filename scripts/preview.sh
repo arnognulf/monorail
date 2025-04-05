@@ -26,7 +26,18 @@ fi
 _PROMPT_FGCOLOR="$1"
 _PROMPT_BGCOLOR="$2"
 
+case "${3,,}" in
+*.jpg|*.jpeg|*.png|*.svg)
+WIDTH=$(identify "$3" | awk '{ print $3 }'|cut -dx -f1)
+for RGB in $(convert -crop ${WIDTH}x1+0+$((${WIDTH}/2)) +repage -scale 200x "${3}" RGB:- | xxd -ps -c3)
+do
+    # TODO
+    :
+done
+;;
+*)
 . "$3" &>/dev/null || exit 42
+esac
 
 CHAR="▁"
 ESC=$'\e'
