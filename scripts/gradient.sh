@@ -253,5 +253,3 @@ or \"None\" to use text color"
 	killall -s WINCH bash zsh &>/dev/null
 }
 _GRADIENT "$@"
-alias gradient=_GRADIENT
-alias gradienttext="_GRADIENT --text"

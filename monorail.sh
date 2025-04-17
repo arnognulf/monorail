@@ -625,6 +625,7 @@ ${PREHIDE}${_MONORAIL_ATTRIBUTE}${POSTHIDE}${_MONORAIL_TEXT_FORMATTED}${PREHIDE}
 		PS1='${_MONORAIL_LINE}'"
 ${REVERSE}${_MONORAIL_TEXT}${NORMAL} "
 	fi
+    unset _MONORAIL_NOSTYLING
 }
 
 precmd() {
@@ -633,6 +634,10 @@ precmd() {
 	_MONORAIL
 }
 _TITLE_RAW() {
+    if [[ $_MONORAIL_NOSTYLING = 1 ]]
+    then
+        return 0
+    fi
 	if [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
 		\printf "\e]0;%s\a" "$*" 1>"${TTY}" 2>/dev/null
 	fi
@@ -652,10 +657,15 @@ name() {
 	NAME="$*"
 }
 #shellcheck disable=SC2139
-alias bgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/bgcolor.sh"
+alias monorail_bgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/bgcolor.sh"
 #shellcheck disable=SC2139
-alias fgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/fgcolor.sh"
+alias monorail_fgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/fgcolor.sh"
 #shellcheck disable=SC2139
-alias gradient="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/gradient.sh"
+alias monorail_gradient="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/gradient.sh"
+alias monorail_image="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/image.sh"
 #shellcheck disable=SC2139
-alias gradienttext="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/gradient.sh --text"
+alias monorail_gradienttext="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/gradient.sh --text"
+alias for='_MONORAIL_NOSTYLING=1;for'
+alias while='_MONORAIL_NOSTYLING=1;while'
+alias unitl='_MONORAIL_NOSTYLING=1;do'
+
