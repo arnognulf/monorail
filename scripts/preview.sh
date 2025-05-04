@@ -29,7 +29,7 @@ I=0
 echo "$3" &>~/foo
 read
 case "${3,,}" in
-*.jpg|*.jpeg|*.png|*.svg)
+*.jpg|*.jpeg|*.png)
 WIDTH=$(identify "${XDG_PICTURES_DIR-${HOME}/Pictures}/$3" | awk '{ print $3 }'|cut -dx -f1)
 
 #

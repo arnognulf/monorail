@@ -35,8 +35,7 @@ if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-[[ $_PROMPT_BGCOLOR ]] || _PROMPT_BGCOLOR=ffffff
-[[ $_PROMPT_FGCOLOR ]] || _PROMPT_FGCOLOR=444444
+
 [[ $TTY ]] || TTY=$(LC_MESSAGES=C LC_ALL=C tty)
 
 # keep these functions early so they still work in case of parsing errors below
@@ -84,8 +83,13 @@ _ICON() {
 }
 _MONORAIL_INVALIDATE_CACHE() {
 	unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] || \cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
-    . "$_MONORAIL_CONFIG"/colors.sh
+	if [[ ! -f ${_MONORAIL_CONFIG}/colors.sh ]]; then
+		[[ $_PROMPT_BGCOLOR ]] || _PROMPT_BGCOLOR=ffffff
+		[[ $_PROMPT_FGCOLOR ]] || _PROMPT_FGCOLOR=444444
+
+		LC_MESSAGES=C \cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
+	fi
+	. "$_MONORAIL_CONFIG"/colors.sh
 }
 trap _MONORAIL_INVALIDATE_CACHE WINCH
 
@@ -123,7 +127,7 @@ trap _MONORAIL_INVALIDATE_CACHE WINCH
 	unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
 
 	__git_ps1() { :; }
-    #shellcheck disable=SC2317
+	#shellcheck disable=SC2317
 	_MONORAIL_GIT_LAZYLOAD() {
 		local DIR
 		DIR="${PWD}"
@@ -145,6 +149,7 @@ _MONORAIL_DUMB_TERMINAL() {
 		[[ $TERM = "ibm-327"* ]] ||
 		[[ $TERM = "dumb" ]] ||
 		[[ $TERM = "wyse60" ]] ||
+		[[ $TERM = "dm2500" ]] ||
 		[[ $TERM = "adm3a" ]] ||
 		[[ $TERM = "vt"?? ]]; then
 		return 0
@@ -539,6 +544,8 @@ _MONORAIL() {
 		_MONORAIL_INVALIDATE_CACHE
 		if _MONORAIL_SUPPORTED_TERMINAL; then
 			CHAR=$'\xe2\x96\x81'
+		elif [[ $TERM = "dm2500" ]] || [[ $TERM = "dumb" ]]; then
+			CHAR=-
 		elif [[ $TERM = "vt"??? ]]; then
 			CHAR=s
 		else
@@ -614,10 +621,13 @@ ${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 ${PREHIDE}${_MONORAIL_ATTRIBUTE}${POSTHIDE}${_MONORAIL_TEXT_FORMATTED}${PREHIDE}${ESC}[0m${ESC}[?25h${POSTHIDE} "
 	else
 		local REVERSE NORMAL
-		REVERSE=$(tput rev 2>/dev/null)
+		REVERSE=$(LC_MESSAGES=C LC_ALL=C tput rev 2>/dev/null)
 		if [[ "$REVERSE" ]]; then
-			NORMAL="${PREHIDE}$(tput sgr0 2>/dev/null)${POSTHIDE}"
+			NORMAL="${PREHIDE}$(LC_MESSAGES=C LC_ALL=C tput sgr0 2>/dev/null)${POSTHIDE}"
 			REVERSE="${PREHIDE}${REVERSE}${POSTHIDE}"
+        elif [[ $TERM = "dumb" ]];then
+            REVERSE=""
+            NORMAL="!"
 		else
 			REVERSE=""
 			NORMAL="|"
@@ -625,7 +635,7 @@ ${PREHIDE}${_MONORAIL_ATTRIBUTE}${POSTHIDE}${_MONORAIL_TEXT_FORMATTED}${PREHIDE}
 		PS1='${_MONORAIL_LINE}'"
 ${REVERSE}${_MONORAIL_TEXT}${NORMAL} "
 	fi
-    unset _MONORAIL_NOSTYLING
+	unset _MONORAIL_NOSTYLING
 }
 
 precmd() {
@@ -634,29 +644,30 @@ precmd() {
 	_MONORAIL
 }
 _TITLE_RAW() {
-    if [[ $_MONORAIL_NOSTYLING = 1 ]]
-    then
-        return 0
-    fi
+	if [[ $_MONORAIL_NOSTYLING = 1 ]]; then
+		return 0
+	fi
 	if [[ "$TERM" =~ "xterm"* ]] || [ "$TERM" = "alacritty" ]; then
 		\printf "\e]0;%s\a" "$*" 1>"${TTY}" 2>/dev/null
 	fi
 }
 
-	if [[ $XDG_CONFIG_HOME ]]; then
-		_MONORAIL_CONFIG="${XDG_CONFIG_HOME}/monorail"
-	else
-		_MONORAIL_CONFIG="${HOME}/.config/monorail"
-	fi
-	mkdir -p "${_MONORAIL_CONFIG}"
-	if [[ ! -f "${_MONORAIL_CONFIG}"/colors.sh ]]; then
-		\cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
-	fi
+if [[ $XDG_CONFIG_HOME ]]; then
+	_MONORAIL_CONFIG="${XDG_CONFIG_HOME}/monorail"
+else
+	_MONORAIL_CONFIG="${HOME}/.config/monorail"
+fi
+if [[ ! -f "${_MONORAIL_CONFIG}"/colors.sh ]]; then
+	LC_MESSAGES=C mkdir -p "${_MONORAIL_CONFIG}"
+	LC_MESSAGES=C \cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
+fi
+_MONORAIL_INVALIDATE_CACHE
 
 name() {
 	NAME="$*"
 }
 #shellcheck disable=SC2139
+alias monorail_color="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/color.sh"
 alias monorail_bgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/bgcolor.sh"
 #shellcheck disable=SC2139
 alias monorail_fgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/fgcolor.sh"
@@ -668,4 +679,3 @@ alias monorail_gradienttext="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
 alias unitl='_MONORAIL_NOSTYLING=1;do'
-
