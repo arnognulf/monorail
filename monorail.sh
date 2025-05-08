@@ -38,8 +38,18 @@ fi
 
 [[ $TTY ]] || TTY=$(LC_MESSAGES=C LC_ALL=C tty)
 
+# hide cursor to reduce flicker at startup
+printf '\e[?25l' >"${TTY}"
+
 # keep these functions early so they still work in case of parsing errors below
+
+# cursor reset is needed since preexec() does not fire for the first command execution in a new window
+_RESET_CURSOR () {
+    printf "\e]12;#${_PROMPT_FGCOLOR}\a" &>"${TTY}"
+}
+
 _TITLE() {
+    _RESET_CURSOR
 	_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 }
 
@@ -82,12 +92,9 @@ _ICON() {
 	"$@"
 }
 _MONORAIL_INVALIDATE_CACHE() {
-	unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+	unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 	if [[ ! -f ${_MONORAIL_CONFIG}/colors.sh ]]; then
-		[[ $_PROMPT_BGCOLOR ]] || _PROMPT_BGCOLOR=ffffff
-		[[ $_PROMPT_FGCOLOR ]] || _PROMPT_FGCOLOR=444444
-
-		LC_MESSAGES=C \cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
+		LC_ALL=C LC_MESSAGES=C \cp "${_MONORAIL_DIR}"/colors/Default.sh "${_MONORAIL_CONFIG}"/colors.sh
 	fi
 	. "$_MONORAIL_CONFIG"/colors.sh
 }
@@ -524,21 +531,7 @@ _MONORAIL() {
 	*) _MONORAIL_PWD_BASENAME="${NAME-${PWD_BASENAME}}" ;;
 	esac
 	_MONORAIL_TEXT=" ${_MONORAIL_PWD_BASENAME}${_MONORAIL_GIT_PS1} "$([ $UID = 0 ] && \echo "# ")
-	local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR
-
-	CURSORPOS=$((${#_MONORAIL_TEXT} + 1))
-	RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * CURSORPOS / $((COLUMNS + 1))))]}
-	RGB_CUR_R=${RGB_CUR_COLOR%%;*}
-	RGB_CUR_GB=${RGB_CUR_COLOR#*;}
-	RGB_CUR_G=${RGB_CUR_GB%%;*}
-	RGB_CUR_B=${RGB_CUR_GB##*;}
-	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
-	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
-	[[ ${#_PROMPT_LUT[@]} = 0 ]] && HEX_CUR_COLOR=${_PROMPT_FGCOLOR}
-	if _MONORAIL_SUPPORTED_TERMINAL; then
-		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
-	fi
-	local CHAR
+	local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR CHAR
 
 	if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]]; then
 		_MONORAIL_INVALIDATE_CACHE
@@ -612,6 +605,19 @@ _MONORAIL() {
 		_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 	fi
 
+	CURSORPOS=$((${#_MONORAIL_TEXT} + 1))
+	RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * CURSORPOS / $((COLUMNS + 1))))]}
+	RGB_CUR_R=${RGB_CUR_COLOR%%;*}
+	RGB_CUR_GB=${RGB_CUR_COLOR#*;}
+	RGB_CUR_G=${RGB_CUR_GB%%;*}
+	RGB_CUR_B=${RGB_CUR_GB##*;}
+	HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "${RGB_CUR_R}" "${RGB_CUR_G}" "${RGB_CUR_B}")
+	[ -z "${HEX_CUR_COLOR}" ] && HEX_CUR_COLOR="${_PROMPT_FGCOLOR}"
+	[[ ${#_PROMPT_LUT[@]} = 0 ]] && HEX_CUR_COLOR=${_PROMPT_FGCOLOR}
+	if _MONORAIL_SUPPORTED_TERMINAL; then
+		\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_PROMPT_BGCOLOR}" "${_PROMPT_FGCOLOR}" "${HEX_CUR_COLOR}"
+	fi
+
 	LC_MESSAGES=C LC_ALL=C stty echo 2>/dev/null
 	if [[ "$TERM" = "mlterm" ]]; then
 		PS1='$(_TITLE_RAW "${TITLE}"))'"${CR}"'${_MONORAIL_LINE}'"
@@ -668,7 +674,6 @@ name() {
 }
 #shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/color.sh"
-alias monorail_bgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/bgcolor.sh"
 #shellcheck disable=SC2139
 alias monorail_fgcolor="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=${_MONORAIL_DIR} ${_MONORAIL_DIR}/scripts/fgcolor.sh"
 #shellcheck disable=SC2139
