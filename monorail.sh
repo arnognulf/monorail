@@ -44,12 +44,12 @@ printf '\e[?25l' >"${TTY}"
 # keep these functions early so they still work in case of parsing errors below
 
 # cursor reset is needed since preexec() does not fire for the first command execution in a new window
-_RESET_CURSOR () {
-    printf "\e]12;#${_PROMPT_FGCOLOR}\a" &>"${TTY}"
+_MONORAIL_INITIAL_CURSOR_WORKAROUND() {
+	printf "\e]12;#${_PROMPT_FGCOLOR}\a" &>"${TTY}"
 }
 
 _TITLE() {
-    _RESET_CURSOR
+	_MONORAIL_INITIAL_CURSOR_WORKAROUND
 	_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 }
 
@@ -301,6 +301,8 @@ _MONORAIL_SUPPORTED_TERMINAL() {
 
 preexec() {
 	{
+		# disable workaround when preexec starts
+		_MONORAIL_INITIAL_CURSOR_WORKAROUND() { :; }
 		_TIMER_CMD="${1/\\\a/\\\\\a}"
 		_TIMER_CMD="${_TIMER_CMD/\\\b/\\\\\b}"
 		_TIMER_CMD="${_TIMER_CMD/\\\c/\\\\\c}"
@@ -631,9 +633,9 @@ ${PREHIDE}${_MONORAIL_ATTRIBUTE}${POSTHIDE}${_MONORAIL_TEXT_FORMATTED}${PREHIDE}
 		if [[ "$REVERSE" ]]; then
 			NORMAL="${PREHIDE}$(LC_MESSAGES=C LC_ALL=C tput sgr0 2>/dev/null)${POSTHIDE}"
 			REVERSE="${PREHIDE}${REVERSE}${POSTHIDE}"
-        elif [[ $TERM = "dumb" ]];then
-            REVERSE=""
-            NORMAL="!"
+		elif [[ $TERM = "dumb" ]]; then
+			REVERSE=""
+			NORMAL="!"
 		else
 			REVERSE=""
 			NORMAL="|"

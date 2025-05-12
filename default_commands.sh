@@ -27,6 +27,8 @@ batch_command 🐚 bash
 batch_command 🐚 zsh
 batch_command 🐚 ksh
 batch_command 🐚 sh
+batch_command 🐍 python
+batch_command 🐍 python3
 
 # Compilers and build systems can take a long time and use lots of computer
 # resources.
