@@ -476,6 +476,7 @@ _MONORAIL() {
 			*/lib | */lib64 | */lib32) TITLE="🔩  ${PWD##*/}" ;;
 			*/tmp | */tmp/* | */.cache | */.cache/*) TITLE="🚽  ${PWD##*/}" ;;
 			#"${HOME}/.local/share/Trash/files"*) PROMPT_REPO=""; ️TITLE="🗑️  ${PWD##*/}";;
+			"${HOME}/Trash"*) TITLE="🗑️   ${PWD##*/}" ;;
 			"${HOME}/.local/share/Trash/files"*) TITLE="♻️  ${PWD##*/}" ;;
 			/boot | /boot/*) TITLE="🥾  ${PWD##*/}" ;;
 			/) TITLE="💻  /" ;;
