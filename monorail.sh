@@ -483,7 +483,7 @@ _MONORAIL() {
 			*/.*) TITLE="📌  ${PWD##*/}" ;;
 			/media/*) TITLE="💾  ${PWD##*/}" ;;
 			/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) TITLE="🤖  ${PWD##*/}" ;;
-			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "${XDG_DOCUMENTS_DIR}" | "${XDG_DOCUMENTS_DIR}"/*) TITLE="📄  ${PWD##*/}" ;;
+			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "${XDG_DOCUMENTS_DIR}" | "${XDG_DOCUMENTS_DIR}"/*) TITLE="📑  ${PWD##*/}" ;;
 			*/out | */out/*) TITLE="🚀  ${PWD##*/}" ;;
 			*/src | */src/* | */sources | */sources/*) TITLE="🚧  ${PWD##*/}" ;;
 			"${XDG_MUSIC_DIR}" | "${XDG_MUSIC_DIR}"/*) TITLE="🎵  ${PWD##*}" ;;

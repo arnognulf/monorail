@@ -52,7 +52,7 @@ batch_command 🗜️ bzip2
 batch_command 🗜️ xz
 batch_command 🧮 bc
 batch_command 🪚 awk
-batch_command 🐱 cat
+batch_command 🐈 cat
 batch_command Δ delta
 batch_command Δ diff
 batch_command 💽 cp
