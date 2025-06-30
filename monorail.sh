@@ -20,6 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# avoid opening /dev/null for stdout/stderr for each call to 'command -v'
+# this improves startup time
+{
+
 # detect _MONORAIL_DIR
 if ! [[ $_MONORAIL_DIR ]]; then
 	if [[ ${BASH_ARGV[0]} != "/"* ]]; then
@@ -39,7 +43,7 @@ fi
 [[ $TTY ]] || TTY=$(LC_MESSAGES=C LC_ALL=C tty)
 
 # hide cursor to reduce flicker at startup
-printf '\e[?25l' >"${TTY}"
+printf '\e]0 ;m\e[?25l' >"${TTY}"
 
 # keep these functions early so they still work in case of parsing errors below
 
@@ -100,9 +104,6 @@ _MONORAIL_INVALIDATE_CACHE() {
 }
 trap _MONORAIL_INVALIDATE_CACHE WINCH
 
-# avoid opening /dev/null for stdout/stderr for each call to 'command -v'
-# this improves startup time
-{
 	# chrt(1) sets lowest priority on Linux and FreeBSD
 	if command -v chrt; then
 		_LOW_PRIO() {
@@ -146,7 +147,6 @@ trap _MONORAIL_INVALIDATE_CACHE WINCH
 			DIR=${DIR%/*}
 		done
 	}
-} &>/dev/null
 
 # vendored from https://github.com/rcaloras/bash-preexec (8926de0)
 . "${_MONORAIL_DIR}"/bash-preexec/bash-preexec.sh
@@ -344,7 +344,7 @@ preexec() {
 				CHAR=🎄
 				;;
 			*)
-				CHAR=▶️
+				CHAR="*️⃣"
 				;;
 			esac
 			LINE="${CHAR}  ${_TIMER_CMD}"
@@ -429,13 +429,13 @@ _MONORAIL() {
 	case "${PWD}" in
 	/run/user/*/gvfs/*) _MONORAIL_GIT_PS1="" ;;
 	*)
-		local PROMPT_PWD PROMPT_REPO
+		local PROMPT_PWD MONORAIL_REPO
 		PROMPT_PWD="${PWD}"
-		PROMPT_REPO=""
+		MONORAIL_REPO=""
 
 		while [[ "${PROMPT_PWD}" ]]; do
 			if [[ -d "${PROMPT_PWD}/.repo" ]]; then
-				PROMPT_REPO=1
+				MONORAIL_REPO=1
 				break
 			fi
 			PROMPT_PWD="${PROMPT_PWD%/*}"
@@ -453,7 +453,7 @@ _MONORAIL() {
 		else
 			SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
 		fi
-		if [[ "${PROMPT_REPO}" ]]; then
+		if [[ "${MONORAIL_REPO}" ]]; then
 			TITLE="🏗️  ${PWD##*/}"
 			if [[ "$SSH_CLIENT" ]]; then
 				TITLE="${TITLE} on ${SHORT_HOSTNAME}"
@@ -475,7 +475,7 @@ _MONORAIL() {
 			*/bin | */sbin) TITLE="️⚙️  ${PWD##*/}" ;;
 			*/lib | */lib64 | */lib32) TITLE="🔩  ${PWD##*/}" ;;
 			*/tmp | */tmp/* | */.cache | */.cache/*) TITLE="🚽  ${PWD##*/}" ;;
-			#"${HOME}/.local/share/Trash/files"*) PROMPT_REPO=""; ️TITLE="🗑️  ${PWD##*/}";;
+			#"${HOME}/.local/share/Trash/files"*) MONORAIL_REPO=""; ️TITLE="🗑️  ${PWD##*/}";;
 			"${HOME}/Trash"*) TITLE="🗑️   ${PWD##*/}" ;;
 			"${HOME}/.local/share/Trash/files"*) TITLE="♻️  ${PWD##*/}" ;;
 			/boot | /boot/*) TITLE="🥾  ${PWD##*/}" ;;
@@ -687,3 +687,5 @@ alias monorail_gradienttext="_MONORAIL_CONFIG=${_MONORAIL_CONFIG} _MONORAIL_DIR=
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
 alias unitl='_MONORAIL_NOSTYLING=1;do'
+
+} &>/dev/null
