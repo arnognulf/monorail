@@ -43,6 +43,8 @@ batch_command 🛠️ make
 batch_command 🛠️ just
 batch_command 🛠️ jhbuild
 batch_command 🛠️ bitbake
+batch_command 🛠️ meson
+batch_command 🛠️ cmake
 
 batch_command 🗜️ gzip
 batch_command 🗜️ unrar
