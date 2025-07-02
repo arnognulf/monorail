@@ -18,6 +18,9 @@ then the command can be called as
 } 1>&- 2>&-
 ```
 
+note, that some commands fail with EBADFD if ran with closed file descriptor, eg: `type -P cmd`
+These must have stdout connected to /dev/null.
+
 String comparisons
 ------------------
 Avoid calling string comparison functions in libc, instead call:
@@ -41,6 +44,8 @@ fi
 ```
 
 This replaces the string comparisons with simple jumps
+
+The `false` function can also be unset, this will also provide the non-zero return code
 
 Async code
 ----------

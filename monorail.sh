@@ -1,5 +1,6 @@
 #!/bin/bash
 {
+_MONORAIL_LONGRUNNING () { false;}
 if ! [[ $_MONORAIL_DIR ]];then
 if [[ ${BASH_ARGV[0]} != "/"* ]];then
 _MONORAIL_DIR=$PWD/${BASH_ARGV[0]}
@@ -15,7 +16,7 @@ fi
 [[ $TTY ]]||TTY=$(LC_MESSAGES=C LC_ALL=C tty)
 printf '\e]0 ;m\e[?25l' >"$TTY"
 _MONORAIL_INITIAL_CURSOR_WORKAROUND(){
-printf "\e]12;#$_PROMPT_FGCOLOR\a" &>"$TTY"
+printf "\e]12;#$_PROMPT_FGCOLOR\a" >"$TTY"
 }
 _TITLE(){
 _MONORAIL_INITIAL_CURSOR_WORKAROUND
@@ -288,11 +289,11 @@ fi
 _MEASURE(){ :;}
 _START_SECONDS=$SECONDS
 if _MONORAIL_SUPPORTED_TERMINAL;then
-\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR"
+\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >"$TTY" 2>&-
 fi
 esac
-unset CUSTOM_TITLE
-} &>"$TTY"
+unset -f CUSTOM_TITLE
+} >&- 2>&-
 }
 _MONORAIL_STOP_TIMER(){
 {
@@ -312,7 +313,7 @@ DURATION="$DURATION${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%
 \echo "$DURATION"
 (exec notify-send -a "Completed $_TIMER_CMD" -i terminal "$_TIMER_CMD" "Command took $DURATION"&)
 _MONORAIL_ALERT
-_MONORAIL_LONGRUNNING=1
+_MONORAIL_LONGRUNNING () { :;}
 fi
 _MEASURE(){ false;}
 } 2>&-
@@ -321,7 +322,7 @@ title(){
 TITLE_OVERRIDE="$*"
 }
 _MONORAIL(){
-if [[ "$_MONORAIL_LONGRUNNING" ]];then
+if _MONORAIL_LONGRUNNING;then
 TITLE="✅ Completed $_TIMER_CMD"
 if [[ "$SSH_CLIENT" ]];then
 local SHORT_HOSTNAME=${HOSTNAME%%.*}
@@ -331,7 +332,7 @@ fi
 if [[ "$SCHROOT_ALIAS_NAME" ]];then
 TITLE="$TITLE on $SCHROOT_ALIAS_NAME"
 fi
-unset _MONORAIL_LONGRUNNING
+_MONORAIL_LONGRUNNING () { false;}
 return 0
 fi
 local _MONORAIL_REALPWD
