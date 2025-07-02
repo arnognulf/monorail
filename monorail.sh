@@ -22,7 +22,7 @@ _MONORAIL_INITIAL_CURSOR_WORKAROUND
 _TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 }
 _NO_MEASURE(){
-_MEASURE=0
+_MEASURE(){ false;}
 "$@"
 }
 _ICON(){
@@ -48,12 +48,14 @@ _TITLE "$ICON  ${FIRST_ARG##*/}"
 else
 _TITLE "$ICON  ${FIRST_NON_OPTION##*/}"
 fi) &> \
-"$TTY"
+"\
+$TTY"
 fi
 "$@"
 }
 _MONORAIL_INVALIDATE_CACHE(){
-unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
+unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+_MEASURE(){ false;}
 if [[ ! -f $_MONORAIL_CONFIG/colors.sh ]];then
 LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh
 fi
@@ -95,9 +97,13 @@ done
 . "$_MONORAIL_DIR"/bash-preexec/bash-preexec.sh
 _MONORAIL_DUMB_TERMINAL(){
 if [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
-return 0
+_MONORAIL_DUMB_TERMINAL(){
+:
+}
 else
-return 1
+_MONORAIL_DUMB_TERMINAL(){
+false
+}
 fi
 }
 if _MONORAIL_DUMB_TERMINAL;then
@@ -195,13 +201,21 @@ trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 }
 _MONORAIL_SUPPORTED_TERMINAL(){
 if _MONORAIL_DUMB_TERMINAL;then
-return 1
+_MONORAIL_SUPPORTED_TERMINAL(){
+false
+}
 elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]];then
-return 0
+_MONORAIL_SUPPORTED_TERMINAL(){
+:
+}
 elif [[ $TERM == "alacritty" ]]&&[[ $COLORTERM == "rxvt-xpm" ]];then
-return 0
+_MONORAIL_SUPPORTED_TERMINAL(){
+:
+}
 else
-return 1
+_MONORAIL_SUPPORTED_TERMINAL(){
+false
+}
 fi
 }
 preexec(){
@@ -255,25 +269,26 @@ fi
 if [[ "$SCHROOT_ALIAS_NAME" ]];then
 LINE="$LINE on $SCHROOT_ALIAS_NAME"
 fi
-CUSTOM_TITLE=0
 local CMD
 CMD=${_TIMER_CMD%% *}
 CMD=${CMD%%;*}
-alias "$CMD" >&- 2>&-&&CUSTOM_TITLE=1
+CUSTOM_TITLE(){ false;}
+alias "$CMD" >&- 2>&-&&CUSTOM_TITLE(){ :;}
 for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}";do
 if [[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]];then
-CUSTOM_TITLE=1
+CUSTOM_TITLE(){ :;}
 fi
 done
-if [[ $CUSTOM_TITLE == 0 ]];then
+if CUSTOM_TITLE;then
 _TITLE "$LINE"
 fi
-_MEASURE=1
+_MEASURE(){ :;}
 _START_SECONDS=$SECONDS
 if _MONORAIL_SUPPORTED_TERMINAL;then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR"
 fi
 esac
+unset CUSTOM_TITLE
 } &>"$TTY"
 }
 _MONORAIL_STOP_TIMER(){
@@ -281,7 +296,7 @@ _MONORAIL_STOP_TIMER(){
 local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 CURRENT_SECONDS=$SECONDS
 DIFF=$((CURRENT_SECONDS-_START_SECONDS))
-if [[ ${_MEASURE-0} -gt 0 ]]&&[[ $DIFF -gt ${_MONORAIL_TIMEOUT-29} ]];then
+if _MEASURE&&[[ $DIFF -gt ${_MONORAIL_TIMEOUT-29} ]];then
 SECONDS_M=$((DIFF%3600))
 DURATION_H=$((DIFF/3600))
 DURATION_M=$((SECONDS_M/60))
@@ -296,7 +311,7 @@ DURATION="$DURATION${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%
 _MONORAIL_ALERT
 _MONORAIL_LONGRUNNING=1
 fi
-_MEASURE=0
+_MEASURE(){ false;}
 } 2>&-
 }
 title(){
@@ -432,7 +447,7 @@ CHAR=s
 else
 CHAR="_"
 fi
-local INDEX=0
+local I=0
 if [[ $TERM == "vt"??? ]];then
 _MONORAIL_LINE="$ESC[0;1m$ESC#6$ESC(0"
 _MONORAIL_ATTRIBUTE="$ESC(1$ESC[0;7m"
@@ -446,43 +461,43 @@ fi
 local TEMP_COLUMNS=$COLUMNS
 _MONORAIL_DUMB_TERMINAL&&TEMP_COLUMNS=$((COLUMNS-2))
 if [[ $TERM == "vt"??? ]];then
-while [ $INDEX -lt $TEMP_COLUMNS ];do
-if [ $INDEX -lt $((TEMP_COLUMNS/2)) ];then
+while [ $I -lt $TEMP_COLUMNS ];do
+if [ $I -lt $((TEMP_COLUMNS/2)) ];then
 _MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
 else
 :
 fi
-INDEX=$((INDEX+1))
+I=$((I+1))
 done
 elif _MONORAIL_SUPPORTED_TERMINAL;then
-while [ $INDEX -lt $TEMP_COLUMNS ];do
-_MONORAIL_LINE="$_MONORAIL_LINE$PREFG${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*INDEX/$((TEMP_COLUMNS+1))))]}$POST$CHAR"
-INDEX=$((INDEX+1))
+while [ $I -lt $TEMP_COLUMNS ];do
+_MONORAIL_LINE="$_MONORAIL_LINE$PREFG${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}$POST$CHAR"
+I=$((I+1))
 done
 else
-while [ $INDEX -lt $TEMP_COLUMNS ];do
+while [ $I -lt $TEMP_COLUMNS ];do
 _MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
-INDEX=$((INDEX+1))
+I=$((I+1))
 done
 fi
 _MONORAIL_TEXT_FORMATTED=""
-local INDEX=0
+local I=0
 if [[ ${#_PROMPT_LUT[@]} == 0 ]]||[[ $TERM == "vt"??? ]]||[[ $TERM == "linux" ]]||[[ "$MC_TMPDIR" ]];then
-while [ $INDEX -lt ${#_MONORAIL_TEXT} ];do
-_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT:INDEX:1}"
-INDEX=$((INDEX+1))
+while [ $I -lt ${#_MONORAIL_TEXT} ];do
+_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT:I:1}"
+I=$((I+1))
 done
 else
-while [ $INDEX -lt ${#_MONORAIL_TEXT} ];do
+while [ $I -lt ${#_MONORAIL_TEXT} ];do
 local LUT
-LUT=$((${#_PROMPT_LUT[*]}*INDEX/$((COLUMNS+1))))
+LUT=$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))
 if [ -z "${_PROMPT_TEXT_LUT[0]}" ];then
 local _PROMPT_TEXT_LUT
 _PROMPT_TEXT_LUT[0]="255;255;255"
 fi
-local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]}*INDEX)/$((COLUMNS+1))))
-_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$PREHIDE$PREBG${_PROMPT_LUT[$LUT]}$POST$PREFG${_PROMPT_TEXT_LUT[$TEXT_LUT]}$POST$POSTHIDE${_MONORAIL_TEXT:INDEX:1}"
-INDEX=$((INDEX+1))
+local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]}*I)/$((COLUMNS+1))))
+_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$PREHIDE$PREBG${_PROMPT_LUT[$LUT]}$POST$PREFG${_PROMPT_TEXT_LUT[$TEXT_LUT]}$POST$POSTHIDE${_MONORAIL_TEXT:I:1}"
+I=$((I+1))
 done
 fi
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
