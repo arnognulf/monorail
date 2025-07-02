@@ -62,6 +62,7 @@ fi
 . "$_MONORAIL_CONFIG"/colors.sh
 }
 trap _MONORAIL_INVALIDATE_CACHE WINCH
+_LOW_PRIO(){
 if command -v chrt;then
 _LOW_PRIO(){
 ionice -c idle chrt -i 0 "$@"
@@ -71,6 +72,8 @@ _LOW_PRIO(){
 nice -n19 "$@"
 }
 fi
+_LOW_PRIO "$@"
+}
 _INTERACTIVE_COMMAND(){
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 }
