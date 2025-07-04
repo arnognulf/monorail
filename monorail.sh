@@ -64,7 +64,7 @@ fi
 }
 trap _MONORAIL_INVALIDATE_CACHE WINCH
 _LOW_PRIO(){
-if command -v chrt;then
+if type -P chrt >/dev/null 2>&-;then
 _LOW_PRIO(){
 ionice -c idle chrt -i 0 "$@"
 }
@@ -269,14 +269,14 @@ case $_MONORAIL_DATE in
 ;;
 *)CHAR="*️⃣"
 esac
-LINE="$CHAR  $_TIMER_CMD"
+TITLE="$CHAR  $_TIMER_CMD"
 if [[ "$TMUX" ]];then
 SHORT_HOSTNAME=${HOSTNAME%%.*}
 SHORT_HOSTNAME=${SHORT_HOSTNAME,,}
-LINE="$LINE on $SHORT_HOSTNAME"
+TITLE="$TITLE on $SHORT_HOSTNAME"
 fi
 if [[ "$SCHROOT_ALIAS_NAME" ]];then
-LINE="$LINE on $SCHROOT_ALIAS_NAME"
+TITLE="$TITLE on $SCHROOT_ALIAS_NAME"
 fi
 local CMD
 CMD=${_TIMER_CMD%% *}
@@ -289,7 +289,7 @@ _MONORAIL_CUSTOM_TITLE(){ :;}
 fi
 done
 if _MONORAIL_CUSTOM_TITLE;then
-_TITLE "$LINE"
+_TITLE "$TITLE"
 fi
 _MEASURE(){ :;}
 _START_SECONDS=$SECONDS
