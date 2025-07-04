@@ -161,12 +161,12 @@ HISTCONTROL=
 _MONORAIL_HISTCMD_PREV=$(fc -l -1)
 _MONORAIL_HISTCMD_PREV=${_MONORAIL_HISTCMD_PREV%%$'[\t ]'*}
 if [[ -z $_MONORAIL_PENULTIMATE ]];then
-CR_FIRST=1
+_MONORAIL_CR_FIRST () { :;}
 CR_LEVEL=0
 _MONORAIL_CTRLC=""
 :
 elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
-if [[ -z $CR_FIRST ]]&&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
+if ! _MONORAIL_CR_FIRST&&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
 case "$CR_LEVEL" in
 0)ls
 CR_LEVEL=3
@@ -190,11 +190,11 @@ fi)
 esac
 CR_LEVEL=$((CR_LEVEL+1))
 fi
-unset CR_FIRST
+_MONORAIL_CR_FIRST () { false;}
 :
 else
 :
-unset CR_FIRST
+_MONORAIL_CR_FIRST () { false;}
 CR_LEVEL=0
 fi
 _MONORAIL_CTRLC=""
