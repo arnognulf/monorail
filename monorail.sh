@@ -163,10 +163,12 @@ _MONORAIL_HISTCMD_PREV=${_MONORAIL_HISTCMD_PREV%%$'[\t ]'*}
 if [[ -z $_MONORAIL_PENULTIMATE ]];then
 _MONORAIL_CR_FIRST () { :;}
 CR_LEVEL=0
-_MONORAIL_CTRLC=""
-:
+_MONORAIL_CTRLC()
+{
+false
+}
 elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
-if ! _MONORAIL_CR_FIRST&&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
+if ! _MONORAIL_CR_FIRST&&[[ $CMD_STATUS == 0 ]]&&! _MONORAIL_CTRLC;then
 case "$CR_LEVEL" in
 0)ls
 CR_LEVEL=3
@@ -197,10 +199,13 @@ else
 _MONORAIL_CR_FIRST () { false;}
 CR_LEVEL=0
 fi
-_MONORAIL_CTRLC=""
+_MONORAIL_CTRLC()
+{
+false
+}
 _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
-trap "_MONORAIL_CTRLC=1;\echo -n" INT
-trap "_MONORAIL_CTRLC=1;\echo -n" ERR
+trap "_MONORAIL_CTRLC(){ :;};\echo -n" INT
+trap "_MONORAIL_CTRLC(){ :;};\echo -n" ERR
 ([[ $BASH_VERSION ]]&&history -a >&- 2>&-&)
 }
 _MONORAIL_SUPPORTED_TERMINAL(){
@@ -276,14 +281,14 @@ fi
 local CMD
 CMD=${_TIMER_CMD%% *}
 CMD=${CMD%%;*}
-CUSTOM_TITLE(){ false;}
-alias "$CMD" >&- 2>&-&&CUSTOM_TITLE(){ :;}
+_MONORAIL_CUSTOM_TITLE(){ false;}
+alias "$CMD" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE(){ :;}
 for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}";do
 if [[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]];then
-CUSTOM_TITLE(){ :;}
+_MONORAIL_CUSTOM_TITLE(){ :;}
 fi
 done
-if CUSTOM_TITLE;then
+if _MONORAIL_CUSTOM_TITLE;then
 _TITLE "$LINE"
 fi
 _MEASURE(){ :;}
@@ -292,7 +297,9 @@ if _MONORAIL_SUPPORTED_TERMINAL;then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >"$TTY" 2>&-
 fi
 esac
-unset -f CUSTOM_TITLE
+_MONORAIL_CUSTOM_TITLE(){
+false
+}
 } >&- 2>&-
 }
 _MONORAIL_STOP_TIMER(){
