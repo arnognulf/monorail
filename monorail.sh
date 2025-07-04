@@ -48,9 +48,7 @@ if [ -z "$FIRST_NON_OPTION" ];then
 _TITLE "$ICON  ${FIRST_ARG##*/}"
 else
 _TITLE "$ICON  ${FIRST_NON_OPTION##*/}"
-fi) &> \
-"\
-$TTY"
+fi) >&- 2>&-
 fi
 "$@"
 }
@@ -560,7 +558,7 @@ if [[ $_MONORAIL_NOSTYLING == 1 ]];then
 return 0
 fi
 if [[ $TERM =~ "xterm"* ]]||[ "$TERM" = "alacritty" ];then
-\printf "\e]0;%s\a" "$*" 1>"$TTY" 2>&-
+\printf "\e]0;%s\a" "$*" >"$TTY" 2>&-
 fi
 }
 if [[ $XDG_CONFIG_HOME ]];then
