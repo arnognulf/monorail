@@ -207,7 +207,12 @@ trap "_MONORAIL_CTRLC(){ :;};\echo -n" ERR
 ([[ $BASH_VERSION ]]&&history -a >&- 2>&-&)
 }
 _MONORAIL_SUPPORTED_TERMINAL(){
-if _MONORAIL_DUMB_TERMINAL;then
+# xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
+# this is the "fast path", if this fails, more thorough testing is needed
+if [[ ${TERM} = "xterm-256color" ]];then
+_MONORAIL_DUMB_TERMINAL () { false;}
+_MONORAIL_SUPPORTED_TERMINAL(){ :;}
+elif _MONORAIL_DUMB_TERMINAL;then
 _MONORAIL_SUPPORTED_TERMINAL(){
 false
 }
