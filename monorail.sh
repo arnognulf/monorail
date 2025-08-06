@@ -206,12 +206,29 @@ trap "_MONORAIL_CTRLC(){ :;};\echo -n" INT
 trap "_MONORAIL_CTRLC(){ :;};\echo -n" ERR
 ([[ $BASH_VERSION ]]&&history -a >&- 2>&-&)
 }
+_MONORAIL_VTXXX_TERMINAL(){
+if [[ $TERM = "vt"??? ]];then
+_MONORAIL_VTXXX_TERMINAL(){ :;}
+else
+_MONORAIL_VTXXX_TERMINAL(){ false;}
+fi
+}
+_MONORAIL_LINUX_TERMINAL(){
+if [[ $TERM = "linux" ]];then
+_MONORAIL_LINUX_TERMINAL(){ :;}
+else
+_MONORAIL_LINUX_TERMINAL(){ false;}
+fi
+}
+
 _MONORAIL_SUPPORTED_TERMINAL(){
 # xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
 # this is the "fast path", if this fails, more thorough testing is needed
 if [[ ${TERM} = "xterm-256color" ]];then
 _MONORAIL_DUMB_TERMINAL () { false;}
 _MONORAIL_SUPPORTED_TERMINAL(){ :;}
+_MONORAIL_VTXXX_TERMINAL(){ false;}
+_MONORAIL_LINUX_TERMINAL(){ false;}
 elif _MONORAIL_DUMB_TERMINAL;then
 _MONORAIL_SUPPORTED_TERMINAL(){
 false
@@ -456,13 +473,13 @@ if _MONORAIL_SUPPORTED_TERMINAL;then
 CHAR=$'\xe2\x96\x81'
 elif [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
 CHAR=-
-elif [[ $TERM == "vt"??? ]];then
+elif _MONORAIL_VTXXX_TERMINAL;then
 CHAR=s
 else
 CHAR="_"
 fi
 local I=0
-if [[ $TERM == "vt"??? ]];then
+if _MONORAIL_VTXXX_TERMINAL;then
 _MONORAIL_LINE="$ESC[0;1m$ESC#6$ESC(0"
 _MONORAIL_ATTRIBUTE="$ESC(1$ESC[0;7m"
 elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]]&&_MONORAIL_SUPPORTED_TERMINAL;then
@@ -474,7 +491,7 @@ _MONORAIL_LINE=""
 fi
 local TEMP_COLUMNS=$COLUMNS
 _MONORAIL_DUMB_TERMINAL&&TEMP_COLUMNS=$((COLUMNS-2))
-if [[ $TERM == "vt"??? ]];then
+if _MONORAIL_VTXXX_TERMINAL;then
 while [ $I -lt $TEMP_COLUMNS ];do
 if [ $I -lt $((TEMP_COLUMNS/2)) ];then
 _MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
@@ -496,7 +513,7 @@ done
 fi
 _MONORAIL_TEXT_FORMATTED=""
 local I=0
-if [[ ${#_PROMPT_LUT[@]} == 0 ]]||[[ $TERM == "vt"??? ]]||[[ $TERM == "linux" ]]||[[ "$MC_TMPDIR" ]];then
+if [[ ${#_PROMPT_LUT[@]} == 0 ]]||_MONORAIL_VTXXX_TERMINAL||_MONORAIL_LINUX_TERMINAL||[[ "$MC_TMPDIR" ]];then
 while [ $I -lt ${#_MONORAIL_TEXT} ];do
 _MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT:I:1}"
 I=$((I+1))
@@ -532,8 +549,8 @@ LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 if [[ $TERM == "mlterm" ]];then
 PS1='$(_TITLE_RAW "${TITLE}"))'"$CR"'${_MONORAIL_LINE}'"
 $_MONORAIL_TEXT_FORMATTED$PREHIDE$ESC[0m$ESC[?25h$POSTHIDE "
-elif _MONORAIL_SUPPORTED_TERMINAL||[[ $TERM == "vt"??? ]];then
-PS1='$(_TITLE_RAW "${TITLE}"))'"$CR$ESC[0m"'${_MONORAIL_LINE}'"
+elif _MONORAIL_SUPPORTED_TERMINAL||_MONORAIL_VTXXX_TERMINAL;then
+PS1=$'\033'"]0;$TITLE"$'\007'$'\r'$'\033'"[0m"'${_MONORAIL_LINE}'"
 $PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE$ESC[0m$ESC[?25h$POSTHIDE "
 else
 local REVERSE NORMAL
@@ -559,7 +576,7 @@ _MONORAIL_COMMAND
 _MONORAIL
 }
 _TITLE_RAW(){
-if [[ $_MONORAIL_NOSTYLING == 1 ]];then
+if [[ $_MONORAIL_NOSTYLING ]];then
 return 0
 fi
 if [[ $TERM =~ "xterm"* ]]||[ "$TERM" = "alacritty" ];then
