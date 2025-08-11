@@ -15,11 +15,11 @@ setopt prompt_subst
 fi
 [[ $TTY ]]||TTY=$(LC_MESSAGES=C LC_ALL=C tty 2>&-)
 _MONORAIL_INITIAL_CURSOR_WORKAROUND(){
-printf "\e]12;#$_PROMPT_FGCOLOR\a" >"$TTY"
+printf "\e]12;#%s\a" "$_PROMPT_FGCOLOR" >"$TTY" 2>&-
 }
 _TITLE(){
 _MONORAIL_INITIAL_CURSOR_WORKAROUND
-_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 }
 _NO_MEASURE(){
 _MEASURE(){ false;}
@@ -55,7 +55,7 @@ _MONORAIL_INVALIDATE_CACHE(){
 unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 _MEASURE(){ false;}
 if [[ ! -f $_MONORAIL_CONFIG/colors.sh ]];then
-LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh
+LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh >&- 2>&-
 fi
 . "$_MONORAIL_CONFIG"/colors.sh
 }
@@ -98,6 +98,7 @@ done
 . "$_MONORAIL_DIR"/bash-preexec/bash-preexec.sh
 _MONORAIL_DUMB_TERMINAL(){
 if [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
+bind 'set enable-bracketed-paste off'
 _MONORAIL_DUMB_TERMINAL(){
 :
 }
@@ -107,9 +108,6 @@ false
 }
 fi
 }
-if _MONORAIL_DUMB_TERMINAL;then
-bind 'set enable-bracketed-paste off'
-fi
 _MONORAIL_ALERT(){
 (exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
 }
@@ -219,6 +217,7 @@ else
 _MONORAIL_LINUX_TERMINAL(){ false;}
 fi
 }
+# blank terminal at startup to reduce flicker
 _MONORAIL_BLANK () {
 printf '\e]0 ;m\e[?25l' >"$TTY" 2>&-
 }
@@ -463,7 +462,7 @@ case $PWD in
 "$HOME")_MONORAIL_PWD_BASENAME="~";;
 *)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
 esac
-_MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "$([ $UID = 0 ]&&\echo "# ")
+_MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR CHAR
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
 _MONORAIL_INVALIDATE_CACHE
@@ -471,13 +470,12 @@ if _MONORAIL_SUPPORTED_TERMINAL;then
 CHAR=$'\xe2\x96\x81'
 elif [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
 CHAR=-
-elif _MONORAIL_VTXXX_TERMINAL;then
-CHAR=s
 else
 CHAR="_"
 fi
 local I=0
 if _MONORAIL_VTXXX_TERMINAL;then
+CHAR=s
 _MONORAIL_LINE=$'\e'"[0;1m"$'\e'"#6"$'\e'"(0"
 _MONORAIL_ATTRIBUTE=$'\e'"(1"$'\e'"[0;7m"
 elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]]&&_MONORAIL_SUPPORTED_TERMINAL;then
@@ -545,9 +543,12 @@ if _MONORAIL_SUPPORTED_TERMINAL;then
 fi
 LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 if [[ $TERM == "mlterm" ]];then
-PS1='$(_TITLE_RAW "${TITLE}"))'"$'\r'"'${_MONORAIL_LINE}'"
+# SC2025: no need to enclose in \[ \] as cursor position is calculated from after newline
+# shellcheck disable=SC2025
+PS1=$'\e'"]0;$TITLE"$'\a'"$'\r'"'${_MONORAIL_LINE}'"
 $_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
 elif _MONORAIL_SUPPORTED_TERMINAL||_MONORAIL_VTXXX_TERMINAL;then
+# shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
 $PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
 else
