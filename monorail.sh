@@ -13,8 +13,7 @@ if [[ $ZSH_NAME ]];then
 setopt KSH_ARRAYS
 setopt prompt_subst
 fi
-[[ $TTY ]]||TTY=$(LC_MESSAGES=C LC_ALL=C tty)
-printf '\e]0 ;m\e[?25l' >"$TTY"
+[[ $TTY ]]||TTY=$(LC_MESSAGES=C LC_ALL=C tty 2>&-)
 _MONORAIL_INITIAL_CURSOR_WORKAROUND(){
 printf "\e]12;#$_PROMPT_FGCOLOR\a" >"$TTY"
 }
@@ -220,11 +219,14 @@ else
 _MONORAIL_LINUX_TERMINAL(){ false;}
 fi
 }
-
+_MONORAIL_BLANK () {
+printf '\e]0 ;m\e[?25l' >"$TTY" 2>&-
+}
 _MONORAIL_SUPPORTED_TERMINAL(){
 # xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
 # this is the "fast path", if this fails, more thorough testing is needed
 if [[ ${TERM} = "xterm-256color" ]];then
+_MONORAIL_BLANK
 _MONORAIL_DUMB_TERMINAL () { false;}
 _MONORAIL_SUPPORTED_TERMINAL(){ :;}
 _MONORAIL_VTXXX_TERMINAL(){ false;}
@@ -238,6 +240,7 @@ _MONORAIL_SUPPORTED_TERMINAL(){
 :
 }
 elif [[ $TERM == "alacritty" ]]&&[[ $COLORTERM == "rxvt-xpm" ]];then
+_MONORAIL_BLANK
 _MONORAIL_SUPPORTED_TERMINAL(){
 :
 }
@@ -446,9 +449,7 @@ fi
 else
 TITLE="$TITLE_OVERRIDE"
 fi
-local PREFG PREBG PREHIDE POSTHIDE
-PREFG=$'\e'"[38;2;"
-PREBG=$'\e'"[48;2;"
+local PREHIDE POSTHIDE
 if [[ $ZSH_NAME ]];then
 PREHIDE='%{'
 POSTHIDE='%}'
@@ -499,7 +500,7 @@ I=$((I+1))
 done
 elif _MONORAIL_SUPPORTED_TERMINAL;then
 while [ $I -lt $TEMP_COLUMNS ];do
-_MONORAIL_LINE="$_MONORAIL_LINE$PREFG${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}m$CHAR"
+_MONORAIL_LINE="$_MONORAIL_LINE"$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}m$CHAR"
 I=$((I+1))
 done
 else
@@ -524,7 +525,7 @@ local _PROMPT_TEXT_LUT
 _PROMPT_TEXT_LUT[0]="255;255;255"
 fi
 local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]}*I)/$((COLUMNS+1))))
-_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$PREHIDE$PREBG${_PROMPT_LUT[$LUT]}m$PREFG${_PROMPT_TEXT_LUT[$TEXT_LUT]}m$POSTHIDE${_MONORAIL_TEXT:I:1}"
+_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[48;2;${_PROMPT_LUT[$LUT]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$TEXT_LUT]}m$POSTHIDE${_MONORAIL_TEXT:I:1}"
 I=$((I+1))
 done
 fi
@@ -547,7 +548,7 @@ if [[ $TERM == "mlterm" ]];then
 PS1='$(_TITLE_RAW "${TITLE}"))'"$'\r'"'${_MONORAIL_LINE}'"
 $_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
 elif _MONORAIL_SUPPORTED_TERMINAL||_MONORAIL_VTXXX_TERMINAL;then
-PS1=$'\033'"]0;$TITLE"$'\007'$'\r'$'\033'"[0m"'${_MONORAIL_LINE}'"
+PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
 $PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
 else
 local REVERSE NORMAL
@@ -600,5 +601,5 @@ alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAI
 alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/gradient.sh --text"
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
-alias unitl='_MONORAIL_NOSTYLING=1;do'
+alias until='_MONORAIL_NOSTYLING=1;until'
 } >&- 2>&-
