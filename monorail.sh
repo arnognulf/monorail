@@ -194,7 +194,6 @@ trap "_MONORAIL_CTRLC(){ :;};\echo -n" ERR
 _MONORAIL_BLANK () {
 printf '\e]0 ;m\e[?25l' >"$TTY" 2>&-
 }
-_MONORAIL_SUPPORTED_TERMINAL(){
 # xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
 # this is the "fast path", if this fails, more thorough testing is needed
 if [[ $TERM = "xterm-256color" ]];then
@@ -228,7 +227,7 @@ if _MONORAIL_DUMB_TERMINAL;then
 _MONORAIL_SUPPORTED_TERMINAL(){
 false
 }
-elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]];then
+elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]];then
 _MONORAIL_SUPPORTED_TERMINAL(){
 :
 }
@@ -243,7 +242,6 @@ false
 }
 fi
 fi
-}
 preexec(){
 {
 _MONORAIL_INITIAL_CURSOR_WORKAROUND(){ :;}
@@ -542,10 +540,14 @@ if [[ $TERM == "mlterm" ]];then
 # shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a'"$'\r'"'${_MONORAIL_LINE}'"
 $_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
-elif _MONORAIL_SUPPORTED_TERMINAL||_MONORAIL_VTXXX_TERMINAL;then
+elif _MONORAIL_SUPPORTED_TERMINAL;then
 # shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
 $PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
+elif _MONORAIL_VTXXX_TERMINAL; then
+PS1=$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
+$PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
+
 else
 local REVERSE NORMAL
 REVERSE=$(LC_MESSAGES=C LC_ALL=C tput rev 2>&-)
@@ -598,4 +600,5 @@ alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
 alias until='_MONORAIL_NOSTYLING=1;until'
-} >&- 2>&-
+}
+# >&- 2>&-

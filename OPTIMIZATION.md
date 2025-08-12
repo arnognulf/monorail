@@ -3,7 +3,7 @@ Optimization techniques for shell
 
 File descriptors
 ----------------
-Calling write on a file descriptor incurs some performance.
+Calling write as well as opening a file descriptor incurs some performance.
 Consider:
 * no ouptut is printed
 * no output is wanted
@@ -21,8 +21,8 @@ then the command can be called as
 note, that some commands fail with EBADFD if ran with closed file descriptor, eg: `type -P cmd`
 These must have stdout connected to /dev/null.
 
-String comparisons
-------------------
+Booleans
+--------
 Avoid calling string comparison functions in libc, instead call:
 
 ```
@@ -45,7 +45,7 @@ fi
 
 This replaces the string comparisons with simple jumps
 
-The `false` function can also be unset, this will also provide the non-zero return code
+Do not unset the `false` function as this will case a directory lookup.
 
 Async code
 ----------

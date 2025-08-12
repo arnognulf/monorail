@@ -1,4 +1,4 @@
-regressions in screen, tmux, vt100, konsole, mlterm
+regressions in tmux, konsole, mlterm
 shellcheck disable
 
 functions faster than variables?
