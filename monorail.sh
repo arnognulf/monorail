@@ -96,18 +96,6 @@ DIR=${DIR%/*}
 done
 }
 . "$_MONORAIL_DIR"/bash-preexec/bash-preexec.sh
-_MONORAIL_DUMB_TERMINAL(){
-if [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
-bind 'set enable-bracketed-paste off'
-_MONORAIL_DUMB_TERMINAL(){
-:
-}
-else
-_MONORAIL_DUMB_TERMINAL(){
-false
-}
-fi
-}
 _MONORAIL_ALERT(){
 (exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
 }
@@ -174,13 +162,12 @@ else
 fi
 ;;
 2)CR_LEVEL=3
-(if
-_MONORAIL_DUMB_TERMINAL
+if _MONORAIL_DUMB_TERMINAL
 then
 \git -c color.status=never status|\head -n$((LINES-2))|\head -n$((LINES-4))
 else
 \git -c color.status=always status|\head -n$((LINES-2))|\head -n$((LINES-4))
-fi)
+fi
 \echo -e "        ...\n\n"
 ;;
 *)_MONORAIL_MAGIC_SHELLBALL
@@ -201,21 +188,7 @@ false
 _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
 trap "_MONORAIL_CTRLC(){ :;};\echo -n" INT
 trap "_MONORAIL_CTRLC(){ :;};\echo -n" ERR
-([[ $BASH_VERSION ]]&&history -a >&- 2>&-&)
-}
-_MONORAIL_VTXXX_TERMINAL(){
-if [[ $TERM = "vt"??? ]];then
-_MONORAIL_VTXXX_TERMINAL(){ :;}
-else
-_MONORAIL_VTXXX_TERMINAL(){ false;}
-fi
-}
-_MONORAIL_LINUX_TERMINAL(){
-if [[ $TERM = "linux" ]];then
-_MONORAIL_LINUX_TERMINAL(){ :;}
-else
-_MONORAIL_LINUX_TERMINAL(){ false;}
-fi
+[[ $BASH_VERSION ]]&&history -a >&- 2>&-
 }
 # blank terminal at startup to reduce flicker
 _MONORAIL_BLANK () {
@@ -224,13 +197,34 @@ printf '\e]0 ;m\e[?25l' >"$TTY" 2>&-
 _MONORAIL_SUPPORTED_TERMINAL(){
 # xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
 # this is the "fast path", if this fails, more thorough testing is needed
-if [[ ${TERM} = "xterm-256color" ]];then
+if [[ $TERM = "xterm-256color" ]];then
 _MONORAIL_BLANK
 _MONORAIL_DUMB_TERMINAL () { false;}
 _MONORAIL_SUPPORTED_TERMINAL(){ :;}
 _MONORAIL_VTXXX_TERMINAL(){ false;}
 _MONORAIL_LINUX_TERMINAL(){ false;}
-elif _MONORAIL_DUMB_TERMINAL;then
+else 
+if [[ $TERM = "vt"??? ]];then
+_MONORAIL_VTXXX_TERMINAL(){ :;}
+else
+_MONORAIL_VTXXX_TERMINAL(){ false;}
+fi
+if [[ $TERM = "linux" ]];then
+_MONORAIL_LINUX_TERMINAL(){ :;}
+else
+_MONORAIL_LINUX_TERMINAL(){ false;}
+fi
+if [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
+bind 'set enable-bracketed-paste off'
+_MONORAIL_DUMB_TERMINAL(){
+:
+}
+else
+_MONORAIL_DUMB_TERMINAL(){
+false
+}
+fi
+if _MONORAIL_DUMB_TERMINAL;then
 _MONORAIL_SUPPORTED_TERMINAL(){
 false
 }
@@ -238,7 +232,7 @@ elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[
 _MONORAIL_SUPPORTED_TERMINAL(){
 :
 }
-elif [[ $TERM == "alacritty" ]]&&[[ $COLORTERM == "rxvt-xpm" ]];then
+elif [[ $TERM == "alacritty" ]]&&[[ $TERM == "rxvt-unicode-256colors" ]];then
 _MONORAIL_BLANK
 _MONORAIL_SUPPORTED_TERMINAL(){
 :
@@ -247,6 +241,7 @@ else
 _MONORAIL_SUPPORTED_TERMINAL(){
 false
 }
+fi
 fi
 }
 preexec(){
