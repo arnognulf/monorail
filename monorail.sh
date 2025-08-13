@@ -1,6 +1,5 @@
 #!/bin/bash
 {
-_MONORAIL_LONGRUNNING () { false;}
 if ! [[ $_MONORAIL_DIR ]];then
 if [[ ${BASH_ARGV[0]} != "/"* ]];then
 _MONORAIL_DIR=$PWD/${BASH_ARGV[0]}
@@ -22,7 +21,7 @@ _MONORAIL_INITIAL_CURSOR_WORKAROUND
 _TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 }
 _NO_MEASURE(){
-_MEASURE(){ false;}
+unset _MEASURE
 "$@"
 }
 _ICON(){
@@ -52,8 +51,7 @@ fi
 "$@"
 }
 _MONORAIL_INVALIDATE_CACHE(){
-unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-_MEASURE(){ false;}
+unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f $_MONORAIL_CONFIG/colors.sh ]];then
 LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh >&- 2>&-
 fi
@@ -201,8 +199,15 @@ _MONORAIL_BLANK
 _MONORAIL_DUMB_TERMINAL () { false;}
 _MONORAIL_SUPPORTED_TERMINAL(){ :;}
 _MONORAIL_VTXXX_TERMINAL(){ false;}
+_MONORAIL_MLTERM_TERMINAL(){ false;}
+_MONORAIL_LINUX_TERMINAL(){ false;}
 _MONORAIL_LINUX_TERMINAL(){ false;}
 else 
+if [[ $TERM = "mlterm" ]];then
+_MONORAIL_MLTERM_TERMINAL(){ :;}
+else
+_MONORAIL_MLTERM_TERMINAL(){ false;}
+fi
 if [[ $TERM = "vt"??? ]];then
 _MONORAIL_VTXXX_TERMINAL(){ :;}
 else
@@ -231,7 +236,7 @@ elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[
 _MONORAIL_SUPPORTED_TERMINAL(){
 :
 }
-elif [[ $TERM == "alacritty" ]]&&[[ $TERM == "rxvt-unicode-256colors" ]];then
+elif [[ $TERM == "alacritty" ]]||[[ $TERM == "rxvt-unicode-256colors" ]];then
 _MONORAIL_BLANK
 _MONORAIL_SUPPORTED_TERMINAL(){
 :
@@ -306,7 +311,7 @@ done
 if _MONORAIL_CUSTOM_TITLE;then
 _TITLE "$TITLE"
 fi
-_MEASURE(){ :;}
+_MEASURE=1
 _START_SECONDS=$SECONDS
 if _MONORAIL_SUPPORTED_TERMINAL;then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >"$TTY" 2>&-
@@ -319,10 +324,11 @@ false
 }
 _MONORAIL_STOP_TIMER(){
 {
+LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 CURRENT_SECONDS=$SECONDS
 DIFF=$((CURRENT_SECONDS-_START_SECONDS))
-if _MEASURE&&[[ $DIFF -gt ${_MONORAIL_TIMEOUT-29} ]];then
+if [[ $_MEASURE ]]&&[[ $DIFF -gt ${_MONORAIL_TIMEOUT-29} ]];then
 SECONDS_M=$((DIFF%3600))
 DURATION_H=$((DIFF/3600))
 DURATION_M=$((SECONDS_M/60))
@@ -335,16 +341,16 @@ DURATION="$DURATION${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%
 \echo "$DURATION"
 (exec notify-send -a "Completed $_TIMER_CMD" -i terminal "$_TIMER_CMD" "Command took $DURATION"&)
 _MONORAIL_ALERT
-_MONORAIL_LONGRUNNING () { :;}
+_MONORAIL_LONGRUNNING=1
 fi
-_MEASURE(){ false;}
+unset _MEASURE
 } 2>&-
 }
 title(){
 TITLE_OVERRIDE="$*"
 }
 _MONORAIL(){
-if _MONORAIL_LONGRUNNING;then
+if [[ $_MONORAIL_LONGRUNNING ]] ;then
 TITLE="✅ Completed $_TIMER_CMD"
 if [[ "$SSH_CLIENT" ]];then
 local SHORT_HOSTNAME=${HOSTNAME%%.*}
@@ -354,7 +360,7 @@ fi
 if [[ "$SCHROOT_ALIAS_NAME" ]];then
 TITLE="$TITLE on $SCHROOT_ALIAS_NAME"
 fi
-_MONORAIL_LONGRUNNING () { false;}
+unset _MONORAIL_LONGRUNNING
 return 0
 fi
 local _MONORAIL_REALPWD
@@ -534,20 +540,19 @@ HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
 if _MONORAIL_SUPPORTED_TERMINAL;then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$HEX_CUR_COLOR"
 fi
-LC_MESSAGES=C LC_ALL=C stty echo 2>&-
-if [[ $TERM == "mlterm" ]];then
+if _MONORAIL_MLTERM_TERMINAL;then
 # SC2025: no need to enclose in \[ \] as cursor position is calculated from after newline
 # shellcheck disable=SC2025
-PS1=$'\e'"]0;$TITLE"$'\a'"$'\r'"'${_MONORAIL_LINE}'"
+PS1=$'\e'"]0;$TITLE"$'\a''${_MONORAIL_LINE}'"
 $_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
 elif _MONORAIL_SUPPORTED_TERMINAL;then
 # shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
 $PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
 elif _MONORAIL_VTXXX_TERMINAL; then
+# shellcheck disable=SC2025
 PS1=$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
 $PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
-
 else
 local REVERSE NORMAL
 REVERSE=$(LC_MESSAGES=C LC_ALL=C tput rev 2>&-)
@@ -567,9 +572,15 @@ fi
 unset _MONORAIL_NOSTYLING
 }
 precmd(){
+_MONORAIL
+# add functions to be run before commands after first prompt has shown
+# Shellcheck mistakenly thinks precmd() is not called again. It is called every refresh of prompt.
+# shellcheck disable=SC2329
+precmd(){
 _MONORAIL_STOP_TIMER
 _MONORAIL_COMMAND
 _MONORAIL
+}
 }
 _TITLE_RAW(){
 if [[ $_MONORAIL_NOSTYLING ]];then
@@ -600,5 +611,4 @@ alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
 alias until='_MONORAIL_NOSTYLING=1;until'
-}
-# >&- 2>&-
+} >&- 2>&-
