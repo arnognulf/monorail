@@ -12,9 +12,8 @@ if [[ $ZSH_NAME ]];then
 setopt KSH_ARRAYS
 setopt prompt_subst
 fi
-[[ $TTY ]]||TTY=$(LC_MESSAGES=C LC_ALL=C tty 2>&-)
 _MONORAIL_INITIAL_CURSOR_WORKAROUND(){
-printf "\e]12;#%s\a" "$_PROMPT_FGCOLOR" >"$TTY" 2>&-
+printf "\e]12;#%s\a" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
 }
 _TITLE(){
 _MONORAIL_INITIAL_CURSOR_WORKAROUND
@@ -70,9 +69,11 @@ nice -n19 "$@"
 fi
 _LOW_PRIO "$@"
 }
+# shellcheck disable=SC2329
 _INTERACTIVE_COMMAND(){
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 }
+# shellcheck disable=SC2329
 _BATCH_COMMAND(){
 command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
 }
@@ -88,6 +89,8 @@ DIR="$PWD"
 while [[ "$DIR" ]];do
 if [[ -e "$DIR/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
+# this function is mistankenly reported as not being called again
+# shellcheck disable=SC2329
 _MONORAIL_GIT_LAZYLOAD(){ :;}
 fi
 DIR=${DIR%/*}
@@ -142,14 +145,11 @@ HISTCONTROL=
 _MONORAIL_HISTCMD_PREV=$(fc -l -1)
 _MONORAIL_HISTCMD_PREV=${_MONORAIL_HISTCMD_PREV%%$'[\t ]'*}
 if [[ -z $_MONORAIL_PENULTIMATE ]];then
-_MONORAIL_CR_FIRST () { :;}
+_MONORAIL_CR_FIRST=1
 CR_LEVEL=0
-_MONORAIL_CTRLC()
-{
-false
-}
+unset _MONORAIL_CTRLC
 elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
-if ! _MONORAIL_CR_FIRST&&[[ $CMD_STATUS == 0 ]]&&! _MONORAIL_CTRLC;then
+if [[ -z $_MONORAIL_CR_FIRST ]] &&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
 case "$CR_LEVEL" in
 0)ls
 CR_LEVEL=3
@@ -172,25 +172,20 @@ fi
 esac
 CR_LEVEL=$((CR_LEVEL+1))
 fi
-_MONORAIL_CR_FIRST () { false;}
-:
+unset _MONORAIL_CR_FIRST
 else
-:
-_MONORAIL_CR_FIRST () { false;}
+unset _MONORAIL_CR_FIRST
 CR_LEVEL=0
 fi
-_MONORAIL_CTRLC()
-{
-false
-}
+unset _MONORAIL_CTRLC
 _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
-trap "_MONORAIL_CTRLC(){ :;};\echo -n" INT
-trap "_MONORAIL_CTRLC(){ :;};\echo -n" ERR
+trap "_MONORAIL_CTRLC=1;\echo -n" INT
+trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
 }
 # blank terminal at startup to reduce flicker
 _MONORAIL_BLANK () {
-printf '\e]0 ;m\e[?25l' >"$TTY" 2>&-
+printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
 }
 # xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
 # this is the "fast path", if this fails, more thorough testing is needed
@@ -314,7 +309,7 @@ fi
 _MEASURE=1
 _START_SECONDS=$SECONDS
 if _MONORAIL_SUPPORTED_TERMINAL;then
-\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >"$TTY" 2>&-
+\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
 fi
 esac
 _MONORAIL_CUSTOM_TITLE(){
@@ -587,7 +582,7 @@ if [[ $_MONORAIL_NOSTYLING ]];then
 return 0
 fi
 if [[ $TERM =~ "xterm"* ]]||[ "$TERM" = "alacritty" ];then
-\printf "\e]0;%s\a" "$*" >"$TTY" 2>&-
+\printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
 fi
 }
 if [[ $XDG_CONFIG_HOME ]];then
