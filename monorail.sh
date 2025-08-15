@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2025 Thomas Eriksson
+# SPDX-License-Identifier: BSD-3-Clause
 {
 if ! [[ $_MONORAIL_DIR ]];then
 if [[ ${BASH_ARGV[0]} != "/"* ]];then
@@ -54,6 +56,8 @@ unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEA
 if [[ ! -f $_MONORAIL_CONFIG/colors.sh ]];then
 LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh >&- 2>&-
 fi
+# file will be copied
+# shellcheck disable=SC1091
 . "$_MONORAIL_CONFIG"/colors.sh
 }
 trap _MONORAIL_INVALIDATE_CACHE WINCH
@@ -71,10 +75,13 @@ _LOW_PRIO "$@"
 }
 # shellcheck disable=SC2329
 _INTERACTIVE_COMMAND(){
+# variable is intended to be set when defined.
+# shellcheck disable=SC2139
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 }
 # shellcheck disable=SC2329
 _BATCH_COMMAND(){
+# shellcheck disable=SC2139
 command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
 }
 alias interactive_command=_INTERACTIVE_COMMAND
@@ -86,7 +93,7 @@ __git_ps1(){ :;}
 _MONORAIL_GIT_LAZYLOAD(){
 local DIR
 DIR="$PWD"
-while [[ "$DIR" ]];do
+while [[ $DIR ]];do
 if [[ -e "$DIR/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
 # this function is mistankenly reported as not being called again
@@ -160,7 +167,7 @@ else
 fi
 ;;
 2)CR_LEVEL=3
-if _MONORAIL_DUMB_TERMINAL
+if [[ $_MONORAIL_DUMB_TERMINAL ]]
 then
 \git -c color.status=never status|\head -n$((LINES-2))|\head -n$((LINES-4))
 else
@@ -191,55 +198,28 @@ printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
 # this is the "fast path", if this fails, more thorough testing is needed
 if [[ $TERM = "xterm-256color" ]];then
 _MONORAIL_BLANK
-_MONORAIL_DUMB_TERMINAL () { false;}
-_MONORAIL_SUPPORTED_TERMINAL(){ :;}
-_MONORAIL_VTXXX_TERMINAL(){ false;}
-_MONORAIL_MLTERM_TERMINAL(){ false;}
-_MONORAIL_LINUX_TERMINAL(){ false;}
-_MONORAIL_LINUX_TERMINAL(){ false;}
+_MONORAIL_SUPPORTED_TERMINAL=1
 else 
 if [[ $TERM = "mlterm" ]];then
-_MONORAIL_MLTERM_TERMINAL(){ :;}
-else
-_MONORAIL_MLTERM_TERMINAL(){ false;}
+_MONORAIL_MLTERM_TERMINAL=1
 fi
 if [[ $TERM = "vt"??? ]];then
-_MONORAIL_VTXXX_TERMINAL(){ :;}
-else
-_MONORAIL_VTXXX_TERMINAL(){ false;}
+_MONORAIL_VTXXX_TERMINAL=1
 fi
 if [[ $TERM = "linux" ]];then
-_MONORAIL_LINUX_TERMINAL(){ :;}
-else
-_MONORAIL_LINUX_TERMINAL(){ false;}
+_MONORAIL_LINUX_TERMINAL=1
 fi
 if [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
 bind 'set enable-bracketed-paste off'
-_MONORAIL_DUMB_TERMINAL(){
-:
-}
-else
-_MONORAIL_DUMB_TERMINAL(){
-false
-}
+_MONORAIL_DUMB_TERMINAL=1
 fi
-if _MONORAIL_DUMB_TERMINAL;then
-_MONORAIL_SUPPORTED_TERMINAL(){
-false
-}
-elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]];then
-_MONORAIL_SUPPORTED_TERMINAL(){
+if [[ $_MONORAIL_DUMB_TERMINAL ]];then
 :
-}
+elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]];then
+_MONORAIL_SUPPORTED_TERMINAL=1
 elif [[ $TERM == "alacritty" ]]||[[ $TERM == "rxvt-unicode-256colors" ]];then
 _MONORAIL_BLANK
-_MONORAIL_SUPPORTED_TERMINAL(){
-:
-}
-else
-_MONORAIL_SUPPORTED_TERMINAL(){
-false
-}
+_MONORAIL_SUPPORTED_TERMINAL=1
 fi
 fi
 preexec(){
@@ -296,25 +276,23 @@ fi
 local CMD
 CMD=${_TIMER_CMD%% *}
 CMD=${CMD%%;*}
-_MONORAIL_CUSTOM_TITLE(){ false;}
-alias "$CMD" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE(){ :;}
+unset _MONORAIL_CUSTOM_TITLE
+alias "$CMD" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE=1
 for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}";do
 if [[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]];then
-_MONORAIL_CUSTOM_TITLE(){ :;}
+_MONORAIL_CUSTOM_TITLE=1
 fi
 done
-if _MONORAIL_CUSTOM_TITLE;then
+if [[ $_MONORAIL_CUSTOM_TITLE ]];then
 _TITLE "$TITLE"
 fi
 _MEASURE=1
 _START_SECONDS=$SECONDS
-if _MONORAIL_SUPPORTED_TERMINAL;then
+if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
 fi
 esac
-_MONORAIL_CUSTOM_TITLE(){
-false
-}
+unset _MONORAIL_CUSTOM_TITLE
 } >&- 2>&-
 }
 _MONORAIL_STOP_TIMER(){
@@ -375,7 +353,7 @@ done
 _MONORAIL_GIT_LAZYLOAD
 _MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
-if [[ $TITLE_OVERRIDE == "" ]];then
+if [[ -z $TITLE_OVERRIDE ]];then
 local SHORT_HOSTNAME=${HOSTNAME%%.*}
 if [[ $ZSH_NAME ]];then
 SHORT_HOSTNAME=$SHORT_HOSTNAME:l
@@ -460,7 +438,7 @@ _MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR CHAR
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
 _MONORAIL_INVALIDATE_CACHE
-if _MONORAIL_SUPPORTED_TERMINAL;then
+if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 CHAR=$'\xe2\x96\x81'
 elif [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
 CHAR=-
@@ -468,11 +446,11 @@ else
 CHAR="_"
 fi
 local I=0
-if _MONORAIL_VTXXX_TERMINAL;then
+if [[ $_MONORAIL_VTXXX_TERMINAL ]];then
 CHAR=s
 _MONORAIL_LINE=$'\e'"[0;1m"$'\e'"#6"$'\e'"(0"
 _MONORAIL_ATTRIBUTE=$'\e'"(1"$'\e'"[0;7m"
-elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]]&&_MONORAIL_SUPPORTED_TERMINAL;then
+elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]]&& [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 _MONORAIL_ATTRIBUTE=""
 _MONORAIL_LINE=""
 else
@@ -480,8 +458,8 @@ _MONORAIL_ATTRIBUTE=$'\e'"[7m"
 _MONORAIL_LINE=""
 fi
 local TEMP_COLUMNS=$COLUMNS
-_MONORAIL_DUMB_TERMINAL&&TEMP_COLUMNS=$((COLUMNS-2))
-if _MONORAIL_VTXXX_TERMINAL;then
+[[ $_MONORAIL_DUMB_TERMINAL ]] &&TEMP_COLUMNS=$((COLUMNS-2))
+if [[ $_MONORAIL_VTXXX_TERMINAL ]];then
 while [ $I -lt $TEMP_COLUMNS ];do
 if [ $I -lt $((TEMP_COLUMNS/2)) ];then
 _MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
@@ -490,7 +468,7 @@ else
 fi
 I=$((I+1))
 done
-elif _MONORAIL_SUPPORTED_TERMINAL;then
+elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 while [ $I -lt $TEMP_COLUMNS ];do
 _MONORAIL_LINE="$_MONORAIL_LINE"$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}m$CHAR"
 I=$((I+1))
@@ -503,7 +481,7 @@ done
 fi
 _MONORAIL_TEXT_FORMATTED=""
 local I=0
-if [[ ${#_PROMPT_LUT[@]} == 0 ]]||_MONORAIL_VTXXX_TERMINAL||_MONORAIL_LINUX_TERMINAL||[[ "$MC_TMPDIR" ]];then
+if [[ ${#_PROMPT_LUT[@]} == 0 ]]||[[ $_MONORAIL_VTXXX_TERMINAL ]]||[[ $_MONORAIL_LINUX_TERMINAL ]]||[[ "$MC_TMPDIR" ]];then
 while [ $I -lt ${#_MONORAIL_TEXT} ];do
 _MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT:I:1}"
 I=$((I+1))
@@ -532,19 +510,19 @@ RGB_CUR_B=${RGB_CUR_GB##*;}
 HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
 [ -z "$HEX_CUR_COLOR" ]&&HEX_CUR_COLOR="$_PROMPT_FGCOLOR"
 [[ ${#_PROMPT_LUT[@]} == 0 ]]&&HEX_CUR_COLOR=$_PROMPT_FGCOLOR
-if _MONORAIL_SUPPORTED_TERMINAL;then
+if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$HEX_CUR_COLOR"
 fi
-if _MONORAIL_MLTERM_TERMINAL;then
+if [[ $_MONORAIL_MLTERM_TERMINAL ]];then
 # SC2025: no need to enclose in \[ \] as cursor position is calculated from after newline
 # shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a''${_MONORAIL_LINE}'"
 $_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
-elif _MONORAIL_SUPPORTED_TERMINAL;then
+elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 # shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
 $PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
-elif _MONORAIL_VTXXX_TERMINAL; then
+elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
 # shellcheck disable=SC2025
 PS1=$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
 $PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
@@ -598,10 +576,15 @@ _MONORAIL_INVALIDATE_CACHE
 name(){
 NAME="$*"
 }
+# shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/color.sh"
+# shellcheck disable=SC2139
 alias monorail_fgcolor="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/fgcolor.sh"
+# shellcheck disable=SC2139
 alias monorail_gradient="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/gradient.sh"
+# shellcheck disable=SC2139
 alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/image.sh"
+# shellcheck disable=SC2139
 alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/gradient.sh --text"
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
