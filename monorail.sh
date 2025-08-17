@@ -13,6 +13,11 @@ fi
 if [[ $ZSH_NAME ]];then
 setopt KSH_ARRAYS
 setopt prompt_subst
+_MONORAIL_PREHIDE='%{'
+_MONORAIL_POSTHIDE='%}'
+else
+_MONORAIL_PREHIDE='\['
+_MONORAIL_POSTHIDE='\]'
 fi
 _MONORAIL_INITIAL_CURSOR_WORKAROUND(){
 printf "\e]12;#%s\a" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
@@ -196,7 +201,7 @@ printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
 }
 # xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
 # this is the "fast path", if this fails, more thorough testing is needed
-if [[ $TERM = "xterm-256color" ]];then
+if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
 _MONORAIL_BLANK
 _MONORAIL_SUPPORTED_TERMINAL=1
 else 
@@ -216,7 +221,21 @@ fi
 if [[ $_MONORAIL_DUMB_TERMINAL ]];then
 :
 elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]];then
+# Terminal.app in Mac OS Tahoe 26.0 and newer supports truecolor
+if [[ $TERM_PROGRAM = "Apple_Terminal" ]]
+then
+local PRODUCT_VERSION OS_VERS
+# outputs "26.0"
+PRODUCT_VERSION=$(sw_vers -productVersion)
+OS_VERS=( ${PRODUCT_VERSION//./ } )
+if [[ "${OS_VERS[0]}" -ge 26 ]];then
 _MONORAIL_SUPPORTED_TERMINAL=1
+else
+_MONORAIL_SUPPORTED_TERMINAL=0
+fi
+else
+_MONORAIL_SUPPORTED_TERMINAL=1
+fi
 elif [[ $TERM == "alacritty" ]]||[[ $TERM == "rxvt-unicode-256colors" ]];then
 _MONORAIL_BLANK
 _MONORAIL_SUPPORTED_TERMINAL=1
@@ -420,14 +439,6 @@ fi
 else
 TITLE="$TITLE_OVERRIDE"
 fi
-local PREHIDE POSTHIDE
-if [[ $ZSH_NAME ]];then
-PREHIDE='%{'
-POSTHIDE='%}'
-else
-PREHIDE='\['
-POSTHIDE='\]'
-fi
 local PWD_BASENAME="${PWD##*/}"
 [ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
 case $PWD in
@@ -483,6 +494,7 @@ _MONORAIL_TEXT_FORMATTED=""
 local I=0
 if [[ ${#_PROMPT_LUT[@]} == 0 ]]||[[ $_MONORAIL_VTXXX_TERMINAL ]]||[[ $_MONORAIL_LINUX_TERMINAL ]]||[[ "$MC_TMPDIR" ]];then
 while [ $I -lt ${#_MONORAIL_TEXT} ];do
+# TODO: _MONORAIL_TEXT:I:1 is not supported by zsh
 _MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT:I:1}"
 I=$((I+1))
 done
@@ -495,7 +507,8 @@ local _PROMPT_TEXT_LUT
 _PROMPT_TEXT_LUT[0]="255;255;255"
 fi
 local TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]}*I)/$((COLUMNS+1))))
-_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[48;2;${_PROMPT_LUT[$LUT]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$TEXT_LUT]}m$POSTHIDE${_MONORAIL_TEXT:I:1}"
+# TODO: _MONORAIL_TEXT:I:1 is not supported by zsh
+_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[48;2;${_PROMPT_LUT[$LUT]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$TEXT_LUT]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT:I:1}"
 I=$((I+1))
 done
 fi
@@ -517,21 +530,21 @@ if [[ $_MONORAIL_MLTERM_TERMINAL ]];then
 # SC2025: no need to enclose in \[ \] as cursor position is calculated from after newline
 # shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a''${_MONORAIL_LINE}'"
-$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
+$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 # shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
-$PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
+$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
 # shellcheck disable=SC2025
 PS1=$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
-$PREHIDE$_MONORAIL_ATTRIBUTE$POSTHIDE$_MONORAIL_TEXT_FORMATTED$PREHIDE"$'\e'"[0m"$'\e'"[?25h$POSTHIDE "
+$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 else
 local REVERSE NORMAL
 REVERSE=$(LC_MESSAGES=C LC_ALL=C tput rev 2>&-)
 if [[ "$REVERSE" ]];then
-NORMAL="$PREHIDE$(LC_MESSAGES=C LC_ALL=C tput sgr0 2>&-)$POSTHIDE"
-REVERSE="$PREHIDE$REVERSE$POSTHIDE"
+NORMAL="$_MONORAIL_PREHIDE$(LC_MESSAGES=C LC_ALL=C tput sgr0 2>&-)$_MONORAIL_POSTHIDE"
+REVERSE="$_MONORAIL_PREHIDE$REVERSE$_MONORAIL_POSTHIDE"
 elif [[ $TERM == "dumb" ]];then
 REVERSE=""
 NORMAL="!"
