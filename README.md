@@ -3,11 +3,11 @@
 
 Monorail is a simple and beautiful shell prompt with customizable gradient colors.
 
-![Terminal showing four different gradient colored prompts loaded.](images/screenshot.png)
+![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation.gif)
 
 
-Install
-=======
+Installation
+============
 
 ```
 mkdir -p ~/.local/share
