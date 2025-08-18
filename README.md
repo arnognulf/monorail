@@ -26,25 +26,25 @@ Open a new terminal for changes to take effect.
 
 Changing colors
 ===============
-Run `bgcolor` to change background
+Run `monorail_color` to change background
 ```
-bgcolor fffaf1
-```
-
-Run `fgcolor` to change foreground
-```
-fgcolor 444444
+monorail_color fffaf1
 ```
 
-Run `gradient` to change prompt gradient:
+Run `monorail_fgcolor` to change foreground
 ```
-gradient  0 b1e874  100 00d4ff
+monorail_fgcolor 444444
+```
+
+Run `monorail_gradient` to change prompt gradient:
+```
+monorail_gradient  0 b1e874  100 00d4ff
 ```
 The `gradient` command has a simple syntax which gives an easy translation of gradients from https://cssgradient.io/ and https://uigradients.com.
 
-Run `gradienttext` to change prompt gradient text:
+Run `monorail_gradienttext` to change prompt gradient text:
 ```
-gradienttext  0 ffffff  100 444444
+monorail_gradienttext  0 ffffff  100 444444
 ```
 
 
