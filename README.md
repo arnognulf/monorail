@@ -23,7 +23,7 @@ git clone https://github.com/arnognulf/monorail
 
 ```
 
-Add the following line to ~/.bashrc or ~/.zshrc
+Add the following line to ~/.bashrc
 
 ```
 . ~/.local/share/monorail/monorail.sh
@@ -138,7 +138,7 @@ The commands can be overridden by re-defining them in ~/.bashrc
 
 Supported shells
 ----------------
-Tested on bash 5.2 and zsh 5.9
+Tested on bash 5.2
 
 Supported terminals
 -------------------
