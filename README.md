@@ -5,9 +5,16 @@ Monorail is a simple and beautiful shell prompt with customizable gradient color
 
 ![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation.gif)
 
+Features
+--------
+* Fast start-up and rendering of prompt.
+* Horizontal gradient "monorail" line across the terminal.
+* Menu to select pre-computed gradients and command to compute gradient LUTs.
+* Favicon like title icons for commands and folders
+* Magic-shellball when Enter is pressed multiple times
 
 Installation
-============
+------------
 
 ```
 mkdir -p ~/.local/share
@@ -25,7 +32,7 @@ Add the following line to ~/.bashrc or ~/.zshrc
 Open a new terminal for changes to take effect.
 
 Changing colors
-===============
+---------------
 Run `monorail_color` to change background
 ```
 monorail_color fffaf1
@@ -49,7 +56,7 @@ monorail_gradienttext  0 ffffff  100 444444
 
 
 Favicon titles
-==============
+--------------
 ![Multiple tabs where each tab has their own emoji icon](images/favicons.png)
 
 Use an emoji in the title as a favicon so the context of the terminal tab can be easily visualized even if the full text is not shown.
@@ -58,7 +65,7 @@ Use an emoji in the title as a favicon so the context of the terminal tab can be
 Different folders have their own icons, being in a git folder shows the construction icon for instance.
 
 Timing statistics
-=================
+-----------------
 
 By default, commands are measured and will emit a popup notification and audible beep if they take longer than 30 seconds.
 
@@ -70,7 +77,7 @@ This is useful for starting a long-running task, and then reading up on another 
 ![Long running command finished with statistics, and popup visible](images/timing.png)
 
 Defining icons, statistics, and priorities
-==========================================
+------------------------------------------
 
 To configure app icons, and wether to emit a notification or not, we need to define what "kind" of category a command is:
 
@@ -130,30 +137,33 @@ The commands can be overridden by re-defining them in ~/.bashrc
 
 
 Supported shells
-================
+----------------
 Tested on bash 5.2 and zsh 5.9
 
 Supported terminals
-===================
-Gradient colors are availible on truecolor terminals.
+-------------------
+Monorail gradients are drawn with the truecolor escape codes which are supported on most modern terminals.
 
 
 See https://github.com/termstandard/colors for a comprehensive list of supported terminal status.
 
 
-Notably, Mac OS X Terminal does not support truecolor.
+Notably, macOS Terminal prior to macOS 26 Tahoe does not support truecolor.
+
+Contributing themes
+-------------------
+Avoid trademarks and names of organizations (political and apolitical).
 
 
-FAQ
-===
-Q: Gradient turns grey or disappears mid-line/mid-text, why?
+I do not wish to infringe trademarks, nor do I want to endorse organizations that may turn supervillan the next day.
 
 
-A: The gradient look-up-table may be malformed. Verify that all elements have three parameters in the range of 0-255, separated by semicolons ';', eg. "64;29;128".
+Also, please keep gradients look-up-tables at up to 200 elements to conserve space (unless a really good reason exists).
 
 Credits
-=======
+-------
 Oklab: A perceptual color space for image processing: https://bottosson.github.io/posts/oklab/
+
 
 How to calculate color contrast: https://www.leserlich.info/werkzeuge/kontrastrechner/index-en.php
 
@@ -165,5 +175,8 @@ bash-preexec which enables timing statistics: https://github.com/rcaloras/bash-p
 
 
 StackExchange discussion on how to differentiate if user pressed ENTER or entered a command: https://unix.stackexchange.com/questions/226909/tell-if-last-command-was-empty-in-prompt-command
+
+
+ghosh uiGradients with a large collection of beautiful uiGradients imported: https://github.com/ghosh/uiGradients
 
 

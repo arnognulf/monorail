@@ -218,6 +218,11 @@ or \"None\" to use text color"
 		a=$SRC_a
 		b=$SRC_b
 
+        # Create look-up-tables of 200 elements by default
+        # Normally, terminals have 80-150 columns of width.
+        # In order to avoid banding we need to sample down the gradient
+        # We also want a value that is not too big to compute/keep in memory.
+        # Thus, 200 was an easy choice since it's only a multiplier on what custom values the user specifies.
 		TOTAL_STEPS=$((STEPS * 2 - INDEX))
 		DELTA_L=$(echo "($DST_L - $SRC_L)/$TOTAL_STEPS" | bc -l)
 		DELTA_a=$(echo "($DST_a - $SRC_a)/$TOTAL_STEPS" | bc -l)

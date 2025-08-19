@@ -19,11 +19,12 @@ else
 _MONORAIL_PREHIDE='\['
 _MONORAIL_POSTHIDE='\]'
 fi
-_MONORAIL_INITIAL_CURSOR_WORKAROUND(){
-printf "\e]12;#%s\a" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
-}
 _TITLE(){
-_MONORAIL_INITIAL_CURSOR_WORKAROUND
+if [[ -z $_MONORAIL_INITIAL_CURSOR_WORKAROUND ]] && [[ $_MONORAIL_SUPPORTED_TERMINAL ]]
+then
+printf "\e]12;#%s\a" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
+_MONORAIL_INITIAL_CURSOR_WORKAROUND=1
+fi
 _TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 }
 _NO_MEASURE(){
@@ -220,19 +221,20 @@ _MONORAIL_DUMB_TERMINAL=1
 fi
 if [[ $_MONORAIL_DUMB_TERMINAL ]];then
 :
-elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]];then
-# Terminal.app in Mac OS Tahoe 26.0 and newer supports truecolor
+elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]]&&[[ $TERM != "Eterm" ]];then
+# Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
 if [[ $TERM_PROGRAM = "Apple_Terminal" ]]
 then
-local PRODUCT_VERSION OS_VERS
+_MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
 # outputs "26.0"
-PRODUCT_VERSION=$(sw_vers -productVersion)
-OS_VERS=( ${PRODUCT_VERSION//./ } )
-if [[ "${OS_VERS[0]}" -ge 26 ]];then
+_MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
+_MONORAIL_OS_VERS=( ${_MONORAIL_PRODUCT_VERSION//./ } )
+if [[ "${_MONORAIL_OS_VERS[0]}" -ge 26 ]];then
 _MONORAIL_SUPPORTED_TERMINAL=1
 else
 _MONORAIL_SUPPORTED_TERMINAL=0
 fi
+unset _MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
 else
 _MONORAIL_SUPPORTED_TERMINAL=1
 fi
@@ -243,7 +245,6 @@ fi
 fi
 preexec(){
 {
-_MONORAIL_INITIAL_CURSOR_WORKAROUND(){ :;}
 _TIMER_CMD="${1/\\\a/\\\\\a}"
 _TIMER_CMD="${_TIMER_CMD/\\\b/\\\\\b}"
 _TIMER_CMD="${_TIMER_CMD/\\\c/\\\\\c}"
@@ -491,6 +492,7 @@ I=$((I+1))
 done
 fi
 _MONORAIL_TEXT_FORMATTED=""
+# TODO: make _MONORAIL_TEXT array and add overridable function to add array
 local I=0
 if [[ ${#_PROMPT_LUT[@]} == 0 ]]||[[ $_MONORAIL_VTXXX_TERMINAL ]]||[[ $_MONORAIL_LINUX_TERMINAL ]]||[[ "$MC_TMPDIR" ]];then
 while [ $I -lt ${#_MONORAIL_TEXT} ];do
