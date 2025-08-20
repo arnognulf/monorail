@@ -1,6 +1,4 @@
 [submodule "bash-preexec"]
 	path = bash-preexec
 	url = https://github.com/rcaloras/bash-preexec
-[submodule "uiGradients"]
-	path = uiGradients
-	url = https://github.com/ghosh/uiGradients
+
