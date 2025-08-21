@@ -56,7 +56,8 @@ monorail_gradient  0 b1e874  100 00d4ff
 ```
 The `gradient` command has a simple syntax which gives an easy translation of gradients from https://cssgradient.io/ and https://uigradients.com.
 
-Arguments come in pair, with a percentage (0-100) and then a color value in hex, eg:
+Arguments come in pairs, multiple pairs may be specified.
+Each pair has a percentage (0-100) and a color value in hex, eg:
 
 ```
 monorail_gradient  0 b1e874  30 c324f5  100 00d4ff
