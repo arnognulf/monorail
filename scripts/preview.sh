@@ -28,6 +28,9 @@ _PROMPT_BGCOLOR="$2"
 I=0
 read
 case "${3,,}" in
+*sh)
+	. "$3" &>/dev/null || exit 42
+    ;;
 *)
 
 	THEME="${3}"
@@ -40,10 +43,6 @@ case "${3,,}" in
 		I=$((I + 1))
 	done
 	rm -f "$TEMP"
-	;;
-*)
-	. "$3" &>/dev/null || exit 42
-	;;
 esac
 
 CHAR="▁"

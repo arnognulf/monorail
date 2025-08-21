@@ -42,11 +42,10 @@ _MAIN() {
 		_PROMPT_FGCOLOR=$OVERRIDE_FGCOLOR
 		_PROMPT_BGCOLOR=$OVERRIDE_BGCOLOR
 		unset _PROMPT_LUT[*] _PROMPT_TEXT_LUT[*]
-		echo "ext=${THEME##*.}" 1>&2 | tee >/dev/null
 
 		TEMP=$(mktemp --suff=".${THEME##*.}")
 
-		cp "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "${TEMP}"
+		cp "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "${TEMP}" &>/dev/null
 
 		WIDTH=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1)
 
