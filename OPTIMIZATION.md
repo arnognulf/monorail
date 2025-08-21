@@ -35,6 +35,11 @@ fi
 
 This avoids memcpy and string comparison functions. 
 
+Functions
+---------
+Avoid calling functions, with these, we need to dereference a pointer and parse its contents.
+Compare with checking if a variable is set or unset but not reading it's contents.
+
 Async code
 ----------
 Is the result not needed immediate? Run the command asynchronous:
