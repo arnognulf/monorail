@@ -19,11 +19,11 @@ Installation
 ```
 mkdir -p ~/.local/share
 cd ~/.local/share
-git clone https://github.com/arnognulf/monorail
+git clone --recursive https://github.com/arnognulf/monorail
 
 ```
 
-Add the following line to ~/.bashrc
+Add the following line to ~/.bashrc or ~/.zshrc
 
 ```
 . ~/.local/share/monorail/monorail.sh
@@ -133,12 +133,12 @@ Predefined list of commands
 For simplicity, a default list of commands and icons are defined in default_commands.sh.
 
 
-The commands can be overridden by re-defining them in ~/.bashrc
+The commands can be overridden by re-defining them in ~/.bashrc or ~/.zshrc
 
 
 Supported shells
 ----------------
-Tested on bash 5.2
+Tested on bash 5.2 and zsh 5.9
 
 Supported terminals
 -------------------
@@ -177,6 +177,6 @@ bash-preexec which enables timing statistics: https://github.com/rcaloras/bash-p
 StackExchange discussion on how to differentiate if user pressed ENTER or entered a command: https://unix.stackexchange.com/questions/226909/tell-if-last-command-was-empty-in-prompt-command
 
 
-ghosh uiGradients with a large collection of beautiful uiGradients imported: https://github.com/ghosh/uiGradients
+ghosh uiGradients for the large collection of beautiful uiGradients that many monorail themes are based upon: https://github.com/ghosh/uiGradients
 
 

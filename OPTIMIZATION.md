@@ -26,26 +26,14 @@ Booleans
 Avoid calling string comparison functions in libc, instead call:
 
 ```
-boolean ()
-{
-if CONDITION
-then
-boolean ()
-{
-:
-}
+if [[ $CONDITION ]];then
+...
 else
-boolean ()
-{
-false
-}
+...
 fi
-}
 ```
 
-This replaces the string comparisons with simple jumps
-
-Do not unset the `false` function as this will case a directory lookup.
+This avoids memcpy and string comparison functions. 
 
 Async code
 ----------
@@ -53,6 +41,14 @@ Is the result not needed immediate? Run the command asynchronous:
 
 ```
 ( exec command >&- 2>&- & )
+```
+
+Subshells
+---------
+Subshells means that bash needs to fork it's entire process. Avoid if possible.
+
+```
+$(...)
 ```
 
 Locale
