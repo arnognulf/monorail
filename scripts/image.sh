@@ -47,7 +47,7 @@ _MAIN() {
 
 		cp "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "${TEMP}" &>/dev/null
 
-		WIDTH=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1)
+		WIDTH=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
 
 		for RGB in $({ convert -crop ${WIDTH}x1+0+$((${WIDTH} / 2)) +repage -scale 200x "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" RGB:- 2>/dev/null | xxd -ps -c3; } || { convert -scale 200x "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "${TEMP}" && convert -crop ${WIDTH}x1+0+$((${WIDTH} / 2)) "$TEMP" RGB:- | xxd -ps -c3; }); do
 			_PROMPT_LUT[$I]="$((0x${RGB:0:2}));$((0x${RGB:2:2}));$((0x${RGB:4:2}))"
