@@ -10,7 +10,7 @@ Features
 * Fast start-up and rendering of prompt.
 * Horizontal gradient "monorail" line across the terminal.
 * Theme selector of pre-computed gradients and images.
-* Gradient creator command with similar syntax as css.
+* Gradient creator command with similar syntax to css gradients.
 * Favicon like title icons for commands and folders
 * Magic-shellball when Enter is pressed multiple times
 
