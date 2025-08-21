@@ -1,7 +1,7 @@
 🚝 Monorail Prompt
 ==================
 
-Monorail is a simple and beautiful shell prompt with customizable gradient colors.
+Monorail is a simple and beautiful shell prompt for Bash and Zsh with customizable gradient colors.
 
 ![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation.gif)
 
@@ -9,7 +9,8 @@ Features
 --------
 * Fast start-up and rendering of prompt.
 * Horizontal gradient "monorail" line across the terminal.
-* Menu to select pre-computed gradients and command to compute gradient LUTs.
+* Theme selector of pre-computed gradients and images.
+* Gradient creator command with similar syntax as css.
 * Favicon like title icons for commands and folders
 * Magic-shellball when Enter is pressed multiple times
 
@@ -43,11 +44,30 @@ Run `monorail_fgcolor` to change foreground
 monorail_fgcolor 444444
 ```
 
-Run `monorail_gradient` to change prompt gradient:
+`monorail_gradient` without arguments bring up an fzf selection of pre-computed gradients.
+
+
+`monorail_image` without arguments bring up an fzf selection of images to use as prompt "background".
+
+
+Run `monorail_gradient` to compute a custom prompt gradient:
 ```
 monorail_gradient  0 b1e874  100 00d4ff
 ```
 The `gradient` command has a simple syntax which gives an easy translation of gradients from https://cssgradient.io/ and https://uigradients.com.
+
+Arguments come in pair, with a percentage (0-100) and then a color value in hex, eg:
+
+```
+monorail_gradient  0 b1e874  30 c324f5  100 00d4ff
+```
+
+There is also a CSS like rgb helper to translate rgb colors to hex:
+
+```
+monorail_gradient  0 $(rgb 231,67,42)  42 $(rgb 29,67,85)  100 $(rgb 16,57,163) 
+```
+
 
 Run `monorail_gradienttext` to change prompt gradient text:
 ```

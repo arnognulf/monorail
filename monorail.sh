@@ -606,6 +606,9 @@ alias monorail_gradient="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONO
 alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/image.sh"
 # shellcheck disable=SC2139
 alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/gradient.sh --text"
+# shellcheck disable=SC2139
+alias monorail_rgb="$_MONORAIL_DIR/scripts/rgb.sh"
+alias rgb="$_MONORAIL_DIR/scripts/rgb.sh"
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
 alias until='_MONORAIL_NOSTYLING=1;until'
