@@ -99,19 +99,6 @@ alias batch_command=_BATCH_COMMAND
 unalias interactive_command batch_command
 unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
 __git_ps1(){ :;}
-_MONORAIL_GIT_LAZYLOAD(){
-local DIR
-DIR="$PWD"
-while [[ $DIR ]];do
-if [[ -e "$DIR/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
-. /usr/lib/git-core/git-sh-prompt
-# this function is mistankenly reported as not being called again
-# shellcheck disable=SC2329
-_MONORAIL_GIT_LAZYLOAD(){ :;}
-fi
-DIR=${DIR%/*}
-done
-}
 . "$_MONORAIL_DIR"/bash-preexec/bash-preexec.sh
 _MONORAIL_ALERT(){
 (exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
@@ -199,14 +186,11 @@ trap "_MONORAIL_CTRLC=1;\echo -n" INT
 trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
 }
-# blank terminal at startup to reduce flicker
-_MONORAIL_BLANK () {
-printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
-}
 # xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
 # this is the "fast path", if this fails, more thorough testing is needed
 if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
-_MONORAIL_BLANK
+# blank terminal at startup to reduce flicker
+printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
 _MONORAIL_SUPPORTED_TERMINAL=1
 else 
 if [[ $TERM = "mlterm" ]];then
@@ -241,7 +225,7 @@ else
 _MONORAIL_SUPPORTED_TERMINAL=1
 fi
 elif [[ $TERM == "alacritty" ]]||[[ $TERM == "rxvt-unicode-256colors" ]];then
-_MONORAIL_BLANK
+printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
 _MONORAIL_SUPPORTED_TERMINAL=1
 fi
 fi
@@ -330,7 +314,7 @@ DURATION_M=$((SECONDS_M/60))
 DURATION_S=$((SECONDS_M%60))
 \printf "\n\aCommand took "
 DURATION=""
-[ $DURATION_H -gt 0 ]&&DURATION="$DURATION${DURATION_H}h "
+[ $DURATION_H -gt 0 ]&&DURATION="{DURATION_H}h "
 [ $DURATION_M -gt 0 ]&&DURATION="$DURATION${DURATION_M}m "
 DURATION="$DURATION${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).""
 \echo "$DURATION"
@@ -370,7 +354,17 @@ break
 fi
 PROMPT_PWD="${PROMPT_PWD%/*}"
 done
-_MONORAIL_GIT_LAZYLOAD
+if [[ $_MONORAIL_GIT_LOADED ]];then
+local DIR
+DIR="$PWD"
+while [[ $DIR ]];do
+if [[ -e "$DIR/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
+. /usr/lib/git-core/git-sh-prompt
+_MONORAIL_GIT_LOADED=1
+fi
+DIR=${DIR%/*}
+done
+fi
 _MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 if [[ -z $TITLE_OVERRIDE ]];then
@@ -448,7 +442,6 @@ for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
 do
 _MONORAIL_TEXT_ARRAY[I]="${_MONORAIL_TEXT[$I]}"
 done
-_MONORAIL_TEXT_ARRAY_LEN=$
 else
 for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
 do
@@ -484,8 +477,6 @@ if [[ $_MONORAIL_VTXXX_TERMINAL ]];then
 while [[ $I -lt $TEMP_COLUMNS ]];do
 if [[ $I -lt $((TEMP_COLUMNS/2)) ]];then
 _MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
-else
-:
 fi
 I=$((I+1))
 done
