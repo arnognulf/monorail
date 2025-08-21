@@ -26,21 +26,24 @@ fi
 _PROMPT_FGCOLOR="$1"
 _PROMPT_BGCOLOR="$2"
 I=0
-echo "$3" &>~/foo
 read
 case "${3,,}" in
-*.jpg|*.jpeg|*.png)
-WIDTH=$(identify "${XDG_PICTURES_DIR-${HOME}/Pictures}/$3" | awk '{ print $3 }'|cut -dx -f1)
-
-#
-for RGB in $(convert -crop ${WIDTH}x1+0+$((${WIDTH}/2)) +repage -scale 200x "${XDG_PICTURES_DIR-${HOME}/Pictures}/${3}" RGB:- | xxd -ps -c3)
-do
-    _PROMPT_LUT[$I]="$((0x${RGB:0:2}));$((0x${RGB:2:2}));$((0x${RGB:4:2}))"
-    I=$((I + 1))
-done
-;;
 *)
-. "$3" &>/dev/null || exit 42
+
+	THEME="${3}"
+	TEMP=$(mktemp --suff=".${THEME##*.}")
+	cp -f "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "$TEMP"
+	WIDTH=$(identify "$TEMP" | awk '{ print $3 }' | cut -dx -f1)
+
+	for RGB in $({ convert -crop ${WIDTH}x1+0+$((${WIDTH} / 2)) +repage -scale 200x "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" RGB:- 2>/dev/null | xxd -ps -c3; } || { convert -scale 200x "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "${TEMP}" && convert -crop ${WIDTH}x1+0+$((${WIDTH} / 2)) "${TEMP}" RGB:- | xxd -ps -c3; }); do
+		_PROMPT_LUT[$I]="$((0x${RGB:0:2}));$((0x${RGB:2:2}));$((0x${RGB:4:2}))"
+		I=$((I + 1))
+	done
+	rm -f "$TEMP"
+	;;
+*)
+	. "$3" &>/dev/null || exit 42
+	;;
 esac
 
 CHAR="▁"
