@@ -203,7 +203,6 @@ elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[
 # Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
 if [[ $TERM_PROGRAM = "Apple_Terminal" ]]
 then
-_MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
 # outputs "26.0"
 _MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
 if [[ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]];then
@@ -290,7 +289,8 @@ fi
 esac
 unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
-} &>/dev/null
+#} &>/dev/null
+}
 }
 _MONORAIL_STOP_TIMER(){
 {
@@ -319,7 +319,16 @@ unset _MEASURE
 title(){
 TITLE_OVERRIDE="$*"
 }
-_MONORAIL(){
+precmd(){
+if [[ $_MONORAIL_LAUNCHED ]];then
+_MONORAIL_STOP_TIMER
+_MONORAIL_COMMAND
+else
+alias for='_MONORAIL_NOSTYLING=1;for'
+alias while='_MONORAIL_NOSTYLING=1;while'
+alias until='_MONORAIL_NOSTYLING=1;until'
+_MONORAIL_LAUNCHED=1
+fi
 if [[ $_MONORAIL_LONGRUNNING ]] ;then
 TITLE="✅ Completed $_TIMER_CMD"
 if [[ "$SSH_CLIENT" ]];then
@@ -469,20 +478,20 @@ _MONORAIL_ATTRIBUTE=$'\e'"[7m"
 _MONORAIL_LINE=""
 fi
 local TEMP_COLUMNS=$COLUMNS
-[[ $_MONORAIL_DUMB_TERMINAL ]] &&TEMP_COLUMNS=$((COLUMNS-2))
-if [[ $_MONORAIL_VTXXX_TERMINAL ]];then
+if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
+while [ $I -lt $TEMP_COLUMNS ];do
+_MONORAIL_LINE="$_MONORAIL_LINE"$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}m$CHAR"
+I=$((I+1))
+done
+elif [[ $_MONORAIL_VTXXX_TERMINAL ]];then
 while [[ $I -lt $TEMP_COLUMNS ]];do
 if [[ $I -lt $((TEMP_COLUMNS/2)) ]];then
 _MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
 fi
 I=$((I+1))
 done
-elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-while [ $I -lt $TEMP_COLUMNS ];do
-_MONORAIL_LINE="$_MONORAIL_LINE"$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}m$CHAR"
-I=$((I+1))
-done
 else
+[[ $_MONORAIL_DUMB_TERMINAL ]] &&TEMP_COLUMNS=$((COLUMNS-2))
 while [ $I -lt $TEMP_COLUMNS ];do
 _MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
 I=$((I+1))
@@ -521,15 +530,15 @@ HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$HEX_CUR_COLOR"
 fi
-if [[ $_MONORAIL_MLTERM_TERMINAL ]];then
+if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
+# shellcheck disable=SC2025
+PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
+$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
+elif [[ $_MONORAIL_MLTERM_TERMINAL ]];then
 # SC2025: no need to enclose in \[ \] as cursor position is calculated from after newline
 # shellcheck disable=SC2025
 PS1=$'\e'"]0;$TITLE"$'\a''${_MONORAIL_LINE}'"
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
-elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-# shellcheck disable=SC2025
-PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
-$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
 # shellcheck disable=SC2025
 PS1=$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
@@ -551,17 +560,6 @@ PS1='${_MONORAIL_LINE}'"
 $REVERSE$_MONORAIL_TEXT$NORMAL "
 fi
 unset _MONORAIL_NOSTYLING
-}
-precmd(){
-_MONORAIL
-# add functions to be run before commands after first prompt has shown
-# Shellcheck mistakenly thinks precmd() is not called again. It is called every refresh of prompt.
-# shellcheck disable=SC2329
-precmd(){
-_MONORAIL_STOP_TIMER
-_MONORAIL_COMMAND
-_MONORAIL
-}
 }
 _TITLE_RAW(){
 if [[ $_MONORAIL_NOSTYLING ]];then
@@ -596,8 +594,7 @@ alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAI
 alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/gradient.sh --text"
 # shellcheck disable=SC2139
 alias monorail_rgb="$_MONORAIL_DIR/scripts/rgb.sh"
+# shellcheck disable=SC2139
 alias rgb="$_MONORAIL_DIR/scripts/rgb.sh"
-alias for='_MONORAIL_NOSTYLING=1;for'
-alias while='_MONORAIL_NOSTYLING=1;while'
-alias until='_MONORAIL_NOSTYLING=1;until'
-} >&- 2>&-
+}
+#} >&- 2>&-
