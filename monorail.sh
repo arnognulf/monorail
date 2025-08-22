@@ -289,8 +289,7 @@ fi
 esac
 unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
-#} &>/dev/null
-}
+} &>/dev/null
 }
 _MONORAIL_STOP_TIMER(){
 {
@@ -449,7 +448,7 @@ _MONORAIL_TEXT_ARRAY[I]="${_MONORAIL_TEXT:I:1}"
 done
 fi
 _MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
-local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR CHAR
+local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B CHAR
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
 unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f $_MONORAIL_CONFIG/colors.sh ]];then
@@ -463,14 +462,14 @@ CHAR=$'\xe2\x96\x81'
 elif [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
 CHAR=-
 else
-CHAR="_"
+CHAR=_
 fi
 local I=0
 if [[ $_MONORAIL_VTXXX_TERMINAL ]];then
 CHAR=s
 _MONORAIL_LINE=$'\e'"[0;1m"$'\e'"#6"$'\e'"(0"
 _MONORAIL_ATTRIBUTE=$'\e'"(1"$'\e'"[0;7m"
-elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]]&& [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
+elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]]&&[[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 _MONORAIL_ATTRIBUTE=""
 _MONORAIL_LINE=""
 else
@@ -505,43 +504,42 @@ _MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT_ARRAY[$I]}"
 I=$((I+1))
 done
 else
-while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
-LUT=$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))
 if [ -z "${_PROMPT_TEXT_LUT[0]}" ];then
 _PROMPT_TEXT_LUT=("255;255;255")
 fi
+while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
+LUT=$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))
 TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]}*I)/$((COLUMNS+1))))
 _MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[48;2;${_PROMPT_LUT[$LUT]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$TEXT_LUT]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[$I]}"
 I=$((I+1))
 done
 fi
-_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
-fi
-set +x
 CURSORPOS=$((_MONORAIL_TEXT_ARRAY_LEN+1))
 RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*CURSORPOS/$((COLUMNS+1))))]}
 RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
-HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
-[ -z "$HEX_CUR_COLOR" ]&&HEX_CUR_COLOR="$_PROMPT_FGCOLOR"
-[[ ${#_PROMPT_LUT[@]} == 0 ]]&&HEX_CUR_COLOR=$_PROMPT_FGCOLOR
-if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$HEX_CUR_COLOR"
+_MONORAIL_HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
+[ -z "$_MONORAIL_HEX_CUR_COLOR" ]&&_MONORAIL_HEX_CUR_COLOR="$_PROMPT_FGCOLOR"
+[[ ${#_PROMPT_LUT[@]} == 0 ]]&&_MONORAIL_HEX_CUR_COLOR=$_PROMPT_FGCOLOR
+_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-# shellcheck disable=SC2025
-PS1=$'\e'"]0;$TITLE"$'\a'$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
-$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
-elif [[ $_MONORAIL_MLTERM_TERMINAL ]];then
+\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_MONORAIL_HEX_CUR_COLOR"
+fi
+if [[ $_MONORAIL_MLTERM_TERMINAL ]];then
 # SC2025: no need to enclose in \[ \] as cursor position is calculated from after newline
 # shellcheck disable=SC2025
-PS1=$'\e'"]0;$TITLE"$'\a''${_MONORAIL_LINE}'"
+PS1=$'\e'"]0;"'$TITLE'$'\a'"$_MONORAIL_LINE
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
+elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
+# shellcheck disable=SC2025
+PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m${_MONORAIL_LINE}
+$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
 # shellcheck disable=SC2025
-PS1=$'\r'$'\e'"[0m"'${_MONORAIL_LINE}'"
+PS1=$'\r'$'\e'"[0m${_MONORAIL_LINE}
 $_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 else
 local REVERSE NORMAL
@@ -556,7 +554,7 @@ else
 REVERSE=""
 NORMAL="|"
 fi
-PS1='${_MONORAIL_LINE}'"
+PS1=${_MONORAIL_LINE}"
 $REVERSE$_MONORAIL_TEXT$NORMAL "
 fi
 unset _MONORAIL_NOSTYLING
@@ -596,5 +594,4 @@ alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_
 alias monorail_rgb="$_MONORAIL_DIR/scripts/rgb.sh"
 # shellcheck disable=SC2139
 alias rgb="$_MONORAIL_DIR/scripts/rgb.sh"
-}
-#} >&- 2>&-
+} >&- 2>&-
