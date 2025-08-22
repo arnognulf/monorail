@@ -60,16 +60,7 @@ fi) >&- 2>&-
 fi
 "$@"
 }
-_MONORAIL_INVALIDATE_CACHE(){
-unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
-if [[ ! -f $_MONORAIL_CONFIG/colors.sh ]];then
-LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh >&- 2>&-
-fi
-# file will be copied
-# shellcheck disable=SC1091
-. "$_MONORAIL_CONFIG"/colors.sh
-}
-trap _MONORAIL_INVALIDATE_CACHE WINCH
+trap "unset _MONORAIL_CACHE" WINCH
 _LOW_PRIO(){
 if type -P chrt >/dev/null 2>&-;then
 _LOW_PRIO(){
@@ -451,7 +442,13 @@ fi
 _MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
 local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B HEX_CUR_COLOR CHAR
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
-_MONORAIL_INVALIDATE_CACHE
+unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
+if [[ ! -f $_MONORAIL_CONFIG/colors.sh ]];then
+LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh >&- 2>&-
+fi
+# file will be copied
+# shellcheck disable=SC1091
+. "$_MONORAIL_CONFIG"/colors.sh
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 CHAR=$'\xe2\x96\x81'
 elif [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
@@ -583,7 +580,7 @@ if [[ ! -f "$_MONORAIL_CONFIG"/colors.sh ]];then
 LC_MESSAGES=C mkdir -p "$_MONORAIL_CONFIG"
 LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh
 fi
-_MONORAIL_INVALIDATE_CACHE
+unset _MONORAIL_CACHE
 name(){
 NAME="$*"
 }
