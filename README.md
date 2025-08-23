@@ -166,7 +166,7 @@ Supported terminals
 Monorail gradients are drawn with the truecolor escape codes which are supported on most modern terminals.
 
 
-See https://github.com/termstandard/colors for a comprehensive list of supported terminal status.
+See https://github.com/termstandard/colors for a comprehensive list of supported terminals.
 
 
 Notably, macOS Terminal prior to macOS 26 Tahoe does not support truecolor.
