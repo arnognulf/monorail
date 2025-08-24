@@ -32,24 +32,26 @@ _MAIN() {
 	done
 
 	if [[ -z "$1" ]]; then
-		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${OVERRIDE_FGCOLOR}" "${OVERRIDE_BGCOLOR}" {}")
+		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh \"${OVERRIDE_FGCOLOR}\" \"${OVERRIDE_BGCOLOR}\" {}")
 	else
 		THEME="$1"
 	fi
 	case "${THEME,,}" in
+    "")
+        exit 1;;
 	*)
 
 		_PROMPT_FGCOLOR=$OVERRIDE_FGCOLOR
 		_PROMPT_BGCOLOR=$OVERRIDE_BGCOLOR
-		unset _PROMPT_LUT[*] _PROMPT_TEXT_LUT[*]
+		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 
 		TEMP=$(mktemp --suff=".${THEME##*.}")
 
 		cp "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "${TEMP}" &>/dev/null
-
+		# identify will report size
 		WIDTH=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
 
-		for RGB in $({ convert -crop ${WIDTH}x1+0+$((${WIDTH} / 2)) +repage -scale 200x "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" RGB:- 2>/dev/null | xxd -ps -c3; } || { convert -scale 200x "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "${TEMP}" && convert -crop ${WIDTH}x1+0+$((${WIDTH} / 2)) "$TEMP" RGB:- | xxd -ps -c3; }); do
+		for RGB in $(convert -crop "$WIDTH"x1+0+$((WIDTH / 2)) "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" PPM:- | convert -scale 200x "PPM:-" RGB:- | xxd -ps -c3); do
 			_PROMPT_LUT[$I]="$((0x${RGB:0:2}));$((0x${RGB:2:2}));$((0x${RGB:4:2}))"
 			I=$((I + 1))
 		done
