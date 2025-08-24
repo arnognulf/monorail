@@ -32,6 +32,8 @@ Add the following line to ~/.bashrc or ~/.zshrc
 
 Open a new terminal for changes to take effect.
 
+Usage
+=====
 Changing colors
 ---------------
 Run `monorail_color` to change background
@@ -75,9 +77,12 @@ Run `monorail_gradienttext` to change prompt gradient text:
 monorail_gradienttext  0 ffffff  100 444444
 ```
 
+Saving colors
+-------------
+`monorail_save Theme name`
 
 Favicon titles
---------------
+==============
 ![Multiple tabs where each tab has their own emoji icon](images/favicons.png)
 
 Use an emoji in the title as a favicon so the context of the terminal tab can be easily visualized even if the full text is not shown.
@@ -86,7 +91,7 @@ Use an emoji in the title as a favicon so the context of the terminal tab can be
 Different folders have their own icons, being in a git folder shows the construction icon for instance.
 
 Timing statistics
------------------
+=================
 
 By default, commands are measured and will emit a popup notification and audible beep if they take longer than 30 seconds.
 

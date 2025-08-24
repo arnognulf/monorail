@@ -530,11 +530,12 @@ if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 fi
 if [[ $_MONORAIL_MLTERM_TERMINAL ]];then
 # SC2025: no need to enclose in \[ \] as cursor position is calculated from after newline
-# shellcheck disable=SC2025
+# SC1079: suspicious quoting
+# shellcheck disable=SC2025,SC1079
 PS1=$'\e'"]0;"'$TITLE'$'\a'"$_MONORAIL_LINE
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-# shellcheck disable=SC2025
+# shellcheck disable=SC2025,SC1079
 PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m${_MONORAIL_LINE}
 $_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
@@ -594,4 +595,7 @@ alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_
 alias monorail_rgb="$_MONORAIL_DIR/scripts/rgb.sh"
 # shellcheck disable=SC2139
 alias rgb="$_MONORAIL_DIR/scripts/rgb.sh"
+# shellcheck disable=SC2139
+alias monorail_save="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/save.sh"
+
 } >&- 2>&-
