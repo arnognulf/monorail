@@ -136,21 +136,21 @@ _GRADIENT() {
 		local THEME
 		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh ${OVERRIDE_FGCOLOR} ${OVERRIDE_BGCOLOR} {}")
 		if [[ ${THEME} ]]; then
-			rm "${_MONORAIL_CONFIG}/colors.sh"
+			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
 
 				[[ $OVERRIDE_BGCOLOR ]] && printf "\n_PROMPT_FGCOLOR=${OVERRIDE_FGCOLOR}\n"
 				[[ $OVERRIDE_FGCOLOR ]] && printf "\n_PROMPT_BGCOLOR=${OVERRIDE_BGCOLOR}\n"
 				cat "${_MONORAIL_DIR}/colors/${THEME}"
-			} >"${_MONORAIL_CONFIG}/colors.sh"
+			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
 		;;
 	esac
 	if [[ "${#@}" = 1 ]]; then
 		if [[ -f "${_MONORAIL_DIR}/colors/${1}.sh" ]]; then
-			ln -sf "${_MONORAIL_DIR}/colors/${1}".sh "${_MONORAIL_CONFIG}/colors.sh"
+			ln -sf "${_MONORAIL_DIR}/colors/${1}".sh "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		elif [[ -f "${_MONORAIL_DIR}/colors/${1}" ]]; then
-			ln -sf "${_MONORAIL_DIR}/colors/${1}" "${_MONORAIL_CONFIG}/colors.sh"
+			ln -sf "${_MONORAIL_DIR}/colors/${1}" "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		else
 			{
 				echo "gradient: No such theme \"$1\""
@@ -168,11 +168,11 @@ or \"None\" to use text color"
 			} | less
 			return 1
 		fi
-		. ${_MONORAIL_CONFIG}/colors.sh
+		. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 		return 0
 	fi
 	# reload in case user has manually modified colors.sh
-	. ${_MONORAIL_CONFIG}/colors.sh
+	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 	if [[ $RESET_COLORS ]]; then
 		_PROMPT_FGCOLOR=$OVERRIDE_FGCOLOR
@@ -218,11 +218,11 @@ or \"None\" to use text color"
 		a=$SRC_a
 		b=$SRC_b
 
-        # Create look-up-tables of 200 elements by default
-        # Normally, terminals have 80-150 columns of width.
-        # In order to avoid banding we need to sample down the gradient
-        # We also want a value that is not too big to compute/keep in memory.
-        # Thus, 200 was an easy choice since it's only a multiplier on what custom values the user specifies.
+		# Create look-up-tables of 200 elements by default
+		# Normally, terminals have 80-150 columns of width.
+		# In order to avoid banding we need to sample down the gradient
+		# We also want a value that is not too big to compute/keep in memory.
+		# Thus, 200 was an easy choice since it's only a multiplier on what custom values the user specifies.
 		TOTAL_STEPS=$((STEPS * 2 - INDEX))
 		DELTA_L=$(echo "($DST_L - $SRC_L)/$TOTAL_STEPS" | bc -l)
 		DELTA_a=$(echo "($DST_a - $SRC_a)/$TOTAL_STEPS" | bc -l)
@@ -244,7 +244,10 @@ or \"None\" to use text color"
 		SRC_b=${DST_b}
 	done
 	if [[ -z "$DEST" ]]; then
-		DEST="${_MONORAIL_CONFIG}/colors.sh"
+		_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+		_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+
+		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
 
 	{

@@ -2,10 +2,13 @@
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
 _MAIN() {
+	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+
 	declare -a _PROMPT_LUT=()
 	declare -a _PROMPT_TEXT_LUT=()
 	if [[ -z "$DEST" ]]; then
-		DEST="${_MONORAIL_CONFIG}/colors.sh"
+		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
 	OVERRIDE_FGCOLOR=444444
 	OVERRIDE_BGCOLOR=ffffff
@@ -37,8 +40,9 @@ _MAIN() {
 		THEME="$1"
 	fi
 	case "${THEME,,}" in
-    "")
-        exit 1;;
+	"")
+		exit 1
+		;;
 	*)
 
 		_PROMPT_FGCOLOR=$OVERRIDE_FGCOLOR
@@ -56,14 +60,14 @@ _MAIN() {
 			I=$((I + 1))
 		done
 
-		rm "${_MONORAIL_CONFIG}/colors.sh"
+		rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		{
 			[[ $OVERRIDE_FGCOLOR ]] && printf "\n_PROMPT_FGCOLOR=${OVERRIDE_FGCOLOR}\n"
 			[[ $OVERRIDE_BGCOLOR ]] && printf "\n_PROMPT_BGCOLOR=${OVERRIDE_BGCOLOR}\n"
 			[[ ${_PROMPT_LUT[0]} ]] && declare -p _PROMPT_LUT
 			[[ ${_PROMPT_TEXT_LUT[0]} ]] && declare -p _PROMPT_TEXT_LUT
 
-		} >"${_MONORAIL_CONFIG}/colors.sh"
+		} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		;;
 	"")
 		# TODO HELP

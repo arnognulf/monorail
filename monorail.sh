@@ -451,12 +451,12 @@ _MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
 local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B CHAR
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
 unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
-if [[ ! -f $_MONORAIL_CONFIG/colors.sh ]];then
-LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh >&- 2>&-
+if [[ ! -f $_MONORAIL_CONFIG/colors-${_MONORAIL_SHORT_HOSTNAME}.sh ]];then
+LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh >&- 2>&-
 fi
 # file will be copied
 # shellcheck disable=SC1091
-. "$_MONORAIL_CONFIG"/colors.sh
+. "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 CHAR=$'\xe2\x96\x81'
 elif [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
@@ -573,11 +573,6 @@ _MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
 else
 _MONORAIL_CONFIG="$HOME/.config/monorail"
 fi
-if [[ ! -f "$_MONORAIL_CONFIG"/colors.sh ]];then
-LC_MESSAGES=C mkdir -p "$_MONORAIL_CONFIG"
-LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors.sh
-fi
-unset _MONORAIL_CACHE
 name(){
 NAME="$*"
 }

@@ -35,8 +35,11 @@ _MONORAIL_CONTRAST() {
 	fi
 }
 _FGCOLOR() {
+	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+
 	# reload in case user has manually modified colors.sh
-	[[ -f ${_MONORAIL_CONFIG}/colors.sh ]] && . "$_MONORAIL_CONFIG"/colors.sh
+	[[ -f ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh ]] && . "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 	if [[ "${#1}" != 6 ]]; then
 		\echo "ERROR: color must be hexadecimal and 6 hexadecimal characters" 1>&2 | tee 1>/dev/null
@@ -53,7 +56,7 @@ _FGCOLOR() {
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
 		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
-	} >"${_MONORAIL_CONFIG}"/colors.sh
+	} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 	killall -s WINCH bash zsh &>/dev/null
 }
 _FGCOLOR "$@"
