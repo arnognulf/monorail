@@ -353,7 +353,7 @@ break
 fi
 PROMPT_PWD="${PROMPT_PWD%/*}"
 done
-if [[ $_MONORAIL_GIT_LOADED ]];then
+if [[ -z $_MONORAIL_GIT_LOADED ]];then
 local DIR
 DIR="$PWD"
 while [[ $DIR ]];do
