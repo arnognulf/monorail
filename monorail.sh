@@ -75,8 +75,7 @@ _LOW_PRIO "$@"
 }
 # shellcheck disable=SC2329
 _INTERACTIVE_COMMAND(){
-# variable is intended to be set when defined.
-# shellcheck disable=SC2139
+# shellcheck disable=SC2139 # variable is intended to be set when defined
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 }
 # shellcheck disable=SC2329
@@ -185,6 +184,7 @@ printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
 _MONORAIL_SUPPORTED_TERMINAL=1
 else 
 if [[ $TERM = "mlterm" ]];then
+_MONORAIL_SUPPORTED_TERMINAL=1
 _MONORAIL_MLTERM_TERMINAL=1
 fi
 if [[ $TERM = "vt"??? ]];then
@@ -207,8 +207,6 @@ then
 _MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
 if [[ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]];then
 _MONORAIL_SUPPORTED_TERMINAL=1
-else
-_MONORAIL_SUPPORTED_TERMINAL=0
 fi
 unset _MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
 else
@@ -452,23 +450,20 @@ local CURSORPOS RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B CHAR
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
 unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f $_MONORAIL_CONFIG/colors-${_MONORAIL_SHORT_HOSTNAME}.sh ]];then
-LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh >&- 2>&-
+LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_CONFIG/colors-${_MONORAIL_SHORT_HOSTNAME}.sh" >&- 2>&-
 fi
-# file will be copied
-# shellcheck disable=SC1091
-. "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
-if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-CHAR=$'\xe2\x96\x81'
-elif [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
+# shellcheck disable=SC1090,SC1091 # file will be copied
+. "$_MONORAIL_CONFIG/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+if [[ -z $_MONORAIL_SUPPORTED_TERMINAL ]];then
+if [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
 CHAR=-
 else
 CHAR=_
 fi
+fi
 local I=0
 if [[ $_MONORAIL_VTXXX_TERMINAL ]];then
-CHAR=s
-_MONORAIL_LINE=$'\e'"[0;1m"$'\e'"#6"$'\e'"(0"
-_MONORAIL_ATTRIBUTE=$'\e'"(1"$'\e'"[0;7m"
+:
 elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]]&&[[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 _MONORAIL_ATTRIBUTE=""
 _MONORAIL_LINE=""
@@ -479,20 +474,20 @@ fi
 local TEMP_COLUMNS=$COLUMNS
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 while [ $I -lt $TEMP_COLUMNS ];do
-_MONORAIL_LINE="$_MONORAIL_LINE"$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}m$CHAR"
+_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}m"$'\xe2\x96\x81'
 I=$((I+1))
 done
 elif [[ $_MONORAIL_VTXXX_TERMINAL ]];then
-while [[ $I -lt $TEMP_COLUMNS ]];do
-if [[ $I -lt $((TEMP_COLUMNS/2)) ]];then
-_MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
-fi
+_MONORAIL_LINE=$'\e'"[0;1m"$'\e'"#6"$'\e'"(0"
+_MONORAIL_ATTRIBUTE=$'\e'"(1"$'\e'"[0;7m"
+while [[ $I -lt $((TEMP_COLUMNS / 2)) ]];do
+_MONORAIL_LINE+="s"
 I=$((I+1))
 done
 else
 [[ $_MONORAIL_DUMB_TERMINAL ]] &&TEMP_COLUMNS=$((COLUMNS-2))
 while [ $I -lt $TEMP_COLUMNS ];do
-_MONORAIL_LINE="$_MONORAIL_LINE$CHAR"
+_MONORAIL_LINE+="$CHAR"
 I=$((I+1))
 done
 fi
@@ -525,21 +520,22 @@ _MONORAIL_HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB
 [[ ${#_PROMPT_LUT[@]} == 0 ]]&&_MONORAIL_HEX_CUR_COLOR=$_PROMPT_FGCOLOR
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
+# title must not be set in PS1 as this will be re-set by WINCH to last app title
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_MONORAIL_HEX_CUR_COLOR"
+\printf "\e]0;$TITLE\a\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_MONORAIL_HEX_CUR_COLOR"
+elif [[ $TERM == "xterm"* ]];then
+\printf "\e]0;%s\a" "$TITLE"
 fi
 if [[ $_MONORAIL_MLTERM_TERMINAL ]];then
-# SC2025: no need to enclose in \[ \] as cursor position is calculated from after newline
-# SC1079: suspicious quoting
-# shellcheck disable=SC2025,SC1079
-PS1=$'\e'"]0;"'$TITLE'$'\a'"$_MONORAIL_LINE
+# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
+PS1="$_MONORAIL_LINE
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-# shellcheck disable=SC2025,SC1079
-PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m${_MONORAIL_LINE}
+# shellcheck disable=SC2025,SC1078,SC1079
+PS1=$'\r'$'\e'"[0m${_MONORAIL_LINE}
 $_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
-# shellcheck disable=SC2025
+# shellcheck disable=SC2025,SC1078,SC1079 # quoting is supposed to span multiple lines
 PS1=$'\r'$'\e'"[0m${_MONORAIL_LINE}
 $_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 else
