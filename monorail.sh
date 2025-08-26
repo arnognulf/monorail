@@ -302,9 +302,9 @@ DURATION_M=$((SECONDS_M/60))
 DURATION_S=$((SECONDS_M%60))
 \printf "\n\aCommand took "
 DURATION=""
-[ $DURATION_H -gt 0 ]&&DURATION="{DURATION_H}h "
-[ $DURATION_M -gt 0 ]&&DURATION="$DURATION${DURATION_M}m "
-DURATION="$DURATION${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).""
+[ $DURATION_H -gt 0 ]&&DURATION="${DURATION_H}h "
+[ $DURATION_M -gt 0 ]&&DURATION+="${DURATION_M}m "
+DURATION+="${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).""
 \echo "$DURATION"
 (exec notify-send -a "Completed $_TIMER_CMD" -i terminal "$_TIMER_CMD" "Command took $DURATION"&)
 _MONORAIL_ALERT
