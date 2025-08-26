@@ -8,7 +8,7 @@ Monorail is a simple and beautiful shell prompt for Bash and Zsh with customizab
 Features
 --------
 * Fast start-up and rendering of prompt.
-* Horizontal gradient "monorail" line across the terminal.
+* Horizontal gradient separator line across the terminal.
 * Theme selector of pre-computed gradients and images.
 * Gradient creator command with similar syntax to css gradients.
 * Favicon like title icons for commands and folders
@@ -36,14 +36,9 @@ Usage
 =====
 Changing colors
 ---------------
-Run `monorail_color` to change background
+Run `monorail_color` to change foreground and optionally background color
 ```
-monorail_color fffaf1
-```
-
-Run `monorail_fgcolor` to change foreground
-```
-monorail_fgcolor 444444
+monorail_color 444444 fffaf1 
 ```
 
 `monorail_gradient` without arguments bring up an fzf selection of pre-computed gradients.

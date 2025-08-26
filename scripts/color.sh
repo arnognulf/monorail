@@ -43,7 +43,13 @@ _FGCOLOR() {
 		return 1
 	fi
 
-	_MONORAIL_CONTRAST "${_PROMPT_BGCOLOR}" "$1" || return 1
+    if [[ "$1" ]];then
+    _PROMPT_FGCOLOR="$1"
+    fi
+    if [[ "$2" ]];then
+    _PROMPT_BGCOLOR="$2"
+    fi
+	_MONORAIL_CONTRAST "$_PROMPT_BGCOLOR}" "$_PROMPT_FGCOLOR" || return 1
 
 	[[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]] && _PROMPT_TEXT_LUT=()
 	[[ ${#_PROMPT_LUT[@]} = 0 ]] && _PROMPT_LUT=()

@@ -80,49 +80,13 @@ int(max(0.0, min(255.0, round(255.0 * (-0.0041960863 * $l - 0.7034186147 * $m + 
 # gradient [start_color index]
 _GRADIENT() {
 	local PREFIX=""
-	local OVERRIDE_BGCOLOR=ffffff
-	local OVERRIDE_FGCOLOR=444444
-	local RESET_COLORS=""
 
 	while [[ "$1" = "-"* ]]; do
 		case "$1" in
-		--light)
-			local OVERRIDE_BGCOLOR=ffffff
-			local OVERRIDE_FGCOLOR=444444
-			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-			printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
-			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
-			shift
-			;;
-		--dark)
-			local OVERRIDE_BGCOLOR=444444
-			local OVERRIDE_FGCOLOR=ffffff
-			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-			printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
-			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
-			shift
-			;;
-
 		--text)
 			local HELP_PREFIX=text
 			local PREFIX=TEXT_
 			shift
-			;;
-		--reset-colors)
-			local RESET_COLORS=1
-			shift
-			;;
-		--bgcolor=*)
-			OVERRIDE_BGCOLOR=${1##*=}
-			printf '\033]11;#${OVERRIDE_BGCOLOR}\007'
-			read
-			shift 1
-			;;
-		--fgcolor=*)
-			OVERRIDE_FGCOLOR=${1##*=}
-			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
-			shift 1
 			;;
 		--help | -h)
 			cat ${_MONORAIL_DIR}/colors/000_README.md
@@ -130,17 +94,22 @@ _GRADIENT() {
 			;;
 		esac
 	done
+    
+    _PROMPT_BGCOLOR=ffffff
+    _PROMPT_FGCOLOR=444444
+
+    . "${_MONORAIL_CONFIG}/colors.sh"
 
 	case "$1" in
 	"")
 		local THEME
-		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh ${OVERRIDE_FGCOLOR} ${OVERRIDE_BGCOLOR} {}")
+		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh \"${_PROMPT_FGCOLOR}\" \"${_PROMPT_BGCOLOR}\" {}")
 		if [[ ${THEME} ]]; then
 			rm "${_MONORAIL_CONFIG}/colors.sh"
 			{
 
-				[[ $OVERRIDE_BGCOLOR ]] && printf "\n_PROMPT_FGCOLOR=${OVERRIDE_FGCOLOR}\n"
-				[[ $OVERRIDE_FGCOLOR ]] && printf "\n_PROMPT_BGCOLOR=${OVERRIDE_BGCOLOR}\n"
+				[[ $_PROMPT_BGCOLOR ]] && printf "\n_PROMPT_FGCOLOR=${_PROMPT_FGCOLOR}\n"
+				[[ $_PROMPT_FGCOLOR ]] && printf "\n_PROMPT_BGCOLOR=${_PROMPT_BGCOLOR}\n"
 				cat "${_MONORAIL_DIR}/colors/${THEME}"
 			} >"${_MONORAIL_CONFIG}/colors.sh"
 		fi
@@ -173,12 +142,6 @@ or \"None\" to use text color"
 	fi
 	# reload in case user has manually modified colors.sh
 	. ${_MONORAIL_CONFIG}/colors.sh
-
-	if [[ $RESET_COLORS ]]; then
-		_PROMPT_FGCOLOR=$OVERRIDE_FGCOLOR
-		_PROMPT_BGCOLOR=$OVERRIDE_BGCOLOR
-		unset _PROMPT_LUT[*] _PROMPT_TEXT_LUT[*]
-	fi
 
 	local L
 	local a

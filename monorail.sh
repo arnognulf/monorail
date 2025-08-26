@@ -60,7 +60,7 @@ fi) >&- 2>&-
 fi
 "$@"
 }
-trap "unset _MONORAIL_CACHE" WINCH
+trap "unset _MONORAIL_CACHE _MEASURE" WINCH
 _LOW_PRIO(){
 if type -P chrt >/dev/null 2>&-;then
 _LOW_PRIO(){
@@ -308,7 +308,7 @@ DURATION=""
 [ $DURATION_M -gt 0 ]&&DURATION="$DURATION${DURATION_M}m "
 DURATION="$DURATION${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).""
 \echo "$DURATION"
-(exec notify-send -a "Completed $_TIMER_CMD" -i terminal "$_TIMER_CMD" "Command took $DURATION"&)
+(notify-send -a "Completed $_TIMER_CMD" -i terminal "$_TIMER_CMD" "Command took $DURATION"&)
 _MONORAIL_ALERT
 _MONORAIL_LONGRUNNING=1
 fi
@@ -583,8 +583,6 @@ NAME="$*"
 }
 # shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/color.sh"
-# shellcheck disable=SC2139
-alias monorail_fgcolor="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/fgcolor.sh"
 # shellcheck disable=SC2139
 alias monorail_gradient="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/gradient.sh"
 # shellcheck disable=SC2139

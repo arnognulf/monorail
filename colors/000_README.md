@@ -6,9 +6,10 @@ Use UP and DOWN arrows and press RETURN to select a predefined color scheme.
 Enter text to search for a specific theme
 
 
-To select dark mode, call:
+To select dark or light mode, run:
 
-monorail_gradient --dark
+monorail_dark
+monorail_light
 
 To select a custom fore- and background color, call:
 
@@ -26,7 +27,6 @@ Examples:
 monorail_gradient  0 b1e874  100 00d4ff
 monorail_gradient  0 020024  35 1818a1  100 00d4ff
 monorail_gradient  0 b1e874  100 ff00d3
-monorail_gradient --dark
 monorail_gradient --bgcolor=020024 --fgcolor=00d4ff
 
 To disable gradients and use the foreground color, select:
