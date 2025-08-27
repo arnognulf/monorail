@@ -79,30 +79,16 @@ int(max(0.0, min(255.0, round(255.0 * (-0.0041960863 * $l - 0.7034186147 * $m + 
 
 # gradient [start_color index]
 _GRADIENT() {
+	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+
 	local PREFIX=""
-	local OVERRIDE_BGCOLOR=ffffff
-	local OVERRIDE_FGCOLOR=444444
+	_DEFAULT_BGCOLOR=ffffff
+	_DEFAULT_FGCOLOR=444444
 	local RESET_COLORS=""
 
 	while [[ "$1" = "-"* ]]; do
 		case "$1" in
-		--light)
-			local OVERRIDE_BGCOLOR=ffffff
-			local OVERRIDE_FGCOLOR=444444
-			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-			printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
-			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
-			shift
-			;;
-		--dark)
-			local OVERRIDE_BGCOLOR=444444
-			local OVERRIDE_FGCOLOR=ffffff
-			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-			printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
-			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
-			shift
-			;;
-
 		--text)
 			local HELP_PREFIX=text
 			local PREFIX=TEXT_
@@ -111,18 +97,6 @@ _GRADIENT() {
 		--reset-colors)
 			local RESET_COLORS=1
 			shift
-			;;
-		--bgcolor=*)
-			OVERRIDE_BGCOLOR=${1##*=}
-			printf '\033]11;#${OVERRIDE_BGCOLOR}\007'
-			read
-			shift 1
-			;;
-		--fgcolor=*)
-			OVERRIDE_FGCOLOR=${1##*=}
-			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
-			shift 1
 			;;
 		--help | -h)
 			cat ${_MONORAIL_DIR}/colors/000_README.md
@@ -134,23 +108,42 @@ _GRADIENT() {
 	case "$1" in
 	"")
 		local THEME
-		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh ${OVERRIDE_FGCOLOR} ${OVERRIDE_BGCOLOR} {}")
+		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		_PROMPT_FGCOLOR=$_DEFAULT_FGCOLOR
+		_PROMPT_BGCOLOR=$_DEFAULT_BGCOLOR
+		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh ${_PROMPT_FGCOLOR} ${_PROMPT_BGCOLOR} {}")
 		if [[ ${THEME} ]]; then
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
-
-				[[ $OVERRIDE_BGCOLOR ]] && printf "\n_PROMPT_FGCOLOR=${OVERRIDE_FGCOLOR}\n"
-				[[ $OVERRIDE_FGCOLOR ]] && printf "\n_PROMPT_BGCOLOR=${OVERRIDE_BGCOLOR}\n"
-				cat "${_MONORAIL_DIR}/colors/${THEME}"
+				unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+				_PROMPT_TEXT_LUT=()
+				_PROMPT_LUT=()
+				. "${_MONORAIL_DIR}/colors/${THEME}"
+				declare -p _PROMPT_LUT | cut -d" " -f3-1024
+				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
+				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
+				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
+				declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
+				declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
 		;;
 	esac
 	if [[ "${#@}" = 1 ]]; then
 		if [[ -f "${_MONORAIL_DIR}/colors/${1}.sh" ]]; then
-			ln -sf "${_MONORAIL_DIR}/colors/${1}".sh "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-		elif [[ -f "${_MONORAIL_DIR}/colors/${1}" ]]; then
-			ln -sf "${_MONORAIL_DIR}/colors/${1}" "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+			. "${_MONORAIL_DIR}/colors/${1}".sh
+			"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+			{
+				declare -p _PROMPT_LUT | cut -d" " -f3-1024
+				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
+				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
+				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
+				declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
+				declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
+			} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
+
 		else
 			{
 				echo "gradient: No such theme \"$1\""
@@ -168,6 +161,7 @@ or \"None\" to use text color"
 			} | less
 			return 1
 		fi
+		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 		return 0
 	fi
@@ -175,8 +169,8 @@ or \"None\" to use text color"
 	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 	if [[ $RESET_COLORS ]]; then
-		_PROMPT_FGCOLOR=$OVERRIDE_FGCOLOR
-		_PROMPT_BGCOLOR=$OVERRIDE_BGCOLOR
+		_PROMPT_FGCOLOR=$_DEFAULT_FGCOLOR
+		_PROMPT_BGCOLOR=$_DEFAULT_BGCOLOR
 		unset _PROMPT_LUT[*] _PROMPT_TEXT_LUT[*]
 	fi
 
@@ -244,15 +238,15 @@ or \"None\" to use text color"
 		SRC_b=${DST_b}
 	done
 	if [[ -z "$DEST" ]]; then
-		_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
-		_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-
 		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
 
 	{
 		declare -p _PROMPT_LUT | cut -d" " -f3-1024
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'
+		declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
+		declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
+
 		if [[ ! $RESET_COLORS ]]; then
 			declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 			declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024

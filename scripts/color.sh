@@ -1,5 +1,4 @@
 #!/bin/bash
-
 _MONORAIL_CONTRAST() {
 	COLOR1=$1
 	COLOR2=$2
@@ -35,21 +34,23 @@ _MONORAIL_CONTRAST() {
 	fi
 }
 _COLOR() {
-case "$1" in
---help|-h|"")
-echo "Usage:
+	case "$1" in
+	--help | -h | "")
+		echo "Usage:
 monorail_color <FGCOLOR> [<BGCOLOR>]
 
 Example:
 monorail_color 444444
 monorail_color 89ecff 444444
 "
-exit 1
-esac
+		exit 1
+		;;
+	esac
 	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 
-	# reload in case user has manually modified colors.sh
+	_PROMPT_TEXT_LUT=()
+	_PROMPT_LUT=()
 	[[ -f ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh ]] && . "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 	if [[ "${#1}" != 6 ]]; then
@@ -57,17 +58,16 @@ esac
 		return 1
 	fi
 
-    _PROMPT_FGCOLOR="$1"
-    if [[ $2 ]];then
-	    _PROMPT_BGCOLOR="$2"
-    fi
+	_PROMPT_FGCOLOR="$1"
+	if [[ $2 ]]; then
+		_PROMPT_BGCOLOR="$2"
+	fi
 
 	_MONORAIL_CONTRAST "${_PROMPT_BGCOLOR}" "$1" || return 1
 
-	[[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]] && _PROMPT_TEXT_LUT=()
-	[[ ${#_PROMPT_LUT[@]} = 0 ]] && _PROMPT_LUT=()
-    _DEFAULT_BGCOLOR=$_PROMPT_BGCOLOR
-    _DEFAULT_FGCOLOR=$_PROMPT_FGCOLOR
+	_DEFAULT_BGCOLOR=$_PROMPT_BGCOLOR
+	_DEFAULT_FGCOLOR=$_PROMPT_FGCOLOR
+	rm -f "${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 	{
 		declare -p _PROMPT_LUT | cut -d" " -f3-1024
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
