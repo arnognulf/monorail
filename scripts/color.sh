@@ -34,7 +34,18 @@ _MONORAIL_CONTRAST() {
 		return 0
 	fi
 }
-_FGCOLOR() {
+_COLOR() {
+case "$1" in
+--help|-h|"")
+echo "Usage:
+monorail_color <FGCOLOR> [<BGCOLOR>]
+
+Example:
+monorail_color 444444
+monorail_color 89ecff 444444
+"
+exit 1
+esac
 	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 
@@ -46,17 +57,25 @@ _FGCOLOR() {
 		return 1
 	fi
 
+    _PROMPT_FGCOLOR="$1"
+    if [[ $2 ]];then
+	    _PROMPT_BGCOLOR="$2"
+    fi
+
 	_MONORAIL_CONTRAST "${_PROMPT_BGCOLOR}" "$1" || return 1
 
 	[[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]] && _PROMPT_TEXT_LUT=()
 	[[ ${#_PROMPT_LUT[@]} = 0 ]] && _PROMPT_LUT=()
-	_PROMPT_FGCOLOR="$1"
+    _DEFAULT_BGCOLOR=$_PROMPT_BGCOLOR
+    _DEFAULT_FGCOLOR=$_PROMPT_FGCOLOR
 	{
 		declare -p _PROMPT_LUT | cut -d" " -f3-1024
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
+		declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
+		declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 	} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 	killall -s WINCH bash zsh &>/dev/null
 }
-_FGCOLOR "$@"
+_COLOR "$@"

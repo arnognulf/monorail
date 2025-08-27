@@ -5,14 +5,9 @@ Use UP and DOWN arrows and press RETURN to select a predefined color scheme.
 
 Enter text to search for a specific theme
 
+To select a custom foreground and (optionally) background color, call:
 
-To select dark mode, call:
-
-monorail_gradient --dark
-
-To select a custom fore- and background color, call:
-
-monorail_gradient --bgcolor=<HEX_COLOR> --fgcolor=<HEX_COLOR>
+monorail_color 444444 00ff00
 
 For custom gradients, call:
 
@@ -25,9 +20,6 @@ Eg. design your gradient at https://cssgradient.io/ and transfer these to gradie
 Examples:
 monorail_gradient  0 b1e874  100 00d4ff
 monorail_gradient  0 020024  35 1818a1  100 00d4ff
-monorail_gradient  0 b1e874  100 ff00d3
-monorail_gradient --dark
-monorail_gradient --bgcolor=020024 --fgcolor=00d4ff
 
 To disable gradients and use the foreground color, select:
 monorail_gradient None
