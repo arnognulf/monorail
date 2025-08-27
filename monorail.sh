@@ -219,6 +219,9 @@ fi
 fi
 preexec(){
 {
+# TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
+[[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]] && return
+_MONORAIL_PREV_CMD=$(fc -l -1)
 _TIMER_CMD="${1/\\\a/\\\\\a}"
 _TIMER_CMD="${_TIMER_CMD/\\\b/\\\\\b}"
 _TIMER_CMD="${_TIMER_CMD/\\\c/\\\\\c}"
@@ -276,13 +279,11 @@ if [[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]];then
 _MONORAIL_CUSTOM_TITLE=1
 fi
 done
-if [[ $_MONORAIL_CUSTOM_TITLE ]];then
-_TITLE "$TITLE"
-fi
 _MEASURE=1
 _START_SECONDS=$SECONDS
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
+TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+\printf "\e]0;$TITLE\a\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
 fi
 esac
 unset _MONORAIL_CUSTOM_TITLE
@@ -520,19 +521,16 @@ _MONORAIL_HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB
 [[ ${#_PROMPT_LUT[@]} == 0 ]]&&_MONORAIL_HEX_CUR_COLOR=$_PROMPT_FGCOLOR
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
-# title must not be set in PS1 as this will be re-set by WINCH to last app title
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-\printf "\e]0;$TITLE\a\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_MONORAIL_HEX_CUR_COLOR"
-elif [[ $TERM == "xterm"* ]];then
-\printf "\e]0;%s\a" "$TITLE"
+\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_MONORAIL_HEX_CUR_COLOR"
 fi
 if [[ $_MONORAIL_MLTERM_TERMINAL ]];then
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-PS1="$_MONORAIL_LINE
+PS1=$'\e'"]0;"'$TITLE'$'\a'"$_MONORAIL_LINE
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 # shellcheck disable=SC2025,SC1078,SC1079
-PS1=$'\r'$'\e'"[0m${_MONORAIL_LINE}
+PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m${_MONORAIL_LINE}
 $_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
 # shellcheck disable=SC2025,SC1078,SC1079 # quoting is supposed to span multiple lines
