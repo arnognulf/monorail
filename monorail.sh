@@ -217,6 +217,18 @@ printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
 _MONORAIL_SUPPORTED_TERMINAL=1
 fi
 fi
+if [[ "$SSH_CLIENT" ]] || [[ $TMUX ]];then
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SUFFIX () {
+TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
+}
+elif [[ -e /.dockerenv ]];then
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SUFFIX () {
+TITLE="$TITLE on docker"
+}
+fi
+
 preexec(){
 {
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
@@ -262,13 +274,7 @@ case $_MONORAIL_DATE in
 *)ICON="*️⃣"
 esac
 TITLE="$ICON  $_TIMER_CMD"
-if [[ "$TMUX" ]];then
-
-TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
-fi
-if [[ "$SCHROOT_ALIAS_NAME" ]];then
-TITLE="$TITLE on $SCHROOT_ALIAS_NAME"
-fi
+[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 local CMD
 CMD=${_TIMER_CMD%% *}
 CMD=${CMD%%;*}
@@ -329,12 +335,7 @@ _MONORAIL_LAUNCHED=1
 fi
 if [[ $_MONORAIL_LONGRUNNING ]] ;then
 TITLE="✅ Completed $_TIMER_CMD"
-if [[ "$SSH_CLIENT" ]];then
-TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
-fi
-if [[ "$SCHROOT_ALIAS_NAME" ]];then
-TITLE="$TITLE on $SCHROOT_ALIAS_NAME"
-fi
+[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 unset _MONORAIL_LONGRUNNING
 return 0
 fi
@@ -366,23 +367,12 @@ fi
 _MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 if [[ -z $TITLE_OVERRIDE ]];then
-
 if [[ "$MONORAIL_REPO" ]];then
 TITLE="🏗️  ${PWD##*/}"
-if [[ "$SSH_CLIENT" ]];then
-TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
-fi
-if [[ "$SCHROOT_ALIAS_NAME" ]];then
-TITLE="$TITLE on $SCHROOT_ALIAS_NAME"
-fi
+[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 elif [[ "$_MONORAIL_GIT_PS1" ]];then
 TITLE="🚧  ${PWD##*/}"
-if [[ "$SSH_CLIENT" ]];then
-TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
-fi
-if [[ "$SCHROOT_ALIAS_NAME" ]];then
-TITLE="$TITLE on $SCHROOT_ALIAS_NAME"
-fi
+[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 else
 case "$PWD" in
 */etc|*/etc/*)TITLE="️🗂️  ${PWD##*/}";;
@@ -407,20 +397,18 @@ case "$PWD" in
 esac
 case "$_MONORAIL_REALPWD" in
 "$HOME")
-if [[ "$SCHROOT_ALIAS_NAME" ]]
+if [[ $SSH_CLIENT ]]
 then
-TITLE="🏠  $SCHROOT_ALIAS_NAME"
+TITLE="🌐  $_MONORAIL_SHORT_HOSTNAME"
+elif [[ -e /.dockerenv ]]
+then
+TITLE="🐋  docker"
 else
 TITLE="🏠  $_MONORAIL_SHORT_HOSTNAME"
 fi
 ;;
-*)if [[ "$SSH_CLIENT" ]]
-then
-TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
-fi
-if [[ "$SCHROOT_ALIAS_NAME" ]];then
-TITLE="$TITLE on $SCHROOT_ALIAS_NAME"
-fi
+*)
+[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 esac
 fi
 else
