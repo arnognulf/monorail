@@ -247,18 +247,18 @@ _TIMER_CMD="${_TIMER_CMD/\\\y/\\\\\y}"
 _TIMER_CMD="${_TIMER_CMD/\\\z/\\\\\z}"
 _TIMER_CMD="${_TIMER_CMD/\\\033/<ESC>}"
 _TIMER_CMD="${_TIMER_CMD/\\\007/<BEL>}"
-local CHAR CMD
+local ICON CMD
 case "$_TIMER_CMD" in
 "c "*|"cd "*|".."*):;;
 *)[[ -z $_MONORAIL_DATE ]]&&_MONORAIL_DATE=$(LC_MESSAGES=C LC_ALL=C date +%m-%d)
 case $_MONORAIL_DATE in
-10-2*|10-3*)CHAR=🎃
+10-2*|10-3*)ICON=🎃
 ;;
-12*)CHAR=🎄
+12*)ICON=🎄
 ;;
-*)CHAR="*️⃣"
+*)ICON="*️⃣"
 esac
-TITLE="$CHAR  $_TIMER_CMD"
+TITLE="$ICON  $_TIMER_CMD"
 if [[ "$TMUX" ]];then
 
 TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
