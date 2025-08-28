@@ -26,7 +26,7 @@ while [[ $I -lt $FIELDS ]]; do
 	done
 	echo "$NAME"
 	echo "$COLOR_STRING"
-	DEST="colors/$NAME".sh
+	DEST="gradients/$NAME".sh
 	_GRADIENT --reset-colors ${COLOR_STRING}
 	I=$((I + 1))
 done

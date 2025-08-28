@@ -99,7 +99,7 @@ _GRADIENT() {
 			shift
 			;;
 		--help | -h)
-			cat ${_MONORAIL_DIR}/colors/000_README.md
+			cat ${_MONORAIL_DIR}/gradients/000_README.md
 			exit 1
 			;;
 		esac
@@ -112,14 +112,14 @@ _GRADIENT() {
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		_PROMPT_FGCOLOR=$_DEFAULT_FGCOLOR
 		_PROMPT_BGCOLOR=$_DEFAULT_BGCOLOR
-		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh ${_PROMPT_FGCOLOR} ${_PROMPT_BGCOLOR} {}")
+		THEME=$(\cd ${_MONORAIL_DIR}/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh ${_PROMPT_FGCOLOR} ${_PROMPT_BGCOLOR} {}")
 		if [[ ${THEME} ]]; then
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
 				unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 				_PROMPT_TEXT_LUT=()
 				_PROMPT_LUT=()
-				. "${_MONORAIL_DIR}/colors/${THEME}"
+				. "${_MONORAIL_DIR}/gradients/${THEME}"
 				declare -p _PROMPT_LUT | cut -d" " -f3-1024
 				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
 				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
@@ -131,9 +131,9 @@ _GRADIENT() {
 		;;
 	esac
 	if [[ "${#@}" = 1 ]]; then
-		if [[ -f "${_MONORAIL_DIR}/colors/${1}.sh" ]]; then
+		if [[ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]]; then
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-			. "${_MONORAIL_DIR}/colors/${1}".sh
+			. "${_MONORAIL_DIR}/gradients/${1}".sh
 			"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
 				declare -p _PROMPT_LUT | cut -d" " -f3-1024
@@ -150,7 +150,7 @@ _GRADIENT() {
 				echo "Select any of:
 "
 				local FILE
-				for FILE in ${_MONORAIL_DIR}/colors/*; do
+				for FILE in ${_MONORAIL_DIR}/gradients/*; do
 					FILE="${FILE##*/}"
 					FILE="${FILE%.sh}"
 					echo "${FILE}"

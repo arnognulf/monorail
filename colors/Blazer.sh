@@ -1,0 +1,2 @@
+#!/bin/bash
+_COLORS=([0]="000000" [1]="b87a7a" [2]="7ab87a" [3]="b8b87a" [4]="7a7ab8" [5]="b87ab8" [6]="7ab8b8" [7]="d9d9d9" [8]="262626" [9]="dbbdbd" [10]="bddbbd" [11]="dbdbbd" [12]="bdbddb" [13]="dbbddb" [14]="bddbdb" [15]="ffffff" [16]="d9e6f2" [17]="0d1926" [18]="ffffff" [19]="c1ddff" [20]="000000" [21]="d9e6f2")
