@@ -183,10 +183,6 @@ if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
 printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
 _MONORAIL_SUPPORTED_TERMINAL=1
 else 
-if [[ $TERM = "mlterm" ]];then
-_MONORAIL_SUPPORTED_TERMINAL=1
-_MONORAIL_MLTERM_TERMINAL=1
-fi
 if [[ $TERM = "vt"??? ]];then
 _MONORAIL_VTXXX_TERMINAL=1
 fi
@@ -512,13 +508,10 @@ fi
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_MONORAIL_HEX_CUR_COLOR"
 fi
-if [[ $_MONORAIL_MLTERM_TERMINAL ]];then
+if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-PS1=$'\e'"]0;"'$TITLE'$'\a'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
-elif [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 # shellcheck disable=SC2025,SC1078,SC1079
-PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m${_MONORAIL_LINE}
+PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
 $_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
 elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
 # shellcheck disable=SC2025,SC1078,SC1079 # quoting is supposed to span multiple lines
