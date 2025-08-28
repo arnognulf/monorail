@@ -23,10 +23,9 @@ _MONORAIL_PREHIDE='\['
 _MONORAIL_POSTHIDE='\]'
 fi
 _TITLE(){
-if [[ -z $_MONORAIL_INITIAL_CURSOR_WORKAROUND ]] && [[ $_MONORAIL_SUPPORTED_TERMINAL ]]
+if [[ $_MONORAIL_SUPPORTED_TERMINAL ]]
 then
 printf "\e]12;#%s\a" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
-_MONORAIL_INITIAL_CURSOR_WORKAROUND=1
 fi
 _TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 }
@@ -180,7 +179,7 @@ trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 # this is the "fast path", if this fails, more thorough testing is needed
 if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
 # blank terminal at startup to reduce flicker
-printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
+printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 _MONORAIL_SUPPORTED_TERMINAL=1
 else 
 if [[ $TERM = "vt"??? ]];then
@@ -209,7 +208,7 @@ else
 _MONORAIL_SUPPORTED_TERMINAL=1
 fi
 elif [[ $TERM == "alacritty" ]]||[[ $TERM == "rxvt-unicode-256colors" ]];then
-printf '\e]0 ;m\e[?25l' >/dev/tty 2>&-
+printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 _MONORAIL_SUPPORTED_TERMINAL=1
 fi
 fi
@@ -507,8 +506,6 @@ _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 \printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_MONORAIL_HEX_CUR_COLOR"
-fi
-if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 # shellcheck disable=SC2025,SC1078,SC1079
 PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
