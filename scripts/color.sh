@@ -37,29 +37,25 @@ _COLOR() {
 	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 
-
 	case "$1" in
- "")
+	"")
 		local THEME
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-        _PROMPT_LUT=()
-        _PROMPT_TEXT_LUT=()
-        _COLORS=()
+		_PROMPT_LUT=()
+		_PROMPT_TEXT_LUT=()
+		_COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-        [[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
-        [[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
-        [[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
-        [[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
+		[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
+		[[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
+		[[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
+		[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
 		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
-_DEFAULT_FGCOLOR="${_COLOR[16]}"
-_DEFAULT_BGCOLOR="${_COLOR[17]}"
+			_DEFAULT_FGCOLOR="${_COLOR[16]}"
+			_DEFAULT_BGCOLOR="${_COLOR[17]}"
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
-				unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-				_PROMPT_TEXT_LUT=()
 				_COLORS=()
-				_PROMPT_LUT=()
 				. "${_MONORAIL_DIR}/colors/${THEME}"
 				declare -p _COLORS | cut -d" " -f3-1024
 				declare -p _PROMPT_LUT | cut -d" " -f3-1024
@@ -68,9 +64,9 @@ _DEFAULT_BGCOLOR="${_COLOR[17]}"
 				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
 			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
-        exit 0
+		exit 0
 
- ;;
+		;;
 	--help | -h)
 		echo "Usage:
 monorail_color <FGCOLOR> [<BGCOLOR>]

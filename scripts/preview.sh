@@ -30,14 +30,14 @@ I=0
 case "${3,,}" in
 *sh)
 
-if [[ $XDG_CONFIG_HOME ]];then
-_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
-else
-_MONORAIL_CONFIG="$HOME/.config/monorail"
-fi
-_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
-_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh  &>/dev/null || exit 42
+	if [[ $XDG_CONFIG_HOME ]]; then
+		_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
+	else
+		_MONORAIL_CONFIG="$HOME/.config/monorail"
+	fi
+	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh &>/dev/null || exit 42
 	. "$3" &>/dev/null || exit 42
 	;;
 *)
@@ -56,25 +56,25 @@ _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 esac
 
 TEXT=(
-"Lorem ipsum dolor sit amet,"
-"consectetur adipiscing elit."
-"Cras scelerisque, ipsum nec luctus ultricies, "
-"eros enim malesuada ipsum, "
-"eu viverra justo orci ac ex. "
-"Mauris vestibulum elit et augue cursus placerat. "
-"Etiam orci massa, accumsan vitae nisi in,"
-"tristique pharetra leo. "
-"Mauris rhoncus fermentum volutpat. "
-"Nulla sodales leo nec efficitur vehicula. "
-"Nam a lacus non leo suscipit porta id quis est. "
-"Vestibulum ante ipsum primis in faucibus orci "
-"luctus et ultrices posuere cubilia curae; "
-"Fusce blandit augue eget augue scelerisque, "
-"in efficitur justo eleifend. "
-"Ut in urna vel nunc molestie mollis in sit amet justo."
-"Praesent elementum lorem vitae pharetra cursus. "
-"Aliquam"
-"fringilla, erat non cursus gravida, "
+	"Lorem ipsum dolor sit amet,"
+	"consectetur adipiscing elit."
+	"Cras scelerisque, ipsum nec luctus ultricies, "
+	"eros enim malesuada ipsum, "
+	"eu viverra justo orci ac ex. "
+	"Mauris vestibulum elit et augue cursus placerat. "
+	"Etiam orci massa, accumsan vitae nisi in,"
+	"tristique pharetra leo. "
+	"Mauris rhoncus fermentum volutpat. "
+	"Nulla sodales leo nec efficitur vehicula. "
+	"Nam a lacus non leo suscipit porta id quis est. "
+	"Vestibulum ante ipsum primis in faucibus orci "
+	"luctus et ultrices posuere cubilia curae; "
+	"Fusce blandit augue eget augue scelerisque, "
+	"in efficitur justo eleifend. "
+	"Ut in urna vel nunc molestie mollis in sit amet justo."
+	"Praesent elementum lorem vitae pharetra cursus. "
+	"Aliquam"
+	"fringilla, erat non cursus gravida, "
 )
 CHAR="▁"
 ESC=$'\e'
@@ -99,35 +99,33 @@ BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
 #	I=$((I + 1))
 #done
 
-for ((I=0; I < 17;I++))
-do
-FGCOLOR=${_COLORS[I]}
-BGCOLOR=${_COLORS[17]}
-FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
-BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
-printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST${TEXT[I]}"
+for ((I = 0; I < 17; I++)); do
+	FGCOLOR=${_COLORS[I]}
+	BGCOLOR=${_COLORS[17]}
+	FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
+	BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
+	printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST${TEXT[I]}"
 
-J=${#TEXT[I]}
-for (( J=0; $J < $((COLUMNS+1));J++ )); do
-	printf "${PREBG}${BGCOLOR_RGB}$POST "
-done
+	J=${#TEXT[I]}
+	for ((J = 0; $J < $((COLUMNS + 1)); J++)); do
+		printf "${PREBG}${BGCOLOR_RGB}$POST "
+	done
 
-printf "\n"
+	printf "\n"
 
 done
 
 INDEX=0
-if [[ ${_PROMPT_LUT[0]} ]]
-then
-while [[ $INDEX -lt $COLUMNS ]]; do
-	printf "${PREBG}${BGCOLOR_RGB}${POST}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))]}${POST}${CHAR}"
-	INDEX=$((INDEX + 1))
-done
+if [[ ${_PROMPT_LUT[0]} ]]; then
+	while [[ $INDEX -lt $COLUMNS ]]; do
+		printf "${PREBG}${BGCOLOR_RGB}${POST}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))]}${POST}${CHAR}"
+		INDEX=$((INDEX + 1))
+	done
 else
-while [[ $INDEX -lt $COLUMNS ]]; do
-	printf "${PREBG}${BGCOLOR_RGB}${POST}${PREFG}${FGCOLOR_RGB}${POST}${CHAR}"
-	INDEX=$((INDEX + 1))
-done
+	while [[ $INDEX -lt $COLUMNS ]]; do
+		printf "${PREBG}${BGCOLOR_RGB}${POST}${PREFG}${FGCOLOR_RGB}${POST}${CHAR}"
+		INDEX=$((INDEX + 1))
+	done
 fi
 echo ""
 TEXT1=${TEXT[17]}
@@ -141,7 +139,7 @@ while [[ $INDEX -lt $COLUMNS ]]; do
 	fi
 	TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
 	if [[ ${#_PROMPT_LUT[@]} = 0 ]]; then
-        # sic!
+		# sic!
 		printf "${PREBG}${FGCOLOR_RGB}${POST}${PREFG}${BGCOLOR_RGB}${POST}${TEXT1:${INDEX}:1}"
 	else
 		printf "${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${TEXT1:${INDEX}:1}"

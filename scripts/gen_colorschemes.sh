@@ -4,14 +4,14 @@
 # https://github.com/mbadolato/iTerm2-Color-Schemes
 #
 # For this project, we can easliy extract hex colors to arrays from the iterm-dynamic-colors files
-# 
+#
 # Parse iTerm "not recommended" control sequencies
 # from: https://iterm2.com/documentation-escape-codes.html
 #
 # OSC P [n] [rr] [gg] [bb] ST
 # Replace [n] with:
 #
-# array   
+# array
 # index   n              attribute
 # --------------------------------------------
 # 0-15   `0`-`f` (hex) = ansi color
@@ -29,16 +29,18 @@
 #
 _MONORAIL_CONFIG=$HOME/.config/monorail
 mkdir -p colors
-for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*
-do
+for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-    eval $(printf "_COLORS=( ";for color in $(cat "${file}" |sort|grep printf|cut -c16-21); do printf "$color ";done;printf ")")
-    THEME=${file##*/}
-    THEME=${THEME// /_}
-    rm -f "colors/${THEME}"
-    {
-    echo "#!/bin/bash"
-    declare -p _COLORS | cut -d" " -f3-1024
-    } >"colors/${THEME}"
+	eval $(
+		printf "_COLORS=( "
+		for color in $(cat "${file}" | sort | grep printf | cut -c16-21); do printf "$color "; done
+		printf ")"
+	)
+	THEME=${file##*/}
+	THEME=${THEME// /_}
+	rm -f "colors/${THEME}"
+	{
+		echo "#!/bin/bash"
+		declare -p _COLORS | cut -d" " -f3-1024
+	} >"colors/${THEME}"
 done
-

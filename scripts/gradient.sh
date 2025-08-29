@@ -104,24 +104,20 @@ _GRADIENT() {
 	case "$1" in
 	"")
 		local THEME
-		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-        _PROMPT_LUT=()
-        _PROMPT_TEXT_LUT=()
-        _COLORS=()
+		_PROMPT_LUT=()
+		_PROMPT_TEXT_LUT=()
+		_COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-        [[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
-        [[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
-        [[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
-        [[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
+		[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
+		[[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
+		[[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
+		[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
+		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		THEME=$(\cd ${_MONORAIL_DIR}/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
+			. "${_MONORAIL_DIR}/gradients/${THEME}"
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
-				unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-				_PROMPT_TEXT_LUT=()
-				_COLORS=()
-				_PROMPT_LUT=()
-				. "${_MONORAIL_DIR}/gradients/${THEME}"
 				declare -p _COLORS | cut -d" " -f3-1024
 				declare -p _PROMPT_LUT | cut -d" " -f3-1024
 				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
@@ -129,6 +125,7 @@ _GRADIENT() {
 				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
 			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
+		exit 0
 		;;
 	esac
 	if [[ "${#@}" = 1 ]]; then
@@ -167,7 +164,7 @@ or \"None\" to use text color"
 	# reload in case user has manually modified colors.sh
 	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
-    unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+	unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 
 	local L
 	local a
@@ -241,7 +238,7 @@ or \"None\" to use text color"
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'
 		declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
-	    declare -p _COLORS | cut -d" " -f3-1024
+		declare -p _COLORS | cut -d" " -f3-1024
 	} >"${DEST}" 2>/dev/null
 	killall -s WINCH bash zsh &>/dev/null
 }
