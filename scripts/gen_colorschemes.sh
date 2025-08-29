@@ -3,7 +3,7 @@
 # The iTerm2 Color Schemes project provides color schemes in various formats
 # https://github.com/mbadolato/iTerm2-Color-Schemes
 #
-# For this project, we can easliy extract hex colors to arrays from the iterm-danimc-colors files
+# For this project, we can easliy extract hex colors to arrays from the iterm-dynamic-colors files
 # 
 # Parse iTerm "not recommended" control sequencies
 # from: https://iterm2.com/documentation-escape-codes.html

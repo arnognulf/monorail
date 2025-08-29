@@ -34,8 +34,44 @@ _MONORAIL_CONTRAST() {
 	fi
 }
 _COLOR() {
+	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+
+
 	case "$1" in
-	--help | -h | "")
+ "")
+		local THEME
+		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+        _PROMPT_LUT=()
+        _PROMPT_TEXT_LUT=()
+        _COLORS=()
+		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+        [[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
+        [[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
+        [[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
+        [[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
+		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
+		if [[ ${THEME} ]]; then
+_DEFAULT_FGCOLOR="${_COLOR[16]}"
+_DEFAULT_BGCOLOR="${_COLOR[17]}"
+			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+			{
+				unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+				_PROMPT_TEXT_LUT=()
+				_COLORS=()
+				_PROMPT_LUT=()
+				. "${_MONORAIL_DIR}/colors/${THEME}"
+				declare -p _COLORS | cut -d" " -f3-1024
+				declare -p _PROMPT_LUT | cut -d" " -f3-1024
+				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
+				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
+				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
+			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		fi
+        exit 0
+
+ ;;
+	--help | -h)
 		echo "Usage:
 monorail_color <FGCOLOR> [<BGCOLOR>]
 
@@ -46,9 +82,6 @@ monorail_color 89ecff 444444
 		exit 1
 		;;
 	esac
-	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
-	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-
 	_PROMPT_TEXT_LUT=()
 	_PROMPT_LUT=()
 	[[ -f ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh ]] && . "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
@@ -58,23 +91,21 @@ monorail_color 89ecff 444444
 		return 1
 	fi
 
-	_PROMPT_FGCOLOR="$1"
+	_COLORS[16]="$1"
 	if [[ $2 ]]; then
-		_PROMPT_BGCOLOR="$2"
+		_COLORS[17]="$2"
 	fi
 
-	_MONORAIL_CONTRAST "${_PROMPT_BGCOLOR}" "$1" || return 1
+	_MONORAIL_CONTRAST "${_COLORS[17]}" "$1" || return 1
 
-	_DEFAULT_BGCOLOR=$_PROMPT_BGCOLOR
-	_DEFAULT_FGCOLOR=$_PROMPT_FGCOLOR
+	_DEFAULT_BGCOLOR=${_COLORS[17]}
+	_DEFAULT_FGCOLOR=${_COLORS[16]}
 	rm -f "${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 	{
 		declare -p _PROMPT_LUT | cut -d" " -f3-1024
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
 		declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
-		declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
-		declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 	} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 	killall -s WINCH bash zsh &>/dev/null
 }

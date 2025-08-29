@@ -25,7 +25,7 @@ fi
 _TITLE(){
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]]
 then
-printf "\e]12;#%s\a" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
+printf "\e]12;#%s\a" "${_COLORS[21]}" >/dev/tty 2>&-
 fi
 _TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 }
@@ -284,7 +284,7 @@ _MEASURE=1
 _START_SECONDS=$SECONDS
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-\printf "\e]0;$TITLE\a\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_PROMPT_FGCOLOR" >/dev/tty 2>&-
+\printf "\e]0;$TITLE\a\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_COLORS[17]}" "${_COLORS[16]}" "${_COLORS[21]}" >/dev/tty 2>&-
 fi
 esac
 unset _MONORAIL_CUSTOM_TITLE
@@ -500,12 +500,12 @@ RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
 _MONORAIL_HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
-[ -z "$_MONORAIL_HEX_CUR_COLOR" ]&&_MONORAIL_HEX_CUR_COLOR="$_PROMPT_FGCOLOR"
-[[ ${#_PROMPT_LUT[@]} == 0 ]]&&_MONORAIL_HEX_CUR_COLOR=$_PROMPT_FGCOLOR
+[ -z "$_MONORAIL_HEX_CUR_COLOR" ]&&_MONORAIL_HEX_CUR_COLOR="${_COLORS[21]}"
+[[ ${#_PROMPT_LUT[@]} == 0 ]]&&_MONORAIL_HEX_CUR_COLOR="${_COLORS[21]}"
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "$_PROMPT_BGCOLOR" "$_PROMPT_FGCOLOR" "$_MONORAIL_HEX_CUR_COLOR"
+\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_COLORS[17]}" "${_COLORS[16]}" "$_MONORAIL_HEX_CUR_COLOR"
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 # shellcheck disable=SC2025,SC1078,SC1079
 PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE

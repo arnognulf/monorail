@@ -23,12 +23,21 @@ if [[ "$3" = "000_README.md" ]]; then
 	cat "$3"
 	exit 1
 fi
-_PROMPT_FGCOLOR="$1"
-_PROMPT_BGCOLOR="$2"
+_COLORS=()
+_COLORS[16]="$1"
+_COLORS[17]="$2"
 I=0
-read
 case "${3,,}" in
 *sh)
+
+if [[ $XDG_CONFIG_HOME ]];then
+_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
+else
+_MONORAIL_CONFIG="$HOME/.config/monorail"
+fi
+_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh  &>/dev/null || exit 42
 	. "$3" &>/dev/null || exit 42
 	;;
 *)
@@ -46,44 +55,82 @@ case "${3,,}" in
 	;;
 esac
 
+TEXT=(
+"Lorem ipsum dolor sit amet,"
+"consectetur adipiscing elit."
+"Cras scelerisque, ipsum nec luctus ultricies, "
+"eros enim malesuada ipsum, "
+"eu viverra justo orci ac ex. "
+"Mauris vestibulum elit et augue cursus placerat. "
+"Etiam orci massa, accumsan vitae nisi in,"
+"tristique pharetra leo. "
+"Mauris rhoncus fermentum volutpat. "
+"Nulla sodales leo nec efficitur vehicula. "
+"Nam a lacus non leo suscipit porta id quis est. "
+"Vestibulum ante ipsum primis in faucibus orci "
+"luctus et ultrices posuere cubilia curae; "
+"Fusce blandit augue eget augue scelerisque, "
+"in efficitur justo eleifend. "
+"Ut in urna vel nunc molestie mollis in sit amet justo."
+"Praesent elementum lorem vitae pharetra cursus. "
+"Aliquam"
+"fringilla, erat non cursus gravida, "
+)
 CHAR="▁"
 ESC=$'\e'
 PREFG="${ESC}[38;2;"
 PREBG="${ESC}[48;2;"
 POST="m"
-PRE_LINES=3
+#PRE_LINES=3
 [[ -z $COLUMNS ]] && COLUMNS=$(stty size | awk '{ print $2 }')
 [[ -z $LINES ]] && LINES=$(stty size | awk '{ print $1 }')
-FGCOLOR_RGB="$((0x${_PROMPT_FGCOLOR:0:2}));$((0x${_PROMPT_FGCOLOR:2:2}));$((0x${_PROMPT_FGCOLOR:4:2}))"
-BGCOLOR_RGB="$((0x${_PROMPT_BGCOLOR:0:2}));$((0x${_PROMPT_BGCOLOR:2:2}));$((0x${_PROMPT_BGCOLOR:4:2}))"
-I=0
-while [[ $I -lt $PRE_LINES ]]; do
-	J=0
-	while [[ $J -lt $COLUMNS ]]; do
-		printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}$POST "
-		J=$((J + 1))
-	done
-	printf "\n"
-	I=$((I + 1))
-done
+FGCOLOR=${_COLORS[I]}
+BGCOLOR=${_COLORS[17]}
+FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
+BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
+#I=0
+#while [[ $I -lt $PRE_LINES ]]; do
+#	J=0
+#	while [[ $J -lt $COLUMNS ]]; do
+#		printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}$POST "
+#		J=$((J + 1))
+#	done
+#	printf "\n"
+#	I=$((I + 1))
+#done
 
-TEXT0="Lorem ipsum dolor sit amet,"
-printf "$TEXT0"
+for ((I=0; I < 17;I++))
+do
+FGCOLOR=${_COLORS[I]}
+BGCOLOR=${_COLORS[17]}
+FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
+BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
+printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST${TEXT[I]}"
 
-J=${#TEXT0}
-while [[ $J -lt $COLUMNS ]]; do
+J=${#TEXT[I]}
+for (( J=0; $J < $((COLUMNS+1));J++ )); do
 	printf "${PREBG}${BGCOLOR_RGB}$POST "
-	J=$((J + 1))
 done
+
 printf "\n"
 
+done
+
 INDEX=0
+if [[ ${_PROMPT_LUT[0]} ]]
+then
 while [[ $INDEX -lt $COLUMNS ]]; do
 	printf "${PREBG}${BGCOLOR_RGB}${POST}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))]}${POST}${CHAR}"
 	INDEX=$((INDEX + 1))
 done
+else
+while [[ $INDEX -lt $COLUMNS ]]; do
+	printf "${PREBG}${BGCOLOR_RGB}${POST}${PREFG}${FGCOLOR_RGB}${POST}${CHAR}"
+	INDEX=$((INDEX + 1))
+done
+fi
 echo ""
-TEXT1=consectetur
+TEXT1=${TEXT[17]}
 TEXT1=" ${TEXT1} "
 INDEX=0
 printf "\033[${COLUMNS}D"
@@ -94,16 +141,16 @@ while [[ $INDEX -lt $COLUMNS ]]; do
 	fi
 	TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
 	if [[ ${#_PROMPT_LUT[@]} = 0 ]]; then
-		printf "${ESC}[7m${TEXT1:${INDEX}:1}"
+        # sic!
+		printf "${PREBG}${FGCOLOR_RGB}${POST}${PREFG}${BGCOLOR_RGB}${POST}${TEXT1:${INDEX}:1}"
 	else
 		printf "${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${TEXT1:${INDEX}:1}"
 	fi
 	INDEX=$((INDEX + 1))
 done
 printf "\033[0m${PREBG}${BGCOLOR_RGB}$POST "
-TEXT2="adipiscing elit,"
-printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}${POST}${TEXT2}"
-I=$((${#TEXT1} + ${#TEXT2}))
+printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}${POST}${TEXT[18]}"
+I=$((${#TEXT[17]} + ${#TEXT[18]}))
 while [[ $I -lt $COLUMNS ]]; do
 	printf " "
 	I=$((I + 1))

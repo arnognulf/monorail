@@ -5,15 +5,22 @@ _MAIN() {
 	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 
-	declare -a _PROMPT_LUT=()
-	declare -a _PROMPT_TEXT_LUT=()
-    . "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+        _PROMPT_LUT=()
+        _PROMPT_TEXT_LUT=()
+        _COLORS=()
+		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+        [[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
+        [[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
+        [[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
+        [[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
+
 	if [[ -z "$DEST" ]]; then
 		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
 
 	if [[ -z "$1" ]]; then
-		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh \"${_PROMPT_FGCOLOR}\" \"${_PROMPT_BGCOLOR}\" {}")
+		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh \"${_COLORS[16]}\" \"${_COLORS[17]}\" {}")
 	else
 		THEME="$1"
 	fi
@@ -23,9 +30,10 @@ _MAIN() {
 		;;
 	*)
 
-		_PROMPT_FGCOLOR=$OVERRIDE_FGCOLOR
-		_PROMPT_BGCOLOR=$OVERRIDE_BGCOLOR
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+        _PROMPT_LUT=()
+        _PROMPT_TEXT_LUT=()
+        _COLORS=()
 
 		TEMP=$(mktemp --suff=".${THEME##*.}")
 
@@ -40,10 +48,11 @@ _MAIN() {
 
 		rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		{
-			[[ $OVERRIDE_FGCOLOR ]] && printf "\n_PROMPT_FGCOLOR=${OVERRIDE_FGCOLOR}\n"
-			[[ $OVERRIDE_BGCOLOR ]] && printf "\n_PROMPT_BGCOLOR=${OVERRIDE_BGCOLOR}\n"
-			[[ ${_PROMPT_LUT[0]} ]] && declare -p _PROMPT_LUT
-			[[ ${_PROMPT_TEXT_LUT[0]} ]] && declare -p _PROMPT_TEXT_LUT
+			declare -p _PROMPT_LUT
+			declare -p _PROMPT_TEXT_LUT
+			declare -p _COLORS
+			declare -p _DEFAULT_FGCOLOR
+			declare -p _DEFAULT_BGCOLOR
 
 		} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		;;
@@ -54,14 +63,11 @@ _MAIN() {
 	esac
 
 	{
-		[[ ${_PROMPT_LUT} ]] && declare -p _PROMPT_LUT | cut -d" " -f3-1024
-		[[ ${_PROMPT_TEXT_LUT} ]] && declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'
-		if [[ ! $RESET_COLORS ]]; then
-			[[ ${_DEFAULT_FGCOLOR} ]] && declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
-			[[ ${_DEFAULT_BGCOLOR} ]] && declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
-			[[ ${_PROMPT_FGCOLOR} ]] && declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
-			[[ ${_PROMPT_BGCOLOR} ]] && declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
-		fi
+	declare -p _PROMPT_LUT | cut -d" " -f3-1024
+	declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'
+	declare -p _COLORS | cut -d" " -f3-1024
+	declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
+	declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
 	} >"${DEST}" 2>/dev/null
 	killall -s WINCH bash zsh &>/dev/null
 }

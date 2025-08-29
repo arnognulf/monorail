@@ -94,10 +94,6 @@ _GRADIENT() {
 			local PREFIX=TEXT_
 			shift
 			;;
-		--reset-colors)
-			local RESET_COLORS=1
-			shift
-			;;
 		--help | -h)
 			cat ${_MONORAIL_DIR}/gradients/000_README.md
 			exit 1
@@ -109,23 +105,28 @@ _GRADIENT() {
 	"")
 		local THEME
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+        _PROMPT_LUT=()
+        _PROMPT_TEXT_LUT=()
+        _COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-		_PROMPT_FGCOLOR=$_DEFAULT_FGCOLOR
-		_PROMPT_BGCOLOR=$_DEFAULT_BGCOLOR
-		THEME=$(\cd ${_MONORAIL_DIR}/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh ${_PROMPT_FGCOLOR} ${_PROMPT_BGCOLOR} {}")
+        [[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
+        [[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
+        [[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
+        [[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
+		THEME=$(\cd ${_MONORAIL_DIR}/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
 				unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 				_PROMPT_TEXT_LUT=()
+				_COLORS=()
 				_PROMPT_LUT=()
 				. "${_MONORAIL_DIR}/gradients/${THEME}"
+				declare -p _COLORS | cut -d" " -f3-1024
 				declare -p _PROMPT_LUT | cut -d" " -f3-1024
 				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
 				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
 				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
-				declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
-				declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
 		;;
@@ -140,8 +141,6 @@ _GRADIENT() {
 				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
 				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
 				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
-				declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
-				declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 			} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 		else
@@ -168,11 +167,7 @@ or \"None\" to use text color"
 	# reload in case user has manually modified colors.sh
 	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
-	if [[ $RESET_COLORS ]]; then
-		_PROMPT_FGCOLOR=$_DEFAULT_FGCOLOR
-		_PROMPT_BGCOLOR=$_DEFAULT_BGCOLOR
-		unset _PROMPT_LUT[*] _PROMPT_TEXT_LUT[*]
-	fi
+    unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 
 	local L
 	local a
@@ -246,11 +241,7 @@ or \"None\" to use text color"
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'
 		declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
 		declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
-
-		if [[ ! $RESET_COLORS ]]; then
-			declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
-			declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
-		fi
+	    declare -p _COLORS | cut -d" " -f3-1024
 	} >"${DEST}" 2>/dev/null
 	killall -s WINCH bash zsh &>/dev/null
 }
