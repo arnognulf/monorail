@@ -7,35 +7,13 @@ _MAIN() {
 
 	declare -a _PROMPT_LUT=()
 	declare -a _PROMPT_TEXT_LUT=()
+    . "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	if [[ -z "$DEST" ]]; then
 		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
-	OVERRIDE_FGCOLOR=444444
-	OVERRIDE_BGCOLOR=ffffff
-
-	while [[ "$1" = "-"* ]]; do
-		case "$1" in
-		--light)
-			local OVERRIDE_BGCOLOR=ffffff
-			local OVERRIDE_FGCOLOR=444444
-			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-			printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
-			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
-			shift
-			;;
-		--dark)
-			local OVERRIDE_BGCOLOR=444444
-			local OVERRIDE_FGCOLOR=ffffff
-			printf "\033]10;#${OVERRIDE_FGCOLOR}\007"
-			printf "\033]11;#${OVERRIDE_BGCOLOR}\007"
-			printf "\033]12;#${OVERRIDE_FGCOLOR}\007"
-			shift
-			;;
-		esac
-	done
 
 	if [[ -z "$1" ]]; then
-		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh \"${OVERRIDE_FGCOLOR}\" \"${OVERRIDE_BGCOLOR}\" {}")
+		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh \"${_PROMPT_FGCOLOR}\" \"${_PROMPT_BGCOLOR}\" {}")
 	else
 		THEME="$1"
 	fi
@@ -79,6 +57,8 @@ _MAIN() {
 		[[ ${_PROMPT_LUT} ]] && declare -p _PROMPT_LUT | cut -d" " -f3-1024
 		[[ ${_PROMPT_TEXT_LUT} ]] && declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'
 		if [[ ! $RESET_COLORS ]]; then
+			[[ ${_DEFAULT_FGCOLOR} ]] && declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
+			[[ ${_DEFAULT_BGCOLOR} ]] && declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
 			[[ ${_PROMPT_FGCOLOR} ]] && declare -p _PROMPT_FGCOLOR | cut -d" " -f3-1024
 			[[ ${_PROMPT_BGCOLOR} ]] && declare -p _PROMPT_BGCOLOR | cut -d" " -f3-1024
 		fi
