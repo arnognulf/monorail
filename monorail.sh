@@ -284,7 +284,48 @@ _MEASURE=1
 _START_SECONDS=$SECONDS
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-\printf "\e]0;$TITLE\a\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_COLORS[17]}" "${_COLORS[16]}" "${_COLORS[21]}" >/dev/tty 2>&-
+\printf "\
+\e]0;%s\a\
+\e]11;#%s\a\
+\e]10;#%s\a\
+\e]12;#%s\a\
+\e]4;0;%s\a\
+\e]4;1;%s\a\
+\e]4;2;%s\a\
+\e]4;3;%s\a\
+\e]4;4;%s\a\
+\e]4;5;%s\a\
+\e]4;6;%s\a\
+\e]4;7;%s\a\
+\e]4;8;%s\a\
+\e]4;10;%s\a\
+\e]4;11;%s\a\
+\e]4;12;%s\a\
+\e]4;13;%s\a\
+\e]4;14;%s\a\
+\e]4;15;%s\a\
+" \
+"$TITLE" \
+"#${_COLORS[17]}" \
+"#${_COLORS[16]}" \
+"#${_COLORS[21]}" \
+"#${_COLORS[0]}" \
+"#${_COLORS[1]}" \
+"#${_COLORS[2]}" \
+"#${_COLORS[3]}" \
+"#${_COLORS[4]}" \
+"#${_COLORS[5]}" \
+"#${_COLORS[6]}" \
+"#${_COLORS[7]}" \
+"#${_COLORS[8]}" \
+"#${_COLORS[9]}" \
+"#${_COLORS[10]}" \
+"#${_COLORS[11]}" \
+"#${_COLORS[12]}" \
+"#${_COLORS[13]}" \
+"#${_COLORS[14]}" \
+"#${_COLORS[15]}" \
+>/dev/tty 2>&-
 fi
 esac
 unset _MONORAIL_CUSTOM_TITLE
