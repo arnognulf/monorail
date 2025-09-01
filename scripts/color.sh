@@ -80,7 +80,6 @@ monorail_color 89ecff 444444
 	esac
 	_PROMPT_TEXT_LUT=()
 	_PROMPT_LUT=()
-	_PROMPT_TEXT_LUT=([0]="255;255;255")
 	. "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 	if [[ "${#1}" != 6 ]]; then
@@ -97,8 +96,12 @@ monorail_color 89ecff 444444
 
 	_DEFAULT_BGCOLOR=${_COLORS[17]}
 	_DEFAULT_FGCOLOR=${_COLORS[16]}
+			if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
+				_PROMPT_TEXT_LUT=([0]="255;255;255")
+			fi
 	rm -f "${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 	{
+		declare -p _COLORS | cut -d" " -f3-1024
 		declare -p _PROMPT_LUT | cut -d" " -f3-1024
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
 		declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
