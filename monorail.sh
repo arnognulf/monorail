@@ -493,14 +493,9 @@ trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
 # blank terminal at startup to reduce flicker
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-_MONORAIL_SUPPORTED_TERMINAL=1
-elif [[ $TERM = "vt"??? ]];then
+elif [[ $TERM = "linux" ]]||[[ $TERM == "ansi" ]]||[[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
 . "$_MONORAIL_DIR/monorail.lite.sh"
-elif [[ $TERM = "linux" ]];then
-. "$_MONORAIL_DIR/monorail.lite.sh"
-elif [[ $TERM == "ansi" ]]||[[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
-. "$_MONORAIL_DIR/monorail.lite.sh"
-elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]]&&[[ $TERM != "Eterm" ]];then
+elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM != "screen."* ]]&&[[ $TERM != "Eterm" ]];then
 # Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
 if [[ $TERM_PROGRAM = "Apple_Terminal" ]]
 then
