@@ -105,7 +105,6 @@ _GRADIENT() {
 	"")
 		local THEME
 		_PROMPT_LUT=()
-		_PROMPT_TEXT_LUT=()
 		_COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
@@ -115,6 +114,9 @@ _GRADIENT() {
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		THEME=$(\cd ${_MONORAIL_DIR}/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
+			if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
+				_PROMPT_TEXT_LUT=([0]="255;255;255")
+			fi
 			. "${_MONORAIL_DIR}/gradients/${THEME}"
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
@@ -132,6 +134,9 @@ _GRADIENT() {
 		if [[ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]]; then
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			. "${_MONORAIL_DIR}/gradients/${1}".sh
+			if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
+				_PROMPT_TEXT_LUT=([0]="255;255;255")
+			fi
 			"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
 				declare -p _PROMPT_LUT | cut -d" " -f3-1024
@@ -162,6 +167,7 @@ or \"None\" to use text color"
 		return 0
 	fi
 	# reload in case user has manually modified colors.sh
+	_PROMPT_TEXT_LUT=([0]="255;255;255")
 	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 	unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
@@ -232,7 +238,9 @@ or \"None\" to use text color"
 	if [[ -z "$DEST" ]]; then
 		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
-
+	if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
+		_PROMPT_TEXT_LUT=([0]="255;255;255")
+	fi
 	{
 		declare -p _PROMPT_LUT | cut -d" " -f3-1024
 		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'

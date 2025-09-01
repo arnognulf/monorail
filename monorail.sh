@@ -525,9 +525,6 @@ _MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
 else
-if [ -z "${_PROMPT_TEXT_LUT[0]}" ];then
-_PROMPT_TEXT_LUT=("255;255;255")
-fi
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
 LUT=$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))
 TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]}*I)/$((COLUMNS+1))))

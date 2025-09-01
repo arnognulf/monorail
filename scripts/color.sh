@@ -42,7 +42,7 @@ _COLOR() {
 		local THEME
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		_PROMPT_LUT=()
-		_PROMPT_TEXT_LUT=()
+		_PROMPT_TEXT_LUT=([0]="255;255;255")
 		_COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
@@ -80,7 +80,8 @@ monorail_color 89ecff 444444
 	esac
 	_PROMPT_TEXT_LUT=()
 	_PROMPT_LUT=()
-	[[ -f ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh ]] && . "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
+	_PROMPT_TEXT_LUT=([0]="255;255;255")
+	. "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 	if [[ "${#1}" != 6 ]]; then
 		\echo "ERROR: color must be hexadecimal and 6 hexadecimal characters" 1>&2 | tee 1>/dev/null
