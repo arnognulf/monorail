@@ -268,8 +268,6 @@ trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 if [[ $TERM = "vt"??? ]];then
 printf '\e[?25l' >/dev/tty 2>&-
 _MONORAIL_VTXXX_TERMINAL=1
-elif [[ $TERM = "linux" ]];then
-_MONORAIL_LINUX_TERMINAL=1
 elif [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
 bind 'set enable-bracketed-paste off'
 _MONORAIL_DUMB_TERMINAL=1
