@@ -323,7 +323,46 @@ _MONORAIL_HEX_CUR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-\printf "\e]11;#%s\a\e]10;#%s\a\e]12;#%s\a" "${_COLORS[17]}" "${_COLORS[16]}" "$_MONORAIL_HEX_CUR_COLOR"
+\printf "\
+\e]11;#%s\a\
+\e]10;#%s\a\
+\e]12;#%s\a\
+\e]4;0;#%s\a\
+\e]4;1;#%s\a\
+\e]4;2;#%s\a\
+\e]4;3;#%s\a\
+\e]4;4;#%s\a\
+\e]4;5;#%s\a\
+\e]4;6;#%s\a\
+\e]4;7;#%s\a\
+\e]4;8;#%s\a\
+\e]4;9;#%s\a\
+\e]4;10#;%s\a\
+\e]4;11#;%s\a\
+\e]4;12#;%s\a\
+\e]4;13#;%s\a\
+\e]4;14#;%s\a\
+\e]4;15#;%s\a\
+" \
+"${_COLORS[17]}" \
+"${_COLORS[16]}" \
+"$_MONORAIL_HEX_CUR_COLOR" \
+"${_COLORS[0]}" \
+"${_COLORS[1]}" \
+"${_COLORS[2]}" \
+"${_COLORS[3]}" \
+"${_COLORS[4]}" \
+"${_COLORS[5]}" \
+"${_COLORS[6]}" \
+"${_COLORS[7]}" \
+"${_COLORS[8]}" \
+"${_COLORS[9]}" \
+"${_COLORS[10]}" \
+"${_COLORS[11]}" \
+"${_COLORS[12]}" \
+"${_COLORS[13]}" \
+"${_COLORS[14]}" \
+"${_COLORS[15]}"
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 # shellcheck disable=SC2025,SC1078,SC1079
 PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
