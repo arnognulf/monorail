@@ -22,208 +22,6 @@ _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 _MONORAIL_PREHIDE='\['
 _MONORAIL_POSTHIDE='\]'
 fi
-_TITLE(){
-if [[ $_MONORAIL_SUPPORTED_TERMINAL ]]
-then
-printf "\e]12;#%s\a" "${_COLORS[21]}" >/dev/tty 2>&-
-fi
-_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
-}
-_NO_MEASURE(){
-unset _MEASURE
-"$@"
-}
-_ICON(){
-local ICON="$1"
-shift
-if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} == "_NO_MEASURE" ]];then
-local FIRST_ARG="$1"
-(case "$FIRST_ARG" in
-_*)shift
-esac
-FIRST_ARG="$1"
-FIRST_NON_OPTION="$2"
-while [[ ${FIRST_NON_OPTION:0:1} == '-' ]]||[ "${FIRST_NON_OPTION:0:1}" = '_' ]||[ "$FIRST_NON_OPTION" = '.' ];do
-if [ "$FIRST_NON_OPTION" = '-u' ];then
-shift 2
-else
-shift
-fi
-FIRST_NON_OPTION="$2"
-done
-if [ -z "$FIRST_NON_OPTION" ];then
-_TITLE "$ICON  ${FIRST_ARG##*/}"
-else
-_TITLE "$ICON  ${FIRST_NON_OPTION##*/}"
-fi) >&- 2>&-
-fi
-"$@"
-}
-trap "unset _MONORAIL_CACHE" WINCH
-_LOW_PRIO(){
-if type -P chrt >/dev/null 2>&-;then
-_LOW_PRIO(){
-ionice -c idle chrt -i 0 "$@"
-}
-else
-_LOW_PRIO(){
-nice -n19 "$@"
-}
-fi
-_LOW_PRIO "$@"
-}
-# shellcheck disable=SC2329
-_INTERACTIVE_COMMAND(){
-# shellcheck disable=SC2139 # variable is intended to be set when defined
-command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
-}
-# shellcheck disable=SC2329
-_BATCH_COMMAND(){
-# shellcheck disable=SC2139
-command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
-}
-alias interactive_command=_INTERACTIVE_COMMAND
-alias batch_command=_BATCH_COMMAND
-. "$_MONORAIL_DIR"/default_commands.sh
-unalias interactive_command batch_command
-unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
-__git_ps1(){ :;}
-. "$_MONORAIL_DIR"/bash-preexec/bash-preexec.sh
-_MONORAIL_ALERT(){
-(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
-}
-_MONORAIL_MAGIC_SHELLBALL(){
-local ANSWER SPACES i
-SPACES=
-i=0
-case "$RANDOM" in
-*[0-4])case "$RANDOM" in
-*0)ANSWER="IT IS CERTAIN.";;
-*1)ANSWER="IT IS DECIDEDLY SO.";;
-*2)ANSWER="WITHOUT A DOUBT.";;
-*3)ANSWER="YES – DEFINITELY.";;
-*4)ANSWER="YOU MAY RELY ON IT.";;
-*5)ANSWER="AS I SEE IT, YES.";;
-*6)ANSWER="MOST LIKELY.";;
-*7)ANSWER="OUTLOOK GOOD.";;
-*8)ANSWER="YES.";;
-*)ANSWER="SIGNS POINT TO YES."
-esac
-;;
-*)case "$RANDOM" in
-*0)ANSWER="REPLY HAZY, TRY AGAIN.";;
-*1)ANSWER="ASK AGAIN LATER.";;
-*2)ANSWER="BETTER NOT TELL YOU NOW.";;
-*3)ANSWER="CANNOT PREDICT NOW.";;
-*4)ANSWER="CONCENTRATE AND ASK AGAIN.";;
-*5)ANSWER="DON'T COUNT ON IT.";;
-*6)ANSWER="MY REPLY IS NO.";;
-*7)ANSWER="MY SOURCES SAY NO.";;
-*8)ANSWER="OUTLOOK NOT SO GOOD.";;
-*)ANSWER="VERY DOUBTFUL."
-esac
-esac
-while [[ $i -lt $((COLUMNS/2-${#ANSWER}/2)) ]];do
-SPACES="$SPACES "
-i=$((i+1))
-done
-\echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
-}
-_MONORAIL_COMMAND(){
-local CMD_STATUS
-CMD_STATUS=$?
-\printf "%$((COLUMNS-1))s\\r"
-HISTCONTROL=
-_MONORAIL_HISTCMD_PREV=$(fc -l -1)
-_MONORAIL_HISTCMD_PREV=${_MONORAIL_HISTCMD_PREV%%$'[\t ]'*}
-if [[ -z $_MONORAIL_PENULTIMATE ]];then
-_MONORAIL_CR_FIRST=1
-CR_LEVEL=0
-unset _MONORAIL_CTRLC
-elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
-if [[ -z $_MONORAIL_CR_FIRST ]] &&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
-case "$CR_LEVEL" in
-0)ls
-CR_LEVEL=3
-if \git status >&- 2>&-;then
-CR_LEVEL=1
-else
-\printf "\e[J\n\n"
-fi
-;;
-2)CR_LEVEL=3
-if [[ $_MONORAIL_DUMB_TERMINAL ]]
-then
-\git -c color.status=never status|\head -n$((LINES-2))|\head -n$((LINES-4))
-else
-\git -c color.status=always status|\head -n$((LINES-2))|\head -n$((LINES-4))
-fi
-\echo -e "        ...\n\n"
-;;
-*)_MONORAIL_MAGIC_SHELLBALL
-esac
-CR_LEVEL=$((CR_LEVEL+1))
-fi
-unset _MONORAIL_CR_FIRST
-else
-unset _MONORAIL_CR_FIRST
-CR_LEVEL=0
-fi
-unset _MONORAIL_CTRLC
-_MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
-trap "_MONORAIL_CTRLC=1;\echo -n" INT
-trap "_MONORAIL_CTRLC=1;\echo -n" ERR
-[[ $BASH_VERSION ]]&&history -a >&- 2>&-
-}
-# xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
-# this is the "fast path", if this fails, more thorough testing is needed
-if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
-# blank terminal at startup to reduce flicker
-printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-_MONORAIL_SUPPORTED_TERMINAL=1
-else 
-if [[ $TERM = "vt"??? ]];then
-_MONORAIL_VTXXX_TERMINAL=1
-fi
-if [[ $TERM = "linux" ]];then
-_MONORAIL_LINUX_TERMINAL=1
-fi
-if [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
-bind 'set enable-bracketed-paste off'
-_MONORAIL_DUMB_TERMINAL=1
-fi
-if [[ $_MONORAIL_DUMB_TERMINAL ]];then
-:
-elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]]&&[[ $TERM != "Eterm" ]];then
-# Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
-if [[ $TERM_PROGRAM = "Apple_Terminal" ]]
-then
-# outputs "26.0"
-_MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
-if [[ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]];then
-_MONORAIL_SUPPORTED_TERMINAL=1
-fi
-unset _MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
-else
-_MONORAIL_SUPPORTED_TERMINAL=1
-fi
-elif [[ $TERM == "alacritty" ]]||[[ $TERM == "rxvt-unicode-256colors" ]];then
-printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-_MONORAIL_SUPPORTED_TERMINAL=1
-fi
-fi
-if [[ "$SSH_CLIENT" ]] || [[ $TMUX ]];then
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_SUFFIX () {
-TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
-}
-elif [[ -e /.dockerenv ]];then
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_SUFFIX () {
-TITLE="$TITLE on docker"
-}
-fi
-
 preexec(){
 {
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
@@ -360,6 +158,23 @@ unset _MEASURE
 title(){
 TITLE_OVERRIDE="$*"
 }
+_TITLE_RAW(){
+if [[ $_MONORAIL_NOSTYLING ]];then
+return 0
+fi
+if [[ $TERM =~ "xterm"* ]]||[ "$TERM" = "alacritty" ];then
+\printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
+fi
+}
+if [[ $XDG_CONFIG_HOME ]];then
+_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
+else
+_MONORAIL_CONFIG="$HOME/.config/monorail"
+fi
+name(){
+NAME="$*"
+}
+
 precmd(){
 if [[ $_MONORAIL_LAUNCHED ]];then
 _MONORAIL_STOP_TIMER
@@ -570,22 +385,208 @@ $REVERSE$_MONORAIL_TEXT$NORMAL "
 fi
 unset _MONORAIL_NOSTYLING
 }
-_TITLE_RAW(){
-if [[ $_MONORAIL_NOSTYLING ]];then
-return 0
+
+_TITLE(){
+if [[ $_MONORAIL_SUPPORTED_TERMINAL ]]
+then
+printf "\e]12;#%s\a" "${_COLORS[21]}" >/dev/tty 2>&-
 fi
-if [[ $TERM =~ "xterm"* ]]||[ "$TERM" = "alacritty" ];then
-\printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
-fi
+_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 }
-if [[ $XDG_CONFIG_HOME ]];then
-_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
+_NO_MEASURE(){
+unset _MEASURE
+"$@"
+}
+_ICON(){
+local ICON="$1"
+shift
+if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} == "_NO_MEASURE" ]];then
+local FIRST_ARG="$1"
+(case "$FIRST_ARG" in
+_*)shift
+esac
+FIRST_ARG="$1"
+FIRST_NON_OPTION="$2"
+while [[ ${FIRST_NON_OPTION:0:1} == '-' ]]||[ "${FIRST_NON_OPTION:0:1}" = '_' ]||[ "$FIRST_NON_OPTION" = '.' ];do
+if [ "$FIRST_NON_OPTION" = '-u' ];then
+shift 2
 else
-_MONORAIL_CONFIG="$HOME/.config/monorail"
+shift
 fi
-name(){
-NAME="$*"
+FIRST_NON_OPTION="$2"
+done
+if [ -z "$FIRST_NON_OPTION" ];then
+_TITLE "$ICON  ${FIRST_ARG##*/}"
+else
+_TITLE "$ICON  ${FIRST_NON_OPTION##*/}"
+fi) >&- 2>&-
+fi
+"$@"
 }
+trap "unset _MONORAIL_CACHE" WINCH
+_LOW_PRIO(){
+if type -P chrt >/dev/null 2>&-;then
+_LOW_PRIO(){
+ionice -c idle chrt -i 0 "$@"
+}
+else
+_LOW_PRIO(){
+nice -n19 "$@"
+}
+fi
+_LOW_PRIO "$@"
+}
+# shellcheck disable=SC2329
+_INTERACTIVE_COMMAND(){
+# shellcheck disable=SC2139 # variable is intended to be set when defined
+command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
+}
+# shellcheck disable=SC2329
+_BATCH_COMMAND(){
+# shellcheck disable=SC2139
+command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
+}
+alias interactive_command=_INTERACTIVE_COMMAND
+alias batch_command=_BATCH_COMMAND
+. "$_MONORAIL_DIR"/default_commands.sh
+unalias interactive_command batch_command
+unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
+__git_ps1(){ :;}
+. "$_MONORAIL_DIR"/bash-preexec/bash-preexec.sh
+_MONORAIL_ALERT(){
+(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
+}
+_MONORAIL_MAGIC_SHELLBALL(){
+local ANSWER SPACES i
+SPACES=
+i=0
+case "$RANDOM" in
+*[0-4])case "$RANDOM" in
+*0)ANSWER="IT IS CERTAIN.";;
+*1)ANSWER="IT IS DECIDEDLY SO.";;
+*2)ANSWER="WITHOUT A DOUBT.";;
+*3)ANSWER="YES – DEFINITELY.";;
+*4)ANSWER="YOU MAY RELY ON IT.";;
+*5)ANSWER="AS I SEE IT, YES.";;
+*6)ANSWER="MOST LIKELY.";;
+*7)ANSWER="OUTLOOK GOOD.";;
+*8)ANSWER="YES.";;
+*)ANSWER="SIGNS POINT TO YES."
+esac
+;;
+*)case "$RANDOM" in
+*0)ANSWER="REPLY HAZY, TRY AGAIN.";;
+*1)ANSWER="ASK AGAIN LATER.";;
+*2)ANSWER="BETTER NOT TELL YOU NOW.";;
+*3)ANSWER="CANNOT PREDICT NOW.";;
+*4)ANSWER="CONCENTRATE AND ASK AGAIN.";;
+*5)ANSWER="DON'T COUNT ON IT.";;
+*6)ANSWER="MY REPLY IS NO.";;
+*7)ANSWER="MY SOURCES SAY NO.";;
+*8)ANSWER="OUTLOOK NOT SO GOOD.";;
+*)ANSWER="VERY DOUBTFUL."
+esac
+esac
+while [[ $i -lt $((COLUMNS/2-${#ANSWER}/2)) ]];do
+SPACES="$SPACES "
+i=$((i+1))
+done
+\echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
+}
+_MONORAIL_COMMAND(){
+local CMD_STATUS
+CMD_STATUS=$?
+\printf "%$((COLUMNS-1))s\\r"
+HISTCONTROL=
+_MONORAIL_HISTCMD_PREV=$(fc -l -1)
+_MONORAIL_HISTCMD_PREV=${_MONORAIL_HISTCMD_PREV%%$'[\t ]'*}
+if [[ -z $_MONORAIL_PENULTIMATE ]];then
+_MONORAIL_CR_FIRST=1
+CR_LEVEL=0
+unset _MONORAIL_CTRLC
+elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
+if [[ -z $_MONORAIL_CR_FIRST ]] &&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
+case "$CR_LEVEL" in
+0)ls
+CR_LEVEL=3
+if \git status >&- 2>&-;then
+CR_LEVEL=1
+else
+\printf "\e[J\n\n"
+fi
+;;
+2)CR_LEVEL=3
+if [[ $_MONORAIL_DUMB_TERMINAL ]]
+then
+\git -c color.status=never status|\head -n$((LINES-2))|\head -n$((LINES-4))
+else
+\git -c color.status=always status|\head -n$((LINES-2))|\head -n$((LINES-4))
+fi
+\echo -e "        ...\n\n"
+;;
+*)_MONORAIL_MAGIC_SHELLBALL
+esac
+CR_LEVEL=$((CR_LEVEL+1))
+fi
+unset _MONORAIL_CR_FIRST
+else
+unset _MONORAIL_CR_FIRST
+CR_LEVEL=0
+fi
+unset _MONORAIL_CTRLC
+_MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
+trap "_MONORAIL_CTRLC=1;\echo -n" INT
+trap "_MONORAIL_CTRLC=1;\echo -n" ERR
+[[ $BASH_VERSION ]]&&history -a >&- 2>&-
+}
+# xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
+# this is the "fast path", if this fails, more thorough testing is needed
+if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
+# blank terminal at startup to reduce flicker
+printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
+_MONORAIL_SUPPORTED_TERMINAL=1
+else 
+if [[ $TERM = "vt"??? ]];then
+_MONORAIL_VTXXX_TERMINAL=1
+fi
+if [[ $TERM = "linux" ]];then
+_MONORAIL_LINUX_TERMINAL=1
+fi
+if [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
+bind 'set enable-bracketed-paste off'
+_MONORAIL_DUMB_TERMINAL=1
+fi
+if [[ $_MONORAIL_DUMB_TERMINAL ]];then
+:
+elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]]&&[[ $TERM != "Eterm" ]];then
+# Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
+if [[ $TERM_PROGRAM = "Apple_Terminal" ]]
+then
+# outputs "26.0"
+_MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
+if [[ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]];then
+_MONORAIL_SUPPORTED_TERMINAL=1
+fi
+unset _MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
+else
+_MONORAIL_SUPPORTED_TERMINAL=1
+fi
+elif [[ $TERM == "alacritty" ]]||[[ $TERM == "rxvt-unicode-256colors" ]];then
+printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
+_MONORAIL_SUPPORTED_TERMINAL=1
+fi
+fi
+if [[ "$SSH_CLIENT" ]] || [[ $TMUX ]];then
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SUFFIX () {
+TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
+}
+elif [[ -e /.dockerenv ]];then
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SUFFIX () {
+TITLE="$TITLE on docker"
+}
+fi
 # shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/color.sh"
 # shellcheck disable=SC2139
