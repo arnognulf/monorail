@@ -126,6 +126,7 @@ _GRADIENT() {
 				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
 			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
+		killall -s WINCH bash zsh &>/dev/null
 		exit 0
 		;;
 	esac

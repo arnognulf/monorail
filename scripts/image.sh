@@ -54,6 +54,7 @@ _MAIN() {
 			declare -p _DEFAULT_BGCOLOR
 
 		} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		killall -s WINCH bash zsh &>/dev/null
 		;;
 	"")
 		# TODO HELP
