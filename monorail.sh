@@ -80,7 +80,6 @@ fi
 done
 _MEASURE=1
 _START_SECONDS=$SECONDS
-if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 \printf "\
 \e]11;#%s\a\
@@ -91,7 +90,6 @@ TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 "${_COLORS[16]}" \
 "${_COLORS[21]}" \
 >/dev/tty 2>&-
-fi
 esac
 unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
@@ -252,7 +250,7 @@ _MONORAIL_TEXT_ARRAY[I]="${_MONORAIL_TEXT:I:1}"
 done
 fi
 _MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
-local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B CHAR
+local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
 unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh ]];then
@@ -260,46 +258,23 @@ LC_ALL=C LC_MESSAGES=C \cp "$_MONORAIL_DIR"/gradients/Default.sh "$_MONORAIL_CON
 fi
 # shellcheck disable=SC1090,SC1091 # file will be copied
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh
-if [[ -z $_MONORAIL_SUPPORTED_TERMINAL ]];then
-if [[ $TERM == "dm2500" ]]||[[ $TERM == "dumb" ]];then
-CHAR=-
-else
-CHAR=_
-fi
-fi
 local I=0
-if [[ $_MONORAIL_VTXXX_TERMINAL ]];then
-:
-elif [[ ${#_PROMPT_LUT[@]} -gt 0 ]]&&[[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
+if [[ ${#_PROMPT_LUT[@]} -gt 0 ]];then
 _MONORAIL_ATTRIBUTE=
 _MONORAIL_LINE=
 else
 _MONORAIL_ATTRIBUTE=$'\e'"[7m"
 _MONORAIL_LINE=
 fi
-local TEMP_COLUMNS=$COLUMNS
-if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
-while [ $I -lt $TEMP_COLUMNS ];do
-_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((TEMP_COLUMNS+1))))]}m"$'\xe2\x96\x81'
+while [[ $I -lt $COLUMNS ]]
+do
+_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
 I=$((I+1))
 done
-elif [[ $_MONORAIL_VTXXX_TERMINAL ]];then
-_MONORAIL_LINE=$'\e'"[0;1m"$'\e'"#6"$'\e'"(0"
-_MONORAIL_ATTRIBUTE=$'\e'"(1"$'\e'"[0;7m"
-while [[ $I -lt $((TEMP_COLUMNS / 2)) ]];do
-_MONORAIL_LINE+="s"
-I=$((I+1))
-done
-else
-[[ $_MONORAIL_DUMB_TERMINAL ]] &&TEMP_COLUMNS=$((COLUMNS-2))
-while [ $I -lt $TEMP_COLUMNS ];do
-_MONORAIL_LINE+="$CHAR"
-I=$((I+1))
-done
-fi
+_MONORAIL_LINE+=$'\e'"[7m"
 _MONORAIL_TEXT_FORMATTED=
 local LUT I=0 TEXT_LUT
-if [[ -z ${_PROMPT_LUT[0]} ]]||[[ $_MONORAIL_VTXXX_TERMINAL ]]||[[ $_MONORAIL_LINUX_TERMINAL ]]||[[ "$MC_TMPDIR" ]];then
+if [[ -z ${_PROMPT_LUT[0]} ]];then
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
 _MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
@@ -309,7 +284,7 @@ else
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
 LUT=$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))
 TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]}*I)/$((COLUMNS+1))))
-_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[48;2;${_PROMPT_LUT[LUT]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[TEXT_LUT]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
+_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[48;2;${_PROMPT_LUT[LUT]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[TEXT_LUT]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
 fi
@@ -322,7 +297,6 @@ HEX_CURSOR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B"
 [[ ${#_PROMPT_LUT[@]} == 0 ]]&&HEX_CURSOR_COLOR="${_COLORS[21]}"
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
-if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 \printf "\
 \e]11;#%s\a\
 \e]10;#%s\a\
@@ -367,33 +341,10 @@ if [[ $_MONORAIL_SUPPORTED_TERMINAL ]];then
 # shellcheck disable=SC2025,SC1078,SC1079
 PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
 $_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
-elif [[ $_MONORAIL_VTXXX_TERMINAL ]]; then
-# shellcheck disable=SC2025,SC1078,SC1079 # quoting is supposed to span multiple lines
-PS1=$'\r'$'\e'"[0m$_MONORAIL_LINE
-$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h$_MONORAIL_POSTHIDE "
-else
-local REVERSE NORMAL
-REVERSE=$(LC_MESSAGES=C LC_ALL=C tput rev 2>&-)
-if [[ "$REVERSE" ]];then
-NORMAL="$_MONORAIL_PREHIDE$(LC_MESSAGES=C LC_ALL=C tput sgr0 2>&-)$_MONORAIL_POSTHIDE"
-REVERSE="$_MONORAIL_PREHIDE$REVERSE$_MONORAIL_POSTHIDE"
-elif [[ $TERM == "dumb" ]];then
-REVERSE=
-NORMAL="!"
-else
-REVERSE=
-NORMAL="|"
-fi
-PS1=$_MONORAIL_LINE"
-$REVERSE$_MONORAIL_TEXT$NORMAL "
-fi
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
-if [[ $_MONORAIL_SUPPORTED_TERMINAL ]]
-then
 printf "\e]12;#%s\a" "${_COLORS[21]}" >/dev/tty 2>&-
-fi
 _TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 }
 _NO_MEASURE(){
@@ -519,12 +470,7 @@ else
 fi
 ;;
 2)CR_LEVEL=3
-if [[ $_MONORAIL_DUMB_TERMINAL ]]
-then
-\git -c color.status=never status|\head -n$((LINES-2))|\head -n$((LINES-4))
-else
 \git -c color.status=always status|\head -n$((LINES-2))|\head -n$((LINES-4))
-fi
 \echo -e "        ...\n\n"
 ;;
 *)_MONORAIL_MAGIC_SHELLBALL
@@ -548,19 +494,12 @@ if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
 # blank terminal at startup to reduce flicker
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 _MONORAIL_SUPPORTED_TERMINAL=1
-else 
-if [[ $TERM = "vt"??? ]];then
-_MONORAIL_VTXXX_TERMINAL=1
-fi
-if [[ $TERM = "linux" ]];then
-_MONORAIL_LINUX_TERMINAL=1
-fi
-if [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
-bind 'set enable-bracketed-paste off'
-_MONORAIL_DUMB_TERMINAL=1
-fi
-if [[ $_MONORAIL_DUMB_TERMINAL ]];then
-:
+elif [[ $TERM = "vt"??? ]];then
+. "$_MONORAIL_DIR/monorail.lite.sh"
+elif [[ $TERM = "linux" ]];then
+. "$_MONORAIL_DIR/monorail.lite.sh"
+elif [[ $TERM == "ansi" ]]||[[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
+. "$_MONORAIL_DIR/monorail.lite.sh"
 elif [[ $TERM != "vt"??? ]]&&[[ $TERM != "linux" ]]&&[[ $TERM != "freebsd" ]]&&[[ $TERM != "bsdos" ]]&&[[ $TERM != "netbsd" ]]&&[[ -z $MC_TMPDIR ]]&&[[ $TERM != "xterm-color" ]]&&[[ $TERM != "xterm-16color" ]]&&[[ $TERM_PROGRAM != "Apple_Terminal" ]]&&[[ $TERM != "screen."* ]]&&[[ $TERM != "Eterm" ]];then
 # Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
 if [[ $TERM_PROGRAM = "Apple_Terminal" ]]
@@ -568,17 +507,18 @@ then
 # outputs "26.0"
 _MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
 if [[ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]];then
-_MONORAIL_SUPPORTED_TERMINAL=1
+:
+else
+. "$_MONORAIL_DIR/monorail.lite.sh"
 fi
 unset _MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
 else
-_MONORAIL_SUPPORTED_TERMINAL=1
+:
 fi
 elif [[ $TERM == "alacritty" ]]||[[ $TERM == "rxvt-unicode-256colors" ]];then
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-_MONORAIL_SUPPORTED_TERMINAL=1
 fi
-fi
+set +x
 if [[ "$SSH_CLIENT" ]] || [[ $TMUX ]];then
 _MONORAIL_HAS_SUFFIX=1
 _MONORAIL_SUFFIX () {
@@ -604,5 +544,4 @@ alias monorail_rgb="$_MONORAIL_DIR/scripts/rgb.sh"
 alias rgb="$_MONORAIL_DIR/scripts/rgb.sh"
 # shellcheck disable=SC2139
 alias monorail_save="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/save.sh"
-
 } >&- 2>&-
