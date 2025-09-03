@@ -115,6 +115,8 @@ _GRADIENT() {
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		THEME=$(\cd ${_MONORAIL_DIR}/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
+            unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+			_COLORS=()
 			_PROMPT_LUT=()
 			_PROMPT_TEXT_LUT=()
 			. "${_MONORAIL_DIR}/gradients/${THEME}"
@@ -133,19 +135,22 @@ _GRADIENT() {
 	esac
 	if [[ "${#@}" = 1 ]]; then
 		if [[ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]]; then
+            _COLORS=()
+			. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			. "${_MONORAIL_DIR}/gradients/${1}".sh
 			if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
 				_PROMPT_TEXT_LUT=([0]="255;255;255")
 			fi
-			"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
+				declare -p _COLORS | cut -d" " -f3-1024
 				declare -p _PROMPT_LUT | cut -d" " -f3-1024
 				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
 				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
 				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
 			} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
-
+		    killall -s WINCH bash zsh &>/dev/null
+            return 0
 		else
 			{
 				echo "gradient: No such theme \"$1\""
