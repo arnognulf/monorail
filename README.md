@@ -36,20 +36,27 @@ Usage
 =====
 Changing colors
 ---------------
-Run `monorail_color` to change background
+Run `monorail_color` to change foreground
 ```
 monorail_color fffaf1
 ```
 
-Run `monorail_fgcolor` to change foreground
+Run `monorail_color` with a second color parameter to change background as well
 ```
-monorail_fgcolor 444444
+monorail_color 00cc44 000000
 ```
 
-`monorail_gradient` without arguments bring up an fzf selection of pre-computed gradients.
+To specify RGB colors, use the rgb() function as follows:
+```
+monorail_color  $(rgb 231,67,42) $(rgb 16,00,163) 
+```
+
+`monorail_color` without arguments brings up an fzf selection of colors.
+
+`monorail_gradient` without arguments brings up an fzf selection of pre-computed gradients.
 
 
-`monorail_image` without arguments bring up an fzf selection of images to use as prompt "background".
+`monorail_image` without arguments brings up an fzf selection of images to use as prompt "background".
 
 
 Run `monorail_gradient` to compute a custom prompt gradient:
@@ -76,10 +83,6 @@ Run `monorail_gradienttext` to change prompt gradient text:
 ```
 monorail_gradienttext  0 ffffff  100 444444
 ```
-
-Saving colors
--------------
-`monorail_save Theme name`
 
 Favicon titles
 ==============
@@ -184,7 +187,7 @@ Avoid trademarks and names of organizations (political and apolitical).
 I do not wish to infringe trademarks, nor do I want to endorse organizations that may turn supervillan the next day.
 
 
-Also, please keep gradients look-up-tables at up to 200 elements to conserve space (unless a really good reason exists).
+Also, please keep gradients look-up-tables at up to 200 elements to conserve space.
 
 Credits
 -------
@@ -205,4 +208,4 @@ StackExchange discussion on how to differentiate if user pressed ENTER or entere
 
 ghosh uiGradients for the large collection of beautiful uiGradients that many monorail themes are based upon: https://github.com/ghosh/uiGradients
 
-
+iTerm2 color schemes: https://github.com/mbadolato/iTerm2-Color-Schemes
