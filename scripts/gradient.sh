@@ -104,6 +104,7 @@ _GRADIENT() {
 	case "$1" in
 	"")
 		local THEME
+        unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		_PROMPT_LUT=()
 		_COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"

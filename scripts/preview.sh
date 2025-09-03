@@ -28,7 +28,7 @@ _COLORS[16]="$1"
 _COLORS[17]="$2"
 I=0
 case "${3,,}" in
-*sh)
+*.sh)
 
 	if [[ $XDG_CONFIG_HOME ]]; then
 		_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
@@ -39,10 +39,15 @@ case "${3,,}" in
 	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh &>/dev/null || exit 42
 	. "$3" &>/dev/null || exit 42
+    case "${3}" in
+    */gradients/*) 
+		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+    esac
 	;;
 *)
 
 	THEME="${3}"
+
 	TEMP=$(mktemp --suff=".${THEME##*.}")
 	cp -f "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "$TEMP"
 	WIDTH=$(identify "$TEMP" 2>/dev/null | awk '{ print $3 }' | cut -dx -f1 | head -n1)
