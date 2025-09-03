@@ -39,8 +39,9 @@ _MAIN() {
 		cp "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "${TEMP}" &>/dev/null
 		# identify will report size
 		WIDTH=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
+		HEIGHT=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f2 | head -n1)
 
-		for RGB in $(convert -crop "$WIDTH"x1+0+$((WIDTH / 2)) "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" PPM:- | convert -scale 200x "PPM:-" RGB:- | xxd -ps -c3); do
+		for RGB in $(convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" PPM:- | convert -scale 200x "PPM:-" RGB:- | xxd -ps -c3); do
 			_PROMPT_LUT[$I]="$((0x${RGB:0:2}));$((0x${RGB:2:2}));$((0x${RGB:4:2}))"
 			I=$((I + 1))
 		done
