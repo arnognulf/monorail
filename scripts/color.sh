@@ -51,8 +51,8 @@ _COLOR() {
 		[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
 		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
-			_DEFAULT_FGCOLOR="${_COLOR[16]}"
-			_DEFAULT_BGCOLOR="${_COLOR[17]}"
+			_DEFAULT_FGCOLOR="${_COLORS[16]}"
+			_DEFAULT_BGCOLOR="${_COLORS[17]}"
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
 				_COLORS=()
