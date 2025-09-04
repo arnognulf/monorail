@@ -86,7 +86,7 @@ fi
 DIR=${DIR%/*}
 done
 fi
-_MONORAIL_GIT_PS1=$(TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
+_MONORAIL_GIT_PS1=$(_TITLE () { shift;"$@";};TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 local PWD_BASENAME="${PWD##*/}"
 [ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
@@ -150,6 +150,7 @@ unset _MEASURE
 }
 _ICON(){
 trap "unset _MONORAIL_CACHE" WINCH
+}
 _LOW_PRIO(){
 if type -P chrt >/dev/null 2>&-;then
 _LOW_PRIO(){
@@ -265,7 +266,7 @@ trap "_MONORAIL_CTRLC=1;\echo -n" INT
 trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
 }
-if [[ $TERM = "vt"??? ]];then
+if [[ $TERM == "vt"??? ]];then
 printf '\e[?25l' >/dev/tty 2>&-
 _MONORAIL_VTXXX_TERMINAL=1
 elif [[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]];then
@@ -274,6 +275,4 @@ _MONORAIL_DUMB_TERMINAL=1
 else
 printf '\e[?25l' >/dev/tty 2>&-
 fi
-}
-}
-#} >&- 2>&-
+} >&- 2>&-
