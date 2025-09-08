@@ -16,6 +16,14 @@ Features
 
 Installation
 ------------
+The following dependencies are required:
+`bash`, `bc`, `fzf`, and `ImageMagick`
+
+On Debian and Ubuntu based systems, these can be installed with
+
+`sudo apt install bash bc fzf imagemagick`
+
+Add monorail to your prompt by running the following:
 
 ```
 mkdir -p ~/.local/share

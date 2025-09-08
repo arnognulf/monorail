@@ -1,5 +1,22 @@
 #!/bin/bash
 #cat uiGradients/gradients.json |jq ".[4]"|jq '.colors'
+if [[ $ZSH_NAME ]];then
+setopt KSH_ARRAYS
+setopt prompt_subst
+_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
+else
+_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+fi
+if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
+then
+:
+else
+"error: please install bc, fzf, imagemagick"
+exit 42
+fi
+
+
+
 _MONORAIL_INVALIDATE_CACHE() { :; }
 _MONORAIL_CONFIG=$HOME/.config/monorail
 . gradient/gradient.sh

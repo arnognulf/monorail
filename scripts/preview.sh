@@ -19,6 +19,23 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+if [[ $ZSH_NAME ]];then
+setopt KSH_ARRAYS
+setopt prompt_subst
+_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
+else
+_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+fi
+if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
+then
+:
+else
+"error: please install bc, fzf, imagemagick"
+exit 42
+fi
+
+
+
 if [[ "$3" = "000_README.md" ]]; then
 	cat "$3"
 	exit 1

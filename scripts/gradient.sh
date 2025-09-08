@@ -20,6 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+if [[ $ZSH_NAME ]];then
+setopt KSH_ARRAYS
+setopt prompt_subst
+_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
+else
+_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+fi
+if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
+then
+:
+else
+"error: please install bc, fzf, imagemagick"
+exit 42
+fi
+
+
+
 # OKLab: https://bottosson.github.io/posts/oklab/
 # bc(1) functions: http://phodd.net/gnu-bc/code/logic.bc
 
@@ -79,9 +96,6 @@ int(max(0.0, min(255.0, round(255.0 * (-0.0041960863 * $l - 0.7034186147 * $m + 
 
 # gradient [start_color index]
 _GRADIENT() {
-	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
-	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-
 	local PREFIX=""
 	_DEFAULT_BGCOLOR=ffffff
 	_DEFAULT_FGCOLOR=444444

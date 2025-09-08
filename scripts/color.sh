@@ -1,4 +1,20 @@
 #!/bin/bash
+if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
+then
+:
+else
+"error: please install bc, fzf, imagemagick"
+exit 42
+fi
+
+if [[ $ZSH_NAME ]];then
+setopt KSH_ARRAYS
+setopt prompt_subst
+_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
+else
+_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+fi
+
 _MONORAIL_CONTRAST() {
 	COLOR1=$1
 	COLOR2=$2

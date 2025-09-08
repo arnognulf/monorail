@@ -520,17 +520,17 @@ TITLE="$TITLE on docker"
 }
 fi
 # shellcheck disable=SC2139
-alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/color.sh"
+alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR bash $_MONORAIL_DIR/scripts/color.sh"
 # shellcheck disable=SC2139
-alias monorail_gradient="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/gradient.sh"
+alias monorail_gradient="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR bash $_MONORAIL_DIR/scripts/gradient.sh"
 # shellcheck disable=SC2139
-alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/image.sh"
+alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR bash $_MONORAIL_DIR/scripts/image.sh"
 # shellcheck disable=SC2139
-alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/gradient.sh --text"
+alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR bash $_MONORAIL_DIR/scripts/gradient.sh --text"
 # shellcheck disable=SC2139
-alias monorail_rgb="$_MONORAIL_DIR/scripts/rgb.sh"
+alias monorail_rgb="bash $_MONORAIL_DIR/scripts/rgb.sh"
 # shellcheck disable=SC2139
-alias rgb="$_MONORAIL_DIR/scripts/rgb.sh"
+alias rgb="bash $_MONORAIL_DIR/scripts/rgb.sh"
 # shellcheck disable=SC2139
-alias monorail_save="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $_MONORAIL_DIR/scripts/save.sh"
+alias monorail_save="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR bash $_MONORAIL_DIR/scripts/save.sh"
 } >&- 2>&-

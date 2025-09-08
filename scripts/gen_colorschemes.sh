@@ -27,6 +27,22 @@
 #
 # echo -e "\033]Pg4040ff\033\\"
 #
+if [[ $ZSH_NAME ]];then
+setopt KSH_ARRAYS
+setopt prompt_subst
+_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
+else
+_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+fi
+if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
+then
+:
+else
+"error: please install bc, fzf, imagemagick"
+exit 42
+fi
+
+
 _MONORAIL_CONFIG=$HOME/.config/monorail
 mkdir -p colors
 for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
