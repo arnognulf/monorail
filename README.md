@@ -12,7 +12,7 @@ Features
 * Theme selector of pre-computed gradients and images.
 * Gradient creator command with similar syntax to css gradients.
 * Favicon like title icons for commands and folders
-* Magic-shellball when Enter is pressed multiple times
+* Falls back to lite version for non-compatible shells or terminals.
 
 Installation
 ------------
@@ -171,6 +171,21 @@ For simplicity, a default list of commands and icons are defined in default_comm
 
 
 The commands can be overridden by re-defining them in ~/.bashrc or ~/.zshrc
+
+Lite version
+------------
+When monorail is used on a terminal that does not support truecolor or ansi control sequencies it will fall back to the lite version of monorail.
+
+The lite version is a simpler version of `monorail` which do not use gradient lookup tables or any external configuration.
+
+The lite version can be used directly instead of full monorail by sourcing the lite version:
+
+`. ~/.local/share/monorail/monorail.lite.sh`
+
+
+Additionally, monorail lite also supports non-bash and non-zsh POSIX shells such as `OpenBSD ksh`, `ksh93`, `mksh`, `osh`, `posh`, `dash`, `brush`, and `busybox sh`
+
+![Emulated VT100 displaying a horizontal bar and inverted prompt](images/vt100.png)
 
 
 Supported shells
