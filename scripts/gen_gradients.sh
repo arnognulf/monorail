@@ -1,25 +1,19 @@
 #!/bin/bash
-#cat uiGradients/gradients.json |jq ".[4]"|jq '.colors'
-if [[ $ZSH_NAME ]];then
-setopt KSH_ARRAYS
-setopt prompt_subst
-_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
+if which jq &>/dev/null && which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
+	:
 else
-_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-fi
-if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
-then
-:
-else
-"error: please install bc, fzf, imagemagick"
-exit 42
+	"error: please install jq, bc, fzf, imagemagick"
+	exit 42
 fi
 
-
+if [[ $ZSH_NAME ]]; then
+	setopt KSH_ARRAYS
+	setopt prompt_subst
+fi
+_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 _MONORAIL_INVALIDATE_CACHE() { :; }
-_MONORAIL_CONFIG=$HOME/.config/monorail
-. gradient/gradient.sh
+export _MONORAIL_CONFIG=$HOME/.config/monorail
 FIELDS=$(grep \"name\": uiGradients/gradients.json | wc -l)
 
 I=0
@@ -37,13 +31,20 @@ while [[ $I -lt $FIELDS ]]; do
 	if [[ $COUNT = 1 ]]; then
 		COUNT=2
 	fi
-	for COLOR in ${COLORS[@]}; do
+	for COLOR in "${COLORS[@]}"; do
 		COLOR_STRING="$COLOR_STRING $(($((100 * J)) / $((COUNT - 1)))) ${COLOR}"
 		J=$((J + 1))
 	done
-	echo "$NAME"
-	echo "$COLOR_STRING"
-	DEST="gradients/$NAME".sh
-	_GRADIENT --reset-colors ${COLOR_STRING}
+    bash scripts/gradient.sh ${COLOR_STRING}
+    . "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+    {
+		for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+		done
+		for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+		done
+    } >"$DEST"
+
 	I=$((I + 1))
 done

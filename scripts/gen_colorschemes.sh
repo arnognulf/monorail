@@ -27,21 +27,17 @@
 #
 # echo -e "\033]Pg4040ff\033\\"
 #
-if [[ $ZSH_NAME ]];then
-setopt KSH_ARRAYS
-setopt prompt_subst
-_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
-else
-_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+if [[ $ZSH_NAME ]]; then
+	setopt KSH_ARRAYS
+	setopt prompt_subst
 fi
-if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
-then
-:
+_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
+	:
 else
-"error: please install bc, fzf, imagemagick"
-exit 42
+	"error: please install bc, fzf, imagemagick"
+	exit 42
 fi
-
 
 _MONORAIL_CONFIG=$HOME/.config/monorail
 mkdir -p colors
@@ -57,6 +53,8 @@ for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	rm -f "colors/${THEME}"
 	{
 		echo "#!/bin/bash"
-		declare -p _COLORS | cut -d" " -f3-1024
+		for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+		done
 	} >"colors/${THEME}"
 done

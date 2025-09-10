@@ -2,24 +2,18 @@
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
 _MAIN() {
-if [[ $ZSH_NAME ]];then
-setopt KSH_ARRAYS
-setopt prompt_subst
-_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
-else
-_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-fi
-if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
-then
-:
-else
-"error: please install bc, fzf, imagemagick"
-exit 42
-fi
+	if [[ $ZSH_NAME ]]; then
+		setopt KSH_ARRAYS
+		setopt prompt_subst
+	fi
+	_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
-
-	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
-	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+	if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
+		:
+	else
+		"error: please install bc, fzf, imagemagick"
+		exit 42
+	fi
 
 	unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 	_PROMPT_LUT=()
@@ -64,11 +58,18 @@ fi
 
 		rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		{
-			declare -p _PROMPT_LUT
-			declare -p _PROMPT_TEXT_LUT
-			declare -p _COLORS
-			declare -p _DEFAULT_FGCOLOR
-			declare -p _DEFAULT_BGCOLOR
+
+			for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+				echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+			done
+			for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+				echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+			done
+			for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+				echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+			done
+			echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
+			echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 
 		} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		killall -s WINCH bash zsh &>/dev/null
@@ -80,11 +81,18 @@ fi
 	esac
 
 	{
-		declare -p _PROMPT_LUT | cut -d" " -f3-1024
-		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'
-		declare -p _COLORS | cut -d" " -f3-1024
-		declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
-		declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
+		for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+		done
+		for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+		done
+		for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+		done
+		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
+		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
+
 	} >"${DEST}" 2>/dev/null
 	killall -s WINCH bash zsh &>/dev/null
 }

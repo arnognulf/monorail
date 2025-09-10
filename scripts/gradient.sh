@@ -24,7 +24,8 @@ if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | tr :upper: :lower:)
+_MONORAIL_DIR=$PWD
+_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
 	:
 else
