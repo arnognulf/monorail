@@ -20,22 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-if [[ $ZSH_NAME ]];then
-setopt KSH_ARRAYS
-setopt prompt_subst
-_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME:l
-else
-_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+if [[ $ZSH_NAME ]]; then
+	setopt KSH_ARRAYS
+	setopt prompt_subst
 fi
-if type -P identify &>/dev/null && type -P convert &>/dev/null && type -P bc &>/dev/null &&type -P fzf &>/dev/null
-then
-:
+_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | tr :upper: :lower:)
+if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
+	:
 else
-"error: please install bc, fzf, imagemagick"
-exit 42
+	"error: please install bc, fzf, imagemagick"
+	exit 42
 fi
-
-
 
 # OKLab: https://bottosson.github.io/posts/oklab/
 # bc(1) functions: http://phodd.net/gnu-bc/code/logic.bc
@@ -109,7 +104,7 @@ _GRADIENT() {
 			shift
 			;;
 		--help | -h)
-			cat ${_MONORAIL_DIR}/gradients/000_README.md
+			cat "${_MONORAIL_DIR}"/gradients/000_README.md
 			exit 1
 			;;
 		esac
@@ -118,7 +113,7 @@ _GRADIENT() {
 	case "$1" in
 	"")
 		local THEME
-        unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+		unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		_PROMPT_LUT=()
 		_COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
@@ -129,18 +124,25 @@ _GRADIENT() {
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		THEME=$(\cd ${_MONORAIL_DIR}/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
-            unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+			unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			_COLORS=()
 			_PROMPT_LUT=()
 			_PROMPT_TEXT_LUT=()
 			. "${_MONORAIL_DIR}/gradients/${THEME}"
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
-				declare -p _COLORS | cut -d" " -f3-1024
-				declare -p _PROMPT_LUT | cut -d" " -f3-1024
-				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
-				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
-				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
+
+				for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+					echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+				done
+				for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+					echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+				done
+				for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+				done
+				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
+				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
 		killall -s WINCH bash zsh &>/dev/null
@@ -149,7 +151,7 @@ _GRADIENT() {
 	esac
 	if [[ "${#@}" = 1 ]]; then
 		if [[ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]]; then
-            _COLORS=()
+			_COLORS=()
 			. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			. "${_MONORAIL_DIR}/gradients/${1}".sh
@@ -157,14 +159,20 @@ _GRADIENT() {
 				_PROMPT_TEXT_LUT=([0]="255;255;255")
 			fi
 			{
-				declare -p _COLORS | cut -d" " -f3-1024
-				declare -p _PROMPT_LUT | cut -d" " -f3-1024
-				declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024
-				declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
-				declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
+				for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+					echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+				done
+				for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+					echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+				done
+				for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+				done
+				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
+				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 			} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
-		    killall -s WINCH bash zsh &>/dev/null
-            return 0
+			killall -s WINCH bash zsh &>/dev/null
+			return 0
 		else
 			{
 				echo "gradient: No such theme \"$1\""
@@ -262,11 +270,17 @@ or \"None\" to use text color"
 		_PROMPT_TEXT_LUT=([0]="255;255;255")
 	fi
 	{
-		declare -p _PROMPT_LUT | cut -d" " -f3-1024
-		declare -p _PROMPT_TEXT_LUT | cut -d" " -f3-1024 | grep -v '()'
-		declare -p _DEFAULT_FGCOLOR | cut -d" " -f3-1024
-		declare -p _DEFAULT_BGCOLOR | cut -d" " -f3-1024
-		declare -p _COLORS | cut -d" " -f3-1024
+		for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+		done
+		for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+		done
+		for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+		done
+		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
+		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 	} >"${DEST}" 2>/dev/null
 	killall -s WINCH bash zsh &>/dev/null
 }
