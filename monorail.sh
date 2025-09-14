@@ -179,6 +179,7 @@ fi
 DIR=${DIR%/*}
 done
 fi
+# shellcheck disable=SC2329 # _TITLE function is invoked by __git_ps1 which is assigned later
 _MONORAIL_GIT_PS1=$(_TITLE () { shift;"$@";};TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 if [[ -z $TITLE_OVERRIDE ]];then
