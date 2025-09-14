@@ -500,7 +500,7 @@ if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
 # blank terminal at startup to reduce flicker
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 elif [[ $TERM = "linux" ]]||[[ $TERM == "ansi" ]]||[[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]]||[[ $TERM == "vt"??? ]]||[[ $TERM == "linux" ]]||[[ $TERM == "freebsd" ]]||[[ $TERM == "bsdos" ]]||[[ $TERM == "netbsd" ]]||[[ $MC_TMPDIR ]]||[[ $TERM == "xterm-color" ]]||[[ $TERM == "xterm-16color" ]]||[[ $TERM == "screen."* ]]||[[ $TERM == "Eterm" ]];then
-. "$_MONORAIL_DIR/monorail.lite.sh"
+. "$_MONORAIL_DIR/monorail.compat.sh"
 elif [[ $TERM_PROGRAM == "Apple_Terminal" ]];then
 # Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
 _MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
@@ -508,7 +508,7 @@ printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 if [[ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]];then
 :
 else
-. "$_MONORAIL_DIR/monorail.lite.sh"
+. "$_MONORAIL_DIR/monorail.compat.sh"
 fi
 unset _MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
 else
