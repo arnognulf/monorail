@@ -1,7 +1,7 @@
 🚝 Monorail Prompt
 ==================
 
-Monorail is a simple and beautiful shell prompt for Bash and Zsh with customizable gradient colors.
+Monorail is a simple and beautiful shell prompt for Bash, Zsh, and Ksh with customizable gradient colors.
 
 ![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation.gif)
 
@@ -32,10 +32,20 @@ git clone --recursive https://github.com/arnognulf/monorail
 
 ```
 
-Add the following line to ~/.bashrc or ~/.zshrc
+For bash and zsh, add the following line to ~/.bashrc or ~/.zshrc
 
 ```
 . ~/.local/share/monorail/monorail.sh
+```
+
+For ksh, add the following to ~/.profile
+```
+ENV="$HOME"/.kshrc
+export ENV
+```
+Additionally for ksh, add the following to ~/.kshrc
+```
+. ~/.local/share/monorail/monorail.lite.sh
 ```
 
 Open a new terminal for changes to take effect.

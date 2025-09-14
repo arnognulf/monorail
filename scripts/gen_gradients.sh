@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 if which jq &>/dev/null && which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
 	:
 else
@@ -44,7 +45,6 @@ while [[ $I -lt $FIELDS ]]; do
 		for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
 			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
 		done
-    } >"$DEST"
-
+    } >gradients/"${NAME}.sh"
 	I=$((I + 1))
 done
