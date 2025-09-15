@@ -40,7 +40,7 @@ _COLORS=()
 _COLORS[16]="$1"
 _COLORS[17]="$2"
 I=0
-case "${3,,}" in
+case $(echo "$3" | awk '{print tolower($0)}') in
 *.sh)
 
 	if [[ $XDG_CONFIG_HOME ]]; then
@@ -48,8 +48,7 @@ case "${3,,}" in
 	else
 		_MONORAIL_CONFIG="$HOME/.config/monorail"
 	fi
-	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
-	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+	_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh &>/dev/null || exit 42
 	. "$3" &>/dev/null || exit 42
 	case "${3}" in
@@ -119,20 +118,21 @@ BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
 #	I=$((I + 1))
 #done
 
-for ((I = 0; I < 17; I++)); do
+while [[ $I -lt 17 ]]; do
 	FGCOLOR=${_COLORS[I]}
 	BGCOLOR=${_COLORS[17]}
 	FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
 	BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
 	printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST${TEXT[I]}"
 
-	J=${#TEXT[I]}
-	for ((J = 0; $J < $((COLUMNS + 1)); J++)); do
+	J=0
+	while [[ $J -lt $((COLUMNS + 1)) ]]; do
 		printf "${PREBG}${BGCOLOR_RGB}$POST "
+		J=$((J + 1))
 	done
 
 	printf "\n"
-
+	I=$((I + 1))
 done
 
 INDEX=0

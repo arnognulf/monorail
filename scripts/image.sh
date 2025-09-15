@@ -34,7 +34,8 @@ _MAIN() {
 	else
 		THEME="$1"
 	fi
-	case "${THEME,,}" in
+
+	case $(echo "${THEME}" | awk '{print tolower($0)}') in
 	"")
 		exit 1
 		;;
@@ -58,16 +59,22 @@ _MAIN() {
 
 		rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		{
-
-			for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+			I=0
+			while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
 				echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+				I=$((I + 1))
 			done
-			for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+			I=0
+			while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
 				echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+				I=$((I + 1))
 			done
-			for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+			I=0
+			while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
 				echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+				I=$((I + 1))
 			done
+
 			echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 			echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 
@@ -81,15 +88,22 @@ _MAIN() {
 	esac
 
 	{
-		for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+		I=0
+		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
 			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+			I=$((I + 1))
 		done
-		for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+		I=0
+		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
 			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+			I=$((I + 1))
 		done
-		for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+		I=0
+		while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
 			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+			I=$((I + 1))
 		done
+
 		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 

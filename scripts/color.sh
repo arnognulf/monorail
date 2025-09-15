@@ -48,8 +48,7 @@ _MONORAIL_CONTRAST() {
 	fi
 }
 _COLOR() {
-	_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
-	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+	_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 	case "$1" in
 	"")
@@ -71,14 +70,20 @@ _COLOR() {
 			{
 				_COLORS=()
 				. "${_MONORAIL_DIR}/colors/${THEME}"
-				for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+				I=0
+				while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
 					echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+					I=$((I + 1))
 				done
-				for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+				I=0
+				while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
 					echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+					I=$((I + 1))
 				done
-				for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+				I=0
+				while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
 					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+					I=$((I + 1))
 				done
 				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
@@ -123,14 +128,20 @@ monorail_color 89ecff 444444
 	fi
 	rm -f "${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 	{
-		for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
+		I=0
+		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
 			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+			I=$((I + 1))
 		done
-		for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
+		I=0
+		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
 			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+			I=$((I + 1))
 		done
-		for ((I = 0; I < ${#_COLORS[*]}; I++)); do
+		I=0
+		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
 			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+			I=$((I + 1))
 		done
 		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
