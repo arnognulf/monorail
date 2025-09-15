@@ -26,9 +26,9 @@
 # osh
 # brush
 {
-	CR=$(echo 0d | xxd -r -p)
-	ESC=$(echo 1b | xxd -r -p)
-	BEL=$(echo 07 | xxd -r -p)
+	CR=$(printf '\015')
+	ESC=$(printf '\033')
+	BEL=$(printf '\007')
 
 	if [ -z "$_MONORAIL_DIR" ]; then
 		if [ "$XDG_DATA_HOME" ]; then
@@ -66,24 +66,36 @@
 		cat "$_MONORAIL_DIR"/gradients/Default.sh "$_MONORAIL_DIR"/colors/Default.sh >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
 	fi
 	_MONORAIL_ELIPSIS="..."
+	_MONORAIL_LINE_SEGMENT=_
 	case "$TERM" in
 	"xterm"* | "alacritty"*)
 		_MONORAIL_XTERM_TERMINAL=1
 		# UTF-8 "Lower one eighth block"
 		case "$LANG" in
 		*.UTF-8)
-			_MONORAIL_ELIPSIS=$(echo e280a6 | xxd -r -p)
-			_MONORAIL_LINE_SEGMENT=$(echo E29681 | xxd -p -r)
+			_MONORAIL_ELIPSIS=$(printf '\342\200\246')
+			_MONORAIL_LINE_SEGMENT=$(printf '\342\226\201')
 			;;
-		*) _MONORAIL_LINE_SEGMENT=_ ;;
 		esac
 		;;
 	"vt"???)
 		_MONORAIL_VTXXX_TERMINAL=1
+		# UTF-8 "Lower one eighth block"
+		case "$LANG" in
+		*.UTF-8)
+			_MONORAIL_ELIPSIS=$(printf '\342\200\246')
+			_MONORAIL_LINE_SEGMENT=$(printf '\342\226\201')
+			;;
+		esac
 		;;
+       "dm2500" | "dumb")
+               # uppercase only terminals have no underscore character
+               _MONORAIL_LINE_SEGMENT=-
+               ;;
+
 	"wyse60")
-		_MONORAIL_REVERSE="$_MONORAIL_PREHIDE$(echo 1b4734 | xxd -p -r)$_MONORAIL_POSTHIDE"
-		_MONORAIL_NORMAL="$_MONORAIL_PREHIDE$(echo 1b281b48031b47301b6344 | xxd -p -r)$_MONORAIL_POSTHIDE"
+		_MONORAIL_REVERSE="$_MONORAIL_PREHIDE${ESC}G4$_MONORAIL_POSTHIDE"
+		_MONORAIL_NORMAL="$_MONORAIL_PREHIDE${ESC}G0$_MONORAIL_POSTHIDE"
 		bind 'set enable-bracketed-paste off'
 		_MONORAIL_WYSE60_TERMINAL=1
 		_MONORAIL_DUMB_TERMINAL=1
@@ -102,26 +114,6 @@
 		_MONORAIL_NORMAL="$_MONORAIL_PREHIDE${ESC}[0m$_MONORAIL_POSTHIDE"
 	fi
 
-	case "$TERM" in
-	"xterm"* | "alacritty"*)
-		# UTF-8 "Lower one eighth block"
-		case "$LANG" in
-		*.UTF-8) _MONORAIL_LINE_SEGMENT=$(echo E29681 | xxd -p -r) ;;
-		*) _MONORAIL_LINE_SEGMENT=_ ;;
-		esac
-		;;
-	"vt"???)
-		# See DEC Special graphics (https://en.wikipedia.org/wiki/DEC_Special_Graphics)
-		_MONORAIL_LINE_SEGMENT=s
-		;;
-	"dm2500" | "dumb")
-		# uppercase only terminals have no underscore character
-		_MONORAIL_LINE_SEGMENT=-
-		;;
-	*)
-		_MONORAIL_LINE_SEGMENT=_
-		;;
-	esac
 	if [ "$ZSH_NAME" ]; then
 		setopt prompt_subst
 		_MONORAIL_PREHIDE='%{'
@@ -238,11 +230,7 @@
 		LINE_WIDTH=$COLUMNS
 		_MONORAIL_LINE=
 
-		if [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
-			# double width line in VTXXX terminals for faster drawing
-			_MONORAIL_LINE="$CR${ESC}[0m$ESC#6$ESC(0"
-			LINE_WIDTH=$((COLUMNS / 2))
-		elif [ "$_MONORAIL_XTERM_TERMINAL" ]; then
+		if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 			_MONORAIL_LINE="$CR${ESC}[0m"
 		elif [ "$_MONORAIL_DUMB_TERMINAL" ]; then
 			# cannot draw the end column in some terminals
@@ -261,11 +249,7 @@
 			done
 			_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT"
 		fi
-		if [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
-			# double width line in VTXXX terminals for faster drawing
-			_MONORAIL_LINE="$_MONORAIL_LINE$ESC(1"
-			LINE_WIDTH=$((COLUMNS / 2))
-		elif [ "$_MONORAIL_XTERM_TERMINAL" ]; then
+		if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 			_MONORAIL_LINE="$_MONORAIL_LINE$ESC(1"
 		elif [ "$_MONORAIL_DUMB_TERMINAL" ]; then
 			# cannot draw the end column in some terminals
@@ -280,6 +264,7 @@ $_MONORAIL_REVERSE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_NORMAL "
 		if [ "$KSH_VERSION" ] || [ "$ZSH_NAME" ] || [ "$BASH_VERSION" ]; then
 			:
 		else
+            unalias git
 			# shellcheck disable=SC2329 # this function may be invoked
 			cd() {
 				# need to set/unset 'cd()' since not all shell have `builtin`
@@ -365,11 +350,6 @@ $_MONORAIL_REVERSE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_NORMAL "
 		}
 	elif [ "$BASH_VERSION" ]; then
 		unset -f precmd preexec
-		if [ "$PROMPT_COMMAND" ]; then
-			PROMPT_COMMAND="$PROMPT_COMMAND;_MONORAIL_UPDATE"
-		else
-			PROMPT_COMMAND="_MONORAIL_UPDATE"
-		fi
+		PROMPT_COMMAND="_MONORAIL_UPDATE"
 	fi
 }
-# >/dev/null 2>/dev/null
