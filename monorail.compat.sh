@@ -88,11 +88,13 @@
 			;;
 		esac
 		;;
-       "dm2500" | "dumb")
-               # uppercase only terminals have no underscore character
-               _MONORAIL_LINE_SEGMENT=-
-               ;;
-
+	"dm2500" | "dumb")
+		# uppercase only terminals have no underscore character
+		bind 'set enable-bracketed-paste off'
+		_MONORAIL_DUMB_TERMINAL=1
+		_MONORAIL_LINE_SEGMENT=-
+		_MONORAIL_NORMAL="!"
+		;;
 	"wyse60")
 		_MONORAIL_REVERSE="$_MONORAIL_PREHIDE${ESC}G4$_MONORAIL_POSTHIDE"
 		_MONORAIL_NORMAL="$_MONORAIL_PREHIDE${ESC}G0$_MONORAIL_POSTHIDE"
@@ -100,10 +102,10 @@
 		_MONORAIL_WYSE60_TERMINAL=1
 		_MONORAIL_DUMB_TERMINAL=1
 		;;
-	"tek"* | "ibm-327"* | "dp33"?? | "dumb" | "dm2500" | "adm3a" | "vt"??)
+	"tek"* | "ibm-327"* | "dp33"?? | "adm3a" | "vt"??)
 		bind 'set enable-bracketed-paste off'
 		_MONORAIL_DUMB_TERMINAL=1
-		_MONORAIL_NORMAL="!"
+		_MONORAIL_NORMAL="|"
 		;;
 	*)
 		_MONORAIL_NORMAL="|"
@@ -264,7 +266,6 @@ $_MONORAIL_REVERSE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_NORMAL "
 		if [ "$KSH_VERSION" ] || [ "$ZSH_NAME" ] || [ "$BASH_VERSION" ]; then
 			:
 		else
-            unalias git
 			# shellcheck disable=SC2329 # this function may be invoked
 			cd() {
 				# need to set/unset 'cd()' since not all shell have `builtin`
@@ -333,6 +334,21 @@ $_MONORAIL_REVERSE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_NORMAL "
 			_MONORAIL_UPDATE
 		}
 		alias git=_MONORAIL_GIT
+		# shellcheck disable=SC2139
+		alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR ""$0"" $_MONORAIL_DIR/scripts/color.sh"
+		# shellcheck disable=SC2139
+		alias monorail_gradient="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR ""$0"" $_MONORAIL_DIR/scripts/gradient.sh"
+		# shellcheck disable=SC2139
+		alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR ""$0"" $_MONORAIL_DIR/scripts/image.sh"
+		# shellcheck disable=SC2139
+		alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR ""$0"" $_MONORAIL_DIR/scripts/gradient.sh --text"
+		# shellcheck disable=SC2139
+		alias monorail_rgb="$0"" $_MONORAIL_DIR/scripts/rgb.sh"
+		# shellcheck disable=SC2139
+		alias rgb="ksh $_MONORAIL_DIR/scripts/rgb.sh"
+		# shellcheck disable=SC2139
+		alias monorail_save="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR ksh $_MONORAIL_DIR/scripts/save.sh"
+
 	fi
 	kill -s WINCH $$
 

@@ -453,6 +453,7 @@ i=$((i+1))
 done
 \echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 }
+
 _MONORAIL_COMMAND(){
 local CMD_STATUS
 CMD_STATUS=$?
@@ -494,25 +495,40 @@ trap "_MONORAIL_CTRLC=1;\echo -n" INT
 trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
 }
-# xterm-256color is the TERM variable for `konsole` and `gnome-terminal`
-# this is the "fast path", if this fails, more thorough testing is needed
-if [[ $TERM = "xterm-256color" ]] && [[ -z "$TERM_PROGRAM" ]];then
+
+if [[ $COLORTERM = "truecolor" ]];then
 # blank terminal at startup to reduce flicker
-printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-elif [[ $TERM = "linux" ]]||[[ $TERM == "ansi" ]]||[[ $TERM == "tek"* ]]||[[ $TERM == "ibm-327"* ]]||[[ $TERM == "dp33"?? ]] ||[[ $TERM == "dumb" ]]||[[ $TERM == "wyse60" ]]||[[ $TERM == "dm2500" ]]||[[ $TERM == "adm3a" ]]||[[ $TERM == "vt"?? ]]||[[ $TERM == "vt"??? ]]||[[ $TERM == "linux" ]]||[[ $TERM == "freebsd" ]]||[[ $TERM == "bsdos" ]]||[[ $TERM == "netbsd" ]]||[[ $MC_TMPDIR ]]||[[ $TERM == "xterm-color" ]]||[[ $TERM == "xterm-16color" ]]||[[ $TERM == "screen."* ]]||[[ $TERM == "Eterm" ]];then
-. "$_MONORAIL_DIR/monorail.compat.sh"
-elif [[ $TERM_PROGRAM == "Apple_Terminal" ]];then
-# Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
-_MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
-printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-if [[ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]];then
+#printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 :
+elif [[ "$MC_TMPDIR" ]];then
+unalias git >/dev/null 2>/dev/null
+. "$_MONORAIL_DIR/monorail.compat.sh"
 else
+case "$TERM" in
+"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm")
+# needed to avoid syntax error in monorail.compat.sh
+unalias git >/dev/null 2>/dev/null
+. "$_MONORAIL_DIR/monorail.compat.sh"
+;;
+*)
+if [ "$TERM_PROGRAM" = "Apple_Terminal" ]; then
+## Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
+_MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
+if [ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]; then
+_MONORAIL_TRUECOLOR_TERMINAL=1
+else
+unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi
-unset _MONORAIL_PRODUCT_VERSION _MONORAIL_OS_VERS
-else
+# COLORTERM may be filtered (eg. by SSH) or missing (eg. xterm)
+# manual detection is needed
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
+#TODO: truecolor detection
+_MONORAIL_TRUECOLOR_TERMINAL=1
+fi
+unset _MONORAIL_PRODUCT_VERSION
+esac
+:
 fi
 if [[ "$SSH_CLIENT" ]] || [[ $TMUX ]];then
 _MONORAIL_HAS_SUFFIX=1
@@ -526,13 +542,13 @@ TITLE="$TITLE on docker"
 }
 fi
 # shellcheck disable=SC2139
-alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR bash $_MONORAIL_DIR/scripts/color.sh"
+alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $ZSH_NAME$BASH $_MONORAIL_DIR/scripts/color.sh"
 # shellcheck disable=SC2139
 alias monorail_gradient="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $ZSH_NAME$BASH $_MONORAIL_DIR/scripts/gradient.sh"
 # shellcheck disable=SC2139
-alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR bash $_MONORAIL_DIR/scripts/image.sh"
+alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $ZSH_NAME$BASH $_MONORAIL_DIR/scripts/image.sh"
 # shellcheck disable=SC2139
-alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR bash $_MONORAIL_DIR/scripts/gradient.sh --text"
+alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $ZSH_NAME$BASH $_MONORAIL_DIR/scripts/gradient.sh --text"
 # shellcheck disable=SC2139
 alias monorail_rgb="bash $_MONORAIL_DIR/scripts/rgb.sh"
 # shellcheck disable=SC2139

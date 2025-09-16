@@ -139,7 +139,7 @@ monorail_color 89ecff 444444
 			I=$((I + 1))
 		done
 		I=0
-		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
+		while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
 			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
 			I=$((I + 1))
 		done
