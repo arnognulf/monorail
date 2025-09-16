@@ -498,14 +498,13 @@ trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 
 if [[ $COLORTERM = "truecolor" ]];then
 # blank terminal at startup to reduce flicker
-#printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-:
+printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 elif [[ "$MC_TMPDIR" ]];then
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 else
 case "$TERM" in
-"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm")
+"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
 # needed to avoid syntax error in monorail.compat.sh
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
