@@ -375,11 +375,12 @@ shift
 fi
 FIRST_NON_OPTION="$2"
 done
-if [ -z "$FIRST_NON_OPTION" ];then
+[[ "$ICON" ]] && if [[ -z "$FIRST_NON_OPTION" ]];then
 _TITLE "$ICON  ${FIRST_ARG##*/}"
 else
 _TITLE "$ICON  ${FIRST_NON_OPTION##*/}"
-fi) >&- 2>&-
+fi
+) >&- 2>&-
 fi
 "$@"
 }
