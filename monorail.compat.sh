@@ -46,7 +46,7 @@
 		mkdir -p "$_MONORAIL_CONFIG"
 	fi
 	case "$TERM" in
-	"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"?? | "vt"??? | "linux" | "freebsd" | "bsdos" | "netbsd" | "$MC_TMPDIR" | "xterm-color" | "xterm-16color" | "screen."* | "Eterm")
+    "ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
 		:
 		;;
 	*)
@@ -78,6 +78,9 @@
 			;;
 		esac
 		;;
+        "Eterm")
+		_MONORAIL_VTXXX_TERMINAL=1
+        ;;
 	"vt"???)
 		_MONORAIL_VTXXX_TERMINAL=1
 		# UTF-8 "Lower one eighth block"

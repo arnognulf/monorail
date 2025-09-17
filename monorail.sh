@@ -126,7 +126,7 @@ _TITLE_RAW(){
 if [[ $_MONORAIL_NOSTYLING ]];then
 return 0
 fi
-if [[ $TERM =~ "xterm"* ]]||[ "$TERM" = "alacritty" ];then
+if [[ $TERM =~ "xterm"* ]]||[ "$TERM" = "alacritty" ]||[[ "$TERM" = "rio" ]]||[[ "$TERM" = rxvt ]];then
 \printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
 fi
 }
@@ -505,7 +505,10 @@ unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 else
 case "$TERM" in
-"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
+"rxvt-unicode-256color"|"alacritty"|"xterm-ghostty"|"rio")
+printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
+;;
+"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"* | "cygwin")
 # needed to avoid syntax error in monorail.compat.sh
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
@@ -515,16 +518,36 @@ if [ "$TERM_PROGRAM" = "Apple_Terminal" ]; then
 ## Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
 _MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
 if [ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]; then
-_MONORAIL_TRUECOLOR_TERMINAL=1
+:
 else
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi
-# COLORTERM may be filtered (eg. by SSH) or missing (eg. xterm)
+else
+# COLORTERM may be filtered (eg. by SSH) or missing (eg. in xterm)
 # manual detection is needed
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-#TODO: truecolor detection
-_MONORAIL_TRUECOLOR_TERMINAL=1
+# detect if truecolor sequence is parsed and not printed
+# multiple terminals supports truecolor but not reporting of color
+printf '\e[48:2:1:2:3m\e[6n\e[0m\e]0g' >/dev/tty
+read -r -t 0.5 -n7 _MONORAIL_RESPONSE
+case "$_MONORAIL_RESPONSE" in
+*";1R")
+# restore color after detection, needed for xterm
+\printf "\
+\e]11;#%s\a\
+\e]10;#%s\a\
+\e]12;#%s\a\
+" \
+"${_COLORS[17]}" \
+"${_COLORS[16]}" \
+"${_COLORS[21]}" \
+>/dev/tty 2>&-
+;;
+*)
+unalias git >/dev/null 2>/dev/null
+. "$_MONORAIL_DIR/monorail.compat.sh"
+esac
 fi
 unset _MONORAIL_PRODUCT_VERSION
 esac
