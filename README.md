@@ -186,7 +186,7 @@ Compat version
 --------------
 When monorail is used on a terminal that does not support truecolor or ansi control sequencies it will fall back to the compat version of monorail.
 
-The compat version is written in posix/ksh88 shell for maximum compatibility and support non-bash and non-zsh shells such as `OpenBSD ksh`, `ksh93`, `mksh`, `osh`, `posh`, `dash`, `brush`, and `busybox sh`
+The compat version is written in posix/ksh88 shell for maximum compatibility and support for non-bash and non-zsh shells such as `OpenBSD ksh`, `ksh93`, `mksh`, `osh`, `posh`, `dash`, `brush`, and `busybox sh`
 
 As for terminal support, truecolor terminals are supported as well as non-truecolor terminals, and vintage hardare terminals.
 
