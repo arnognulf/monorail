@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/ksh
 _COLORS[0]="1c1b19"
 _COLORS[1]="ef2f27"
 _COLORS[2]="519f50"

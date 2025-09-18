@@ -50,13 +50,15 @@ for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	)
 	THEME=${file##*/}
 	THEME=${THEME// /_}
+	THEME=${THEME//(/}
+	THEME=${THEME//)/}
 	rm -f "colors/${THEME}"
 	{
 		echo "#!/bin/ksh"
-        I=0
-        while [ "$I" -lt "${#_COLORS[*]}" ];do
+		I=0
+		while [ "$I" -lt "${#_COLORS[*]}" ]; do
 			echo "_COLORS[$I]=\"${_COLORS[I]}\""
-            I=((I+1))
+			I=$((I + 1))
 		done
 	} >"colors/${THEME}"
 done
