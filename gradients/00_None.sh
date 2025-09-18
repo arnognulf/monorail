@@ -1,2 +1,1 @@
-_PROMPT_LUT=()
-_PROMPT_TEXT_LUT=()
+

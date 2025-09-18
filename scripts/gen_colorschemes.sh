@@ -52,9 +52,11 @@ for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	THEME=${THEME// /_}
 	rm -f "colors/${THEME}"
 	{
-		echo "#!/bin/bash"
-		for ((I = 0; I < ${#_COLORS[*]}; I++)); do
-			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
+		echo "#!/bin/ksh"
+        I=0
+        while [ "$I" -lt "${#_COLORS[*]}" ];do
+			echo "_COLORS[$I]=\"${_COLORS[I]}\""
+            I=((I+1))
 		done
 	} >"colors/${THEME}"
 done

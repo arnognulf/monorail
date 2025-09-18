@@ -1,2 +1,24 @@
-#!/bin/bash
-_COLORS=([0]="000000" [1]="cc0000" [2]="4e9a06" [3]="c4a000" [4]="3465a4" [5]="75507b" [6]="06989a" [7]="d3d7cf" [8]="555753" [9]="ef2929" [10]="8ae234" [11]="fce94f" [12]="729fcf" [13]="ad7fa8" [14]="34e2e2" [15]="eeeeec" [16]="454545" [17]="ffffff" [18]="000000" [19]="b5d5ff" [20]="000000" [21]="000000")
+_COLORS[0]="000000"
+_COLORS[1]="ff0000"
+_COLORS[2]="59d600"
+_COLORS[3]="f0cb00"
+_COLORS[4]="00a2ff"
+_COLORS[5]="c17ecc"
+_COLORS[6]="00d0d6"
+_COLORS[7]="e6ebe1"
+_COLORS[8]="8f928b"
+_COLORS[9]="ff0013"
+_COLORS[10]="93ff00"
+_COLORS[11]="fff121"
+_COLORS[12]="88c9ff"
+_COLORS[13]="e9a7e1"
+_COLORS[14]="00feff"
+_COLORS[15]="f6f6f4"
+_COLORS[16]="454545"
+_COLORS[17]="ffffff"
+_COLORS[18]="000000"
+_COLORS[19]="c1deff"
+_COLORS[20]="454545"
+_COLORS[21]="454545"
+_DEFAULT_FGCOLOR=454545
+_DEFAULT_BGCOLOR=ffffff

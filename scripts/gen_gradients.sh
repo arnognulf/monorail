@@ -15,16 +15,19 @@ _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 _MONORAIL_INVALIDATE_CACHE() { :; }
 export _MONORAIL_CONFIG=$HOME/.config/monorail
-FIELDS=$(grep \"name\": uiGradients/gradients.json | wc -l)
-
+FIELDS=$(grep -c \"name\": uiGradients/gradients.json)
+echo FIELDS=$FIELDS
 I=0
 while [[ $I -lt $FIELDS ]]; do
 	J=0
-	unset COLORS[*]
-	NAME=$(<uiGradients/gradients.json jq ".[$I]" | jq '.name' | sed -e 's/"//g' -e 's/ /_/g' -e "s/\'//g")
-	COUNT=$(<uiGradients/gradients.json jq ".[$I]" | jq '.colors' | grep "#" | wc -l)
+	unset "COLORS[*]"
+	unset COLORS
+	NAME=$(<uiGradients/gradients.json jq ".[$I]" | jq '.name' | sed -e 's/"//g' -e 's/ /_/g' -e "s/'//g" -e 's/&/and/g')
+	echo $NAME
+	COUNT=$(<uiGradients/gradients.json jq ".[$I]" | jq '.colors' | grep -c "#")
+	echo "COUNT=$COUNT"
 	for COLOR in $(<uiGradients/gradients.json jq ".[$I]" | jq '.colors' | grep "#"); do
-		COLORS[$J]=$(printf "${COLOR,,}" | sed -e 's/\"//g' -e 's/\#//g' -e 's/\,//g')
+		COLORS[J]=$(echo "${COLOR}" | awk '{print tolower($0)}' | sed -e 's/\"//g' -e 's/\#//g' -e 's/\,//g')
 		J=$((J + 1))
 	done
 	COLOR_STRING=""
@@ -36,15 +39,25 @@ while [[ $I -lt $FIELDS ]]; do
 		COLOR_STRING="$COLOR_STRING $(($((100 * J)) / $((COUNT - 1)))) ${COLOR}"
 		J=$((J + 1))
 	done
-    bash scripts/gradient.sh ${COLOR_STRING}
-    . "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-    {
-		for ((I = 0; I < ${#_PROMPT_LUT[*]}; I++)); do
-			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
+	# shellcheck disable=SC2086 # intentional string splitting below
+	bash scripts/gradient.sh ${COLOR_STRING}
+	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	{
+		J=0
+		while [ $J -lt "${#_PROMPT_LUT[*]}" ]; do
+			echo "_PROMPT_LUT[$J]=\"${_PROMPT_LUT[$J]}\""
+			J=$((J + 1))
 		done
-		for ((I = 0; I < ${#_PROMPT_TEXT_LUT[*]}; I++)); do
-			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
+		J=0
+		while [ $J -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
+			echo "_PROMPT_TEXT_LUT[$J]=\"${_PROMPT_TEXT_LUT[$J]}\""
+			J=$((J + 1))
 		done
-    } >gradients/"${NAME}.sh"
+	} >gradients/"${NAME}.sh"
+	echo "Wrote gradient to: gradients/$NAME".sh
+	#echo "======= contents ======="
+	#cat gradients/"${NAME}.sh"
+	#echo "===== end contents ====="
+
 	I=$((I + 1))
 done

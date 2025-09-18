@@ -7,3 +7,11 @@ for file in scripts/*.sh
 do
 shfmt -w -ln=mksh $file
 done
+for file in gradients/*.sh
+do
+shfmt -w -ln=mksh $file
+done
+for file in colors/*.sh
+do
+shfmt -w -ln=mksh $file
+done
