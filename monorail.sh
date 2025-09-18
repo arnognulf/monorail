@@ -126,9 +126,7 @@ _TITLE_RAW(){
 if [[ $_MONORAIL_NOSTYLING ]];then
 return 0
 fi
-if [[ $TERM =~ "xterm"* ]]||[ "$TERM" = "alacritty" ]||[[ "$TERM" = "rio" ]]||[[ "$TERM" = rxvt ]];then
 \printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
-fi
 }
 if [[ $XDG_CONFIG_HOME ]];then
 _MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
@@ -497,7 +495,7 @@ trap "_MONORAIL_CTRLC=1;\echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
 }
 
-if [[ $COLORTERM = "truecolor" ]];then
+if [[ "$TERM" = "xterm-256color" ]] && [[ $COLORTERM = "truecolor" ]];then
 # blank terminal at startup to reduce flicker
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 elif [[ "$MC_TMPDIR" ]];then
@@ -505,28 +503,23 @@ unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 else
 case "$TERM" in
-"rxvt-unicode-256color"|"alacritty"|"xterm-ghostty"|"rio")
+"rxvt-unicode-256color"|"alacritty"|"rio"|"xterm-kitty"|"xterm-ghostty")
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
+# ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
+[[ "$TERM" = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
 ;;
-"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"* | "cygwin")
+"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "xgterm" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"* | "cygwin")
 # needed to avoid syntax error in monorail.compat.sh
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 ;;
 *)
-if [ "$TERM_PROGRAM" = "Apple_Terminal" ]; then
-## Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
-_MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
-if [ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]; then
+printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
+if [[ "$COLORTERM" = "truecolor" ]];then
 :
-else
-unalias git >/dev/null 2>/dev/null
-. "$_MONORAIL_DIR/monorail.compat.sh"
-fi
 else
 # COLORTERM may be filtered (eg. by SSH) or missing (eg. in xterm)
 # manual detection is needed
-printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 # detect if truecolor sequence is parsed and not printed
 # multiple terminals supports truecolor but not reporting of color
 printf '\e[48:2:1:2:3m\e[6n\e[0m\e]0g' >/dev/tty
@@ -549,7 +542,6 @@ unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 esac
 fi
-unset _MONORAIL_PRODUCT_VERSION
 esac
 :
 fi

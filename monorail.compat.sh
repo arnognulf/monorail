@@ -46,17 +46,11 @@
 		mkdir -p "$_MONORAIL_CONFIG"
 	fi
 	case "$TERM" in
-	"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
+	"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "xgterm" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
 		:
 		;;
 	*)
-		if [ "$TERM_PROGRAM" = "Apple_Terminal" ]; then
-			# Terminal.app in macOS Tahoe 26.0 and newer supports truecolor
-			_MONORAIL_PRODUCT_VERSION=$(sw_vers -productVersion)
-			if [ "${_MONORAIL_PRODUCT_VERSION%.*}" -ge 26 ]; then
-				_MONORAIL_TRUECOLOR_TERMINAL=1
-			fi
-		else
+		if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
 			_MONORAIL_TRUECOLOR_TERMINAL=1
 		fi
 		;;
@@ -68,7 +62,10 @@
 	_MONORAIL_ELIPSIS="..."
 	_MONORAIL_LINE_SEGMENT=_
 	case "$TERM" in
-	"xterm"* | "alacritty"*)
+	"xterm-color")
+		_MONORAIL_XTERM_TERMINAL=1
+		;;
+	"xterm"* | "tmux"* | "screen"* | "alacritty"* | "rio" | "rxvt-unicode"*)
 		_MONORAIL_XTERM_TERMINAL=1
 		# UTF-8 "Lower one eighth block"
 		case "$LANG" in
@@ -78,18 +75,11 @@
 			;;
 		esac
 		;;
-	"Eterm")
-		_MONORAIL_VTXXX_TERMINAL=1
+	"Eterm" | "xgterm" | "rxvt"*)
+		_MONORAIL_XTERM_TERMINAL=1
 		;;
 	"vt"???)
 		_MONORAIL_VTXXX_TERMINAL=1
-		# UTF-8 "Lower one eighth block"
-		case "$LANG" in
-		*.UTF-8)
-			_MONORAIL_ELIPSIS=$(printf '\342\200\246')
-			_MONORAIL_LINE_SEGMENT=$(printf '\342\226\201')
-			;;
-		esac
 		;;
 	"dm2500" | "dumb")
 		# uppercase only terminals have no underscore character
