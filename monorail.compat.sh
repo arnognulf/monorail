@@ -334,7 +334,7 @@ $_MONORAIL_REVERSE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_NORMAL "
 		# shellcheck disable=SC2139
 		alias monorail_image="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR ""$0"" $_MONORAIL_DIR/scripts/image.sh"
 		# shellcheck disable=SC2139
-		alias monorail_gradienttext="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR ""$0"" $_MONORAIL_DIR/scripts/gradient.sh --text"
+		alias monorail_textgradient="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR ""$0"" $_MONORAIL_DIR/scripts/gradient.sh --text"
 		# shellcheck disable=SC2139
 		alias monorail_rgb="$0"" $_MONORAIL_DIR/scripts/rgb.sh"
 		# shellcheck disable=SC2139

@@ -1,12 +1,4 @@
 #!/bin/bash
-
-if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
-	:
-else
-	"error: please install bc, fzf, imagemagick"
-	exit 42
-fi
-
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -14,6 +6,13 @@ fi
 _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 _MONORAIL_CONTRAST() {
+	if which bc &>/dev/null; then
+		:
+	else
+		"error: please install bc"
+		exit 42
+	fi
+
 	COLOR1=$1
 	COLOR2=$2
 
@@ -52,6 +51,13 @@ _COLOR() {
 
 	case "$1" in
 	"")
+		if which fzf &>/dev/null; then
+			:
+		else
+			"error: please install fzf"
+			exit 42
+		fi
+
 		local THEME
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		_PROMPT_LUT=()
@@ -64,65 +70,79 @@ _COLOR() {
 		[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
 		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
-			_DEFAULT_FGCOLOR="${_COLORS[16]}"
-			_DEFAULT_BGCOLOR="${_COLORS[17]}"
-			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-			{
-				_COLORS=()
-				. "${_MONORAIL_DIR}/colors/${THEME}"
-				I=0
-				while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
-					echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
-					I=$((I + 1))
-				done
-				I=0
-				while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
-					echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
-					I=$((I + 1))
-				done
-				I=0
-				while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
-					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
-					I=$((I + 1))
-				done
-				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
-				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
-
-			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-			killall -s WINCH bash zsh &>/dev/null
+			_COLORS=()
+			. "${_MONORAIL_DIR}/colors/${THEME}"
+			_UPDATE_CONFIG
 		fi
 		exit 0
-
+		;;
+	--list | -l)
+		cd "$_MONORAIL_DIR/colors"
+		if [ -t 1 ]; then
+			for SCHEME in *.sh; do
+				echo "$SCHEME" | sed 's/\.sh//g'
+			done | less
+		else
+			for SCHEME in *.sh; do
+				echo "$SCHEME" | sed 's/\.sh//g'
+			done
+		fi
+		exit 1
 		;;
 	--help | -h)
-		echo "Usage:
-monorail_color <FGCOLOR> [<BGCOLOR>]
+		echo "
+Set background and foreground colors of the terminal.
+This tool refuses to set back- and foreground colors that are too similar.
+Predefined colorschemes can be listed and selected.
 
-Example:
-monorail_color 444444
-monorail_color 89ecff 444444
+Usage:
+    monorail_color <FGCOLOR> [<BGCOLOR>]
+    monorail_color <SCHEME>
+    monorail_color <[-l|--list>
+ 
+Examples:
+    monorail_color 444444
+    monorail_color 89ecff 444444
+    monorail_color Adwaita
 "
 		exit 1
 		;;
 	esac
 	_PROMPT_TEXT_LUT=()
 	_PROMPT_LUT=()
+	unset _COLORS
+	unset "_COLORS[*]"
 	. "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
-	if [[ "${#1}" != 6 ]]; then
-		\echo "ERROR: color must be hexadecimal and 6 hexadecimal characters" 1>&2 | tee 1>/dev/null
-		return 1
+	if [ "$1" = "000000" ]; then
+		HANDLE_COLOR_ARG "$@"
+	elif [ "${#1}" = 6 ] && [ $(printf "%x" "0x$1" 2>/dev/null) != 0 ]; then
+		HANDLE_COLOR_ARG "$@"
+	else
+		# not color
+		case "$1" in
+		*/*) . "$1" ;;
+		*)
+			cd "${_MONORAIL_DIR}"/colors
+			. ./"$1".sh
+			;;
+		esac
 	fi
-
+	_UPDATE_CONFIG
+}
+HANDLE_COLOR_ARG() {
+	# TODO: validate $2 ?
 	_COLORS[16]="$1"
 	if [[ $2 ]]; then
 		_COLORS[17]="$2"
 	fi
 
 	_MONORAIL_CONTRAST "${_COLORS[17]}" "$1" || return 1
-
+}
+_UPDATE_CONFIG() {
 	_DEFAULT_BGCOLOR=${_COLORS[17]}
 	_DEFAULT_FGCOLOR=${_COLORS[16]}
+
 	if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
 		_PROMPT_TEXT_LUT=([0]="255;255;255")
 	fi

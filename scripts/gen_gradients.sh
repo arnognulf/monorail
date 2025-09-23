@@ -1,9 +1,8 @@
 #!/bin/bash
-set -x
-if which jq &>/dev/null && which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
+if which jq &>/dev/null && which bc &>/dev/null; then
 	:
 else
-	"error: please install jq, bc, fzf, imagemagick"
+	"error: please install jq, bc"
 	exit 42
 fi
 
@@ -21,7 +20,7 @@ while [[ $I -lt $FIELDS ]]; do
 	J=0
 	unset "COLORS[*]"
 	unset COLORS
-	NAME=$(<uiGradients/gradients.json jq ".[$I]" | jq '.name' | sed -e 's/"//g' -e 's/ /_/g' -e "s/'//g" -e 's/&/and/g')
+	NAME=$(<uiGradients/gradients.json jq ".[$I]" | jq '.name' | sed -e 's/"//g' -e 's/ /_/g' -e "s/'//g" -e 's/&/and/g' -e 's/é/e/g')
 	COUNT=$(<uiGradients/gradients.json jq ".[$I]" | jq '.colors' | grep -c "#")
 	for COLOR in $(<uiGradients/gradients.json jq ".[$I]" | jq '.colors' | grep "#"); do
 		COLORS[J]=$(echo "${COLOR}" | awk '{print tolower($0)}' | sed -e 's/\"//g' -e 's/\#//g' -e 's/\,//g')

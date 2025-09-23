@@ -29,6 +29,8 @@ batch_command 🐚 ksh
 batch_command 🐚 sh
 batch_command 🐍 python
 batch_command 🐍 python3
+batch_command 🐿️ go
+batch_command 🦀 cargo
 
 # Compilers and build systems can take a long time and use lots of computer
 # resources.
@@ -52,6 +54,7 @@ batch_command 🗜️ 7z
 batch_command 🗜️ unar
 batch_command 🗜️ bzip2
 batch_command 🗜️ xz
+batch_command 🗜️ zstd
 batch_command 🧮 bc
 batch_command 🪚 awk
 batch_command 🐈 cat

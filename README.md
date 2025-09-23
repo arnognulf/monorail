@@ -16,21 +16,21 @@ Features
 
 Installation
 ------------
-The following dependencies are required:
-`bash`, `bc`, `fzf`, and `ImageMagick`
+The following dependencies are recommended but not required:
+`bc`, `xxd`, `fzf`, and `ImageMagick`
 
 On Debian and Ubuntu based systems, these can be installed with
 
-`sudo apt install bash bc fzf imagemagick`
+`sudo apt install bc xxd fzf imagemagick`
 
 Add monorail to your prompt by running the following:
 
 ```
 mkdir -p ~/.local/share
 cd ~/.local/share
-git clone --recursive https://github.com/arnognulf/monorail
-
+git clone https://github.com/arnognulf/monorail
 ```
+(if not using git, download zip from https://github.com/arnognulf/monorail/archive/refs/heads/master.zip)
 
 For bash and zsh, add the following line to ~/.bashrc or ~/.zshrc
 
@@ -52,30 +52,9 @@ Open a new terminal for changes to take effect.
 
 Usage
 =====
-Changing colors
+Change gradient
 ---------------
-Run `monorail_color` to change foreground
-```
-monorail_color fffaf1
-```
-
-Run `monorail_color` with a second color parameter to change background as well
-```
-monorail_color 00cc44 000000
-```
-
-To specify RGB colors, use the rgb() function as follows:
-```
-monorail_color  $(rgb 231,67,42) $(rgb 16,00,163) 
-```
-
-`monorail_color` without arguments brings up an fzf selection of colors.
-
 `monorail_gradient` without arguments brings up an fzf selection of pre-computed gradients.
-
-
-`monorail_image` without arguments brings up an fzf selection of images to use as prompt "background".
-
 
 Run `monorail_gradient` to compute a custom prompt gradient:
 ```
@@ -97,10 +76,41 @@ monorail_gradient  0 $(rgb 231,67,42)  42 $(rgb 29,67,85)  100 $(rgb 16,57,163)
 ```
 
 
-Run `monorail_gradienttext` to change prompt gradient text:
+Run `monorail_textgradient` to change prompt gradient text:
 ```
-monorail_gradienttext  0 ffffff  100 444444
+monorail_textgradient  0 ffffff  100 444444
 ```
+
+
+Set image as gradient
+---------------------
+Use `monorail_image` with an image as argument to set the image as gradient.
+
+`monorail_image` without arguments brings up an fzf selection of images to use as prompt "background".
+
+Changing colors
+---------------
+Monorail comes with color scheme setting from the iTerm2 color scheme project: https://github.com/mbadolato/iTerm2-Color-Schemes
+
+*Note: many terminals do not support color setting despite colors showing up in the review. _This is not a bug in monorail_*
+
+Run `monorail_color` to change foreground
+```
+monorail_color fffaf1
+```
+
+Run `monorail_color` with a second color parameter to change background as well
+```
+monorail_color 00cc44 000000
+```
+
+To specify RGB colors, use the rgb() function as follows:
+```
+monorail_color  $(rgb 231,67,42) $(rgb 16,00,163) 
+```
+
+`monorail_color` without arguments brings up an fzf selection of colors.
+
 
 Favicon titles
 ==============
@@ -111,10 +121,13 @@ Use an emoji in the title as a favicon so the context of the terminal tab can be
 
 Different folders have their own icons, being in a git folder shows the construction icon for instance.
 
+
+Favicons are not enabled for monorail compat (ksh) since emoji fonts and clor rendering on emojis are not very common on simpler window managers.
+
 Timing statistics
 =================
 
-By default, commands are measured and will emit a popup notification and audible beep if they take longer than 30 seconds.
+By default, commands are measured and will emit a popup notification and audible beep as well as terminal bell if they take longer than 30 seconds.
 
 
 This is useful for starting a long-running task, and then reading up on another subject, or drinking a coffee until the computer notifies that the task is complete.
@@ -126,7 +139,7 @@ This is useful for starting a long-running task, and then reading up on another 
 Defining icons, statistics, and priorities
 ------------------------------------------
 
-To configure app icons, and wether to emit a notification or not, we need to define what "kind" of category a command is:
+To configure app icons, and wether to emit a notification or not, we need to define what category of category a command is:
 
 * interactive command - reponsive to user input, no notification when ended.
 * batch command - user input is either not possible or not frequent, can be long-running and thus a notification is needed when ending.
@@ -140,7 +153,8 @@ This is a type of command that should be responsive for user input.
 Interactive commands should have a high priority in order for the system to appear responsive to the user.
 
 
-It is of little interest how long such a command has been running since often the user themselves stops the command.
+Timing statistics will not be collected for interactive commands since the exit is not dependent on runtime but rather user initiated exit.
+
 
 * no measurement of running time.
 * no notification when exiting.

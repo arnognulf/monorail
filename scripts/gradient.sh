@@ -24,12 +24,11 @@ if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-_MONORAIL_DIR=$PWD
 _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
-if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
+if which bc &>/dev/null; then
 	:
 else
-	"error: please install bc, fzf, imagemagick"
+	"error: please install bc"
 	exit 42
 fi
 
@@ -108,11 +107,31 @@ _GRADIENT() {
 			cat "${_MONORAIL_DIR}"/gradients/000_README.md
 			exit 1
 			;;
+		--list | -l)
+			cd "$_MONORAIL_DIR/gradients"
+			if [ -t 1 ]; then
+				for SCHEME in *.sh; do
+					echo "$SCHEME" | sed 's/\.sh//g'
+				done | less
+			else
+				for SCHEME in *.sh; do
+					echo "$SCHEME" | sed 's/\.sh//g'
+				done
+			fi
+			exit 1
+			;;
 		esac
 	done
 
 	case "$1" in
 	"")
+		if which fzf &>/dev/null; then
+			:
+		else
+			"error: please install bc"
+			exit 42
+		fi
+
 		local THEME
 		unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		_PROMPT_LUT=()
@@ -123,7 +142,7 @@ _GRADIENT() {
 		[[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
 		[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-		THEME=$(\cd ${_MONORAIL_DIR}/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
+		THEME=$(cd "${_MONORAIL_DIR}"/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
 			unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			_COLORS=()

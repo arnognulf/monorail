@@ -25,13 +25,6 @@ if [[ $ZSH_NAME ]]; then
 fi
 _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
-if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
-	:
-else
-	"error: please install bc, fzf, imagemagick"
-	exit 42
-fi
-
 if [[ "$3" = "000_README.md" ]]; then
 	cat "$3"
 	exit 1
