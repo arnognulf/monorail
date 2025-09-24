@@ -348,7 +348,7 @@ fi
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 # shellcheck disable=SC2025,SC1078,SC1079
 PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
-$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[30m"$'\e'"[8m${_MONORAIL_POSTHIDE}▎$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
+$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[7m"$'\e'"[8m${_MONORAIL_POSTHIDE}▎$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
