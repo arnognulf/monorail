@@ -66,7 +66,7 @@ case $_MONORAIL_DATE in
 ;;
 *)ICON="*️⃣"
 esac
-TITLE="$ICON  $_TIMER_CMD"
+_MONORAIL_TITLE="$ICON  $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 CMD=${_TIMER_CMD%% *}
 CMD=${CMD%%;*}
@@ -79,7 +79,7 @@ fi
 done
 _MEASURE=1
 _START_SECONDS=$SECONDS
-TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+_MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 \printf "\
 \e]11;#%s\a\
 \e]10;#%s\a\
@@ -147,7 +147,7 @@ alias until='_MONORAIL_NOSTYLING=1;until'
 _MONORAIL_LAUNCHED=1
 fi
 if [[ $_MONORAIL_LONGRUNNING ]] ;then
-TITLE="✅ Completed $_TIMER_CMD"
+_MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 unset _MONORAIL_LONGRUNNING
 return 0
@@ -180,54 +180,56 @@ fi
 # shellcheck disable=SC2329 # _TITLE function is invoked by __git_ps1 which is assigned later
 _MONORAIL_GIT_PS1=$(_TITLE () { shift;"$@";};TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
-if [[ -z $TITLE_OVERRIDE ]];then
+local ICON TITLE_BASE
+TITLE_BASE="${PWD##*/}"
 if [[ "$MONORAIL_REPO" ]];then
-TITLE="🏗️  ${PWD##*/}"
+ICON="🏗️"
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 elif [[ "$_MONORAIL_GIT_PS1" ]];then
-TITLE="🚧  ${PWD##*/}"
+ICON="🚧"
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 else
 case "$PWD" in
-*/etc|*/etc/*)TITLE="️🗂️  ${PWD##*/}";;
-*/bin|*/sbin)TITLE="️⚙️  ${PWD##*/}";;
-*/lib|*/lib64|*/lib32)TITLE="🔩  ${PWD##*/}";;
-*/tmp|*/tmp/*|*/.cache|*/.cache/*)TITLE="🚽  ${PWD##*/}";;
-"$HOME/Trash"*)TITLE="🗑️   ${PWD##*/}";;
-"$HOME/.local/share/Trash/files"*)TITLE="♻️  ${PWD##*/}";;
-/boot|/boot/*)TITLE="🥾  ${PWD##*/}";;
-/)TITLE="💻  /";;
-*/.*)TITLE="📌  ${PWD##*/}";;
-/media/*)TITLE="💾  ${PWD##*/}";;
-/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)TITLE="🤖  ${PWD##*/}";;
-*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)TITLE="📑  ${PWD##*/}";;
-*/out|*/out/*)TITLE="🚀  ${PWD##*/}";;
-*/src|*/src/*|*/sources|*/sources/*)TITLE="🚧  ${PWD##*/}";;
-"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)TITLE="🎵  ${PWD##*}";;
-"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)TITLE="🖼️  ${PWD##*/}";;
-"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)TITLE="🎬  ${PWD##*/}";;
-*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)TITLE="📦  ${PWD##*/}";;
-*)TITLE="📂  ${PWD##*/}"
+*/etc|*/etc/*)ICON="️🗂️";;
+*/bin|*/sbin)ICON="️⚙️ ";;
+*/lib|*/lib64|*/lib32)ICON="🔩";;
+*/tmp|*/tmp/*|*/.cache|*/.cache/*)ICON="🚽";;
+"$HOME/Trash"*)ICON="🗑️";;
+"$HOME/.local/share/Trash/files"*)ICON="♻️";;
+/boot|/boot/*)ICON="🥾";;
+/)ICON="💻"; TITLE_BASE="/";;
+*/.*)ICON="📌";;
+/media/*)ICON="💾";;
+/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)ICON="🤖";;
+*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)ICON="📑";;
+*/out|*/out/*)ICON="🚀  ${PWD##*/}";;
+*/src|*/src/*|*/sources|*/sources/*)ICON="🚧";;
+"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON="🎵";;
+"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON="🖼️";;
+"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON="🎬";;
+*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON="📦";;
+*)ICON="📂"
 esac
 case "$_MONORAIL_REALPWD" in
 "$HOME")
 if [[ $SSH_CLIENT ]]
 then
-TITLE="🌐  $_MONORAIL_SHORT_HOSTNAME"
+TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
+ICON="🌐"
 elif [[ -e /.dockerenv ]]
 then
-TITLE="🐋  docker"
+TITLE_BASE="docker"
+ICON="🐋"
 else
-TITLE="🏠  $_MONORAIL_SHORT_HOSTNAME"
+ICON="🏠"
+TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
 fi
 ;;
 *)
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 esac
 fi
-else
-TITLE="$TITLE_OVERRIDE"
-fi
+_MONORAIL_TITLE="$ICON  ${TITLE_OVERRIDE-${TITLE_BASE}}"
 local PWD_BASENAME="${PWD##*/}"
 [ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
 case $PWD in
@@ -239,6 +241,7 @@ _MONORAIL_TEXT="${_MONORAIL_TEXT//\.\.\./…}"
 if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 local OFFSET
 OFFSET=$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))
+# frequently, the last of the text is the most relevant, cut beginning if too long path
 _MONORAIL_TEXT=" …${_MONORAIL_TEXT:$OFFSET}"
 fi
 _MONORAIL_TEXT_ARRAY=()
@@ -347,7 +350,7 @@ fi
 # this is not normally visible, but on some terminals not supporting ^[8m it will fall back to black
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 # shellcheck disable=SC2025,SC1078,SC1079
-PS1=$'\e'"]0;"'$TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
+PS1=$'\e'"]0;"'$_MONORAIL_TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
 $_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[7m"$'\e'"[8m${_MONORAIL_POSTHIDE}▎$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
@@ -551,12 +554,12 @@ fi
 if [[ "$SSH_CLIENT" ]] || [[ $TMUX ]];then
 _MONORAIL_HAS_SUFFIX=1
 _MONORAIL_SUFFIX () {
-TITLE="$TITLE on $_MONORAIL_SHORT_HOSTNAME"
+_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
 }
 elif [[ -e /.dockerenv ]];then
 _MONORAIL_HAS_SUFFIX=1
 _MONORAIL_SUFFIX () {
-TITLE="$TITLE on docker"
+_MONORAIL_TITLE="$_MONORAIL_TITLE on docker"
 }
 fi
 # shellcheck disable=SC2139
