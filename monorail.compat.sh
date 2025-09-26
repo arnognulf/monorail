@@ -47,7 +47,7 @@
 	fi
 	case "$TERM" in
 	"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "xgterm" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
-		:
+		# screen and linux vt accepts truecolor control sequencies, but do not display truecolor satisfactory
 		;;
 	*)
 		if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
