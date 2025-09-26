@@ -94,15 +94,17 @@ _COLOR() {
 Set background and foreground colors of the terminal.
 This tool refuses to set back- and foreground colors that are too similar.
 Predefined colorschemes can be listed and selected.
+CMD_CURSOR is the cursor visible in commands outside the prompt.
 
 Usage:
-    monorail_color <FGCOLOR> [<BGCOLOR>]
+    monorail_color <FGCOLOR> [<BGCOLOR>] [<CMD_CURSOR>]
     monorail_color <SCHEME>
     monorail_color <[-l|--list>
  
 Examples:
     monorail_color 444444
     monorail_color 89ecff 444444
+    monorail_color 89ecff 444444 fff0f0
     monorail_color Adwaita
 "
 		exit 1
@@ -135,6 +137,9 @@ HANDLE_COLOR_ARG() {
 	_COLORS[16]="$1"
 	if [[ $2 ]]; then
 		_COLORS[17]="$2"
+	fi
+	if [[ $3 ]]; then
+		_COLORS[21]="$3"
 	fi
 
 	_MONORAIL_CONTRAST "${_COLORS[17]}" "$1" || return 1
