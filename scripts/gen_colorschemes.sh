@@ -41,6 +41,8 @@ fi
 
 _MONORAIL_CONFIG=$HOME/.config/monorail
 mkdir -p colors
+rm -f colors/*
+( cd colors; git checkout Default.sh;)
 for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	eval $(
