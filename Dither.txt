@@ -1,0 +1,3 @@
+Floyd Steinberg of monochrome dither does not look good :(
+
+instead, after fullblock text, increase dither blocks until end?
