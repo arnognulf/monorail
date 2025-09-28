@@ -1,3 +1,6 @@
 Floyd Steinberg of monochrome dither does not look good :(
 
 instead, after fullblock text, increase dither blocks until end?
+
+_     _    _    _    _    _   _   _   _  _  _  _ _ _ __ __ ___ ___ ____
+
