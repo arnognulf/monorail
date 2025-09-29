@@ -7,8 +7,8 @@
 #PS1=_ ___ ___ __ __ __ _ _ _  _  _  _   _    _     _      _      _\033[0m
 #\033[44m monorail (master) \033[0m "
 
-A=$'\033'"[34m"
-B=$'\033'"[33m"
+A=$'\033'"[37m"
+B=$'\033'"[30m"
 #COLUMNS=$(stty size|cut -d" " -f2)
 setps1 ()
 {
@@ -18,7 +18,7 @@ I=$(echo "$_MONORAIL_SHORT_HOSTNAME" | wc -c)
 I=$((I + 2))
 PS1="$A"
 J=0
-while [ $J -lt $I ];do
+while [ $J -lt $((COLUMNS - 63)) ];do
 PS1="${PS1}_"
 J=$((J + 1))
 done
@@ -31,14 +31,14 @@ shift
 I=$((I + 1))
 done
 PS1="$PS1$B"
-while [ $I -lt $COLUMNS ];do
-PS1="${PS1}_"
-shift
-I=$((I + 1))
-done
+#while [ $I -lt $COLUMNS ];do
+#PS1="${PS1}_"
+#shift
+#I=$((I + 1))
+#done
 
 PS1="$PS1
-"$'\033'"[0;44m $_MONORAIL_SHORT_HOSTNAME "$'\033'"[0m "
+"$'\033'"[0;7m$A $_MONORAIL_SHORT_HOSTNAME "$'\033'"[0m "
 }
 
 setps1 "${A}_" "${B}_" "${A}_" "${A}_" "${A}_" "${B}_" "${A}_" "${A}_" "${A}_" "${B}_" "${A}_" "${A}_" "${B}_" "${A}_" "${A}_" "${B}_" "${A}_" "${A}_" "${B}_" "${A}_" "${B}_" "${A}_" "${B}_" "${A}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${A}_"
