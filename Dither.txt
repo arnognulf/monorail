@@ -1,6 +1,44 @@
-Floyd Steinberg of monochrome dither does not look good :(
+#Floyd Steinberg of monochrome dither does not look good :(
+#instead, after fullblock text, increase dither blocks until end?
 
-instead, after fullblock text, increase dither blocks until end?
+#_     _    _    _    _    _   _   _   _  _  _  _ _ _ __ __ ___ ___ ____
 
-_     _    _    _    _    _   _   _   _  _  _  _ _ _ __ __ ___ ___ ____
+#PS1=___________________ ___ ___ __ __ __ _ _ _  _  _  _   _    _     _      _      _\033[0m
+#PS1=_ ___ ___ __ __ __ _ _ _  _  _  _   _    _     _      _      _\033[0m
+#\033[44m monorail (master) \033[0m "
 
+A=$'\033'"[34m"
+B=$'\033'"[33m"
+#COLUMNS=$(stty size|cut -d" " -f2)
+setps1 ()
+{
+PS1=""
+	_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+I=$(echo "$_MONORAIL_SHORT_HOSTNAME" | wc -c)
+I=$((I + 2))
+PS1="$A"
+J=0
+while [ $J -lt $I ];do
+PS1="${PS1}_"
+J=$((J + 1))
+done
+# dither ARRAY is 63
+#REST=$(($((COLUMNS - 63)) / 2))
+
+while [ -n "$1" ] && [ $I -lt $COLUMNS ];do
+PS1="$PS1$1"
+shift
+I=$((I + 1))
+done
+PS1="$PS1$B"
+while [ $I -lt $COLUMNS ];do
+PS1="${PS1}_"
+shift
+I=$((I + 1))
+done
+
+PS1="$PS1
+"$'\033'"[0;44m $_MONORAIL_SHORT_HOSTNAME "$'\033'"[0m "
+}
+
+setps1 "${A}_" "${B}_" "${A}_" "${A}_" "${A}_" "${B}_" "${A}_" "${A}_" "${A}_" "${B}_" "${A}_" "${A}_" "${B}_" "${A}_" "${A}_" "${B}_" "${A}_" "${A}_" "${B}_" "${A}_" "${B}_" "${A}_" "${B}_" "${A}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${A}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${B}_" "${A}_"
