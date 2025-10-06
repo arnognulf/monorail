@@ -48,6 +48,10 @@
 	case "$TERM" in
 	"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "xgterm" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
 		# screen and linux vt accepts truecolor control sequencies, but do not display truecolor satisfactory
+		# shellcheck disable=SC2086 # incomprehensible quoting suggestions from shellcheck
+		if [ -n "$XTERM_VERSION" ] && [ "$(echo \"$XTERM_VERSION\" | cut -d'(' -f2 | cut -d')' -f1)" -gt 330 ]; then
+			_MONORAIL_TRUECOLOR_TERMINAL=1
+		fi
 		;;
 	*)
 		if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
@@ -67,10 +71,16 @@
 		;;
 	"xterm"* | "tmux"* | "screen"* | "alacritty"* | "rio" | "rxvt-unicode"*)
 		_MONORAIL_XTERM_TERMINAL=1
-		# UTF-8 "Lower one eighth block"
-		case "$LANG" in
+		# netbsd sets LC_CTYPE, Linux sets LANG
+		if [ "$LANG" ]; then
+			_MONORAIL_LANG=$LANG
+		else
+			_MONORAIL_LANG=$LC_CTYPE
+		fi
+		case "$_MONORAIL_LANG" in
 		*.UTF-8)
 			_MONORAIL_ELIPSIS=$(printf '\342\200\246')
+			# UTF-8 "Lower one eighth block"
 			_MONORAIL_LINE_SEGMENT=$(printf '\342\226\201')
 			;;
 		esac
@@ -304,7 +314,7 @@ $_MONORAIL_REVERSE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_NORMAL "
 	_ICON() {
 		ICON="$1"
 		shift
-		case "$LANG" in *.UTF-8)
+		case "$_MONORAIL_LANG" in *.UTF-8)
 			# shellcheck disable=SC2086 # shellcheck incorrectly misses qoutes
 			_TITLE "$ICON  $(basename \"$1\")"
 			;;
