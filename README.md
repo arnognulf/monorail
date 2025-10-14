@@ -3,7 +3,8 @@
 
 Monorail is a simple and beautiful shell prompt for Bash, Zsh, and Ksh with customizable gradient colors.
 
-![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation.gif)
+![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation_dark.gif#gh-dark-mode-only)
+![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation_light.gif#gh-light-mode-only)
 
 Features
 --------

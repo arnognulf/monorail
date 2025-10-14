@@ -1,13 +1,15 @@
 Hide
-Set Theme "Pro Light"
-Output images/animation.gif
-Set FontFamily "JetBrains Mono"
+Set Theme "Pro"
+Output images/animation_dark.gif
+Set FontFamily "OCR A"
 Set Padding 0
 Set Margin 0
-Set MarginFill "#FFFFFF"
+Set MarginFill "#000000"
 Type "bash"
 Enter
 Type "clear"
+Enter
+Type "monorail_color GitHub_Dark_Default"
 Enter
 Type "monorail_gradient Azur_Lane"
 Enter
