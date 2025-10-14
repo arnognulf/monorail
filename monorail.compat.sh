@@ -52,10 +52,15 @@
 		if [ -n "$XTERM_VERSION" ] && [ "$(echo \"$XTERM_VERSION\" | cut -d'(' -f2 | cut -d')' -f1)" -gt 330 ]; then
 			_MONORAIL_TRUECOLOR_TERMINAL=1
 		fi
+		if [ "$TERM_PROGRAM" = "GNUstep_Terminal" ]; then
+			_MONORAIL_XTERM_TERMINAL=1
+		fi
 		;;
 	*)
-		if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
-			_MONORAIL_TRUECOLOR_TERMINAL=1
+		if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ] || [ "$COLORTERM" = "rxvt-xpm" ]; then
+			if [ "$TERM" != "linux" ]; then
+				_MONORAIL_TRUECOLOR_TERMINAL=1
+			fi
 		fi
 		;;
 	esac
