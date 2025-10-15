@@ -32,7 +32,11 @@ fi
 _COLORS=()
 _COLORS[16]="$1"
 _COLORS[17]="$2"
+if [[ $LINES -lt 19 ]];then
+I=$((19 - LINES))
+else
 I=0
+fi
 case $(echo "$3" | awk '{print tolower($0)}') in
 *.sh)
 
@@ -96,7 +100,7 @@ POST="m"
 #PRE_LINES=3
 [[ -z $COLUMNS ]] && COLUMNS=$(stty size | awk '{ print $2 }')
 [[ -z $LINES ]] && LINES=$(stty size | awk '{ print $1 }')
-FGCOLOR=${_COLORS[I]}
+FGCOLOR=${_COLORS[16]}
 BGCOLOR=${_COLORS[17]}
 FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
 BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
@@ -112,11 +116,24 @@ BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
 #done
 
 while [[ $I -lt 17 ]]; do
+	if [[ $I == 16 ]];then
+	TEXT1=${TEXT[I]}
+	TEXT1=${TEXT1:0:1}
+	FGCOLOR=${_COLORS[17]}
+	BGCOLOR=${_COLORS[21]}
+	FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
+	BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
+	printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST$TEXT1"
+	TEXT1=${TEXT[I]}
+	TEXT1=${TEXT1:1}
+	else
+	TEXT1="${TEXT[I]}"
+	fi
 	FGCOLOR=${_COLORS[I]}
 	BGCOLOR=${_COLORS[17]}
 	FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
 	BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
-	printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST${TEXT[I]}"
+	printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST${TEXT1}"
 
 	J=0
 	while [[ $J -lt $((COLUMNS + 1)) ]]; do
