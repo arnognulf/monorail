@@ -144,8 +144,7 @@ _GRADIENT() {
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		THEME=$(cd "${_MONORAIL_DIR}"/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
-			unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-			_COLORS=()
+			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			_PROMPT_LUT=()
 			_PROMPT_TEXT_LUT=()
 			. "${_MONORAIL_DIR}/gradients/${THEME}"
@@ -195,7 +194,7 @@ _GRADIENT() {
 					I=$((I + 1))
 				done
 				I=0
-				while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
+				while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
 					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
 					I=$((I + 1))
 				done
@@ -226,6 +225,7 @@ or \"None\" to use text color"
 		return 0
 	fi
 	# reload in case user has manually modified colors.sh
+	unset "_COLORS[*]"
 	_PROMPT_TEXT_LUT=([0]="255;255;255")
 	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
