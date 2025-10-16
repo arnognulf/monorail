@@ -1,5 +1,11 @@
-Optimization techniques for shell
-=================================
+fast shell coding guidelines
+============================
+
+Intro
+-----
+This guide was written for 'monorail.sh' where heavy optimization were needed
+in order to make the prompt render fast.
+Using these optimizations hampers readability and is not normally recommended for bash scripts.
 
 File descriptors
 ----------------
@@ -21,9 +27,22 @@ then the command can be called as
 note, that some commands fail with EBADFD if ran with closed file descriptor, eg: `type -P cmd`
 These must have stdout connected to /dev/null.
 
+Variables
+---------
+Avoid variables if possible.
+Any variable read or write means hash lookup of available variables and allocating new elements.
+
 Booleans
 --------
-Avoid calling string comparison functions in libc, instead call:
+Avoid calling string comparison functions in libc, eg.
+
+```
+if [[ $CONDITION == "value" ]];then 
+...
+fi
+```
+
+instead call:
 
 ```
 if [[ $CONDITION ]];then
@@ -33,7 +52,7 @@ else
 fi
 ```
 
-This avoids memcpy and string comparison functions. 
+This avoids memcpy and string comparison functions.
 
 Functions
 ---------

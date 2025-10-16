@@ -1,14 +1,10 @@
 #!/bin/bash
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
+# see FAST_SHELL_GUIDELINES.md on coding guidelines for this file.
 {
 if ! [[ $_MONORAIL_DIR ]];then
-if [[ ${BASH_ARGV[0]} != "/"* ]];then
-_MONORAIL_DIR=$PWD/${BASH_ARGV[0]}
-else
-_MONORAIL_DIR="${BASH_ARGV[0]}"
-fi
-_MONORAIL_DIR="${_MONORAIL_DIR%/*}"
+_MONORAIL_DIR=${XDG_DATA_HOME-$HOME/.local/share}/monorail
 fi
 _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 if [[ $ZSH_NAME ]];then
@@ -27,36 +23,36 @@ preexec(){
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 [[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]] && return
 _MONORAIL_PREV_CMD=$(fc -l -1)
-_TIMER_CMD="${1/\\\a/\\\\\a}"
-_TIMER_CMD="${_TIMER_CMD/\\\b/\\\\\b}"
-_TIMER_CMD="${_TIMER_CMD/\\\c/\\\\\c}"
-_TIMER_CMD="${_TIMER_CMD/\\\d/\\\\\d}"
-_TIMER_CMD="${_TIMER_CMD/\\\e/\\\\\e}"
-_TIMER_CMD="${_TIMER_CMD/\\\f/\\\\\f}"
-_TIMER_CMD="${_TIMER_CMD/\\\g/\\\\\g}"
-_TIMER_CMD="${_TIMER_CMD/\\\h/\\\\\h}"
-_TIMER_CMD="${_TIMER_CMD/\\\i/\\\\\i}"
-_TIMER_CMD="${_TIMER_CMD/\\\j/\\\\\j}"
-_TIMER_CMD="${_TIMER_CMD/\\\k/\\\\\k}"
-_TIMER_CMD="${_TIMER_CMD/\\\l/\\\\\l}"
-_TIMER_CMD="${_TIMER_CMD/\\\m/\\\\\m}"
-_TIMER_CMD="${_TIMER_CMD/\\\n/\\\\\n}"
-_TIMER_CMD="${_TIMER_CMD/\\\o/\\\\\o}"
-_TIMER_CMD="${_TIMER_CMD/\\\p/\\\\\p}"
-_TIMER_CMD="${_TIMER_CMD/\\\q/\\\\\q}"
-_TIMER_CMD="${_TIMER_CMD/\\\r/\\\\\r}"
-_TIMER_CMD="${_TIMER_CMD/\\\s/\\\\\s}"
-_TIMER_CMD="${_TIMER_CMD/\\\t/\\\\\t}"
-_TIMER_CMD="${_TIMER_CMD/\\\u/\\\\\u}"
-_TIMER_CMD="${_TIMER_CMD/\\\v/\\\\\v}"
-_TIMER_CMD="${_TIMER_CMD/\\\w/\\\\\w}"
-_TIMER_CMD="${_TIMER_CMD/\\\x/\\\\\x}"
-_TIMER_CMD="${_TIMER_CMD/\\\y/\\\\\y}"
-_TIMER_CMD="${_TIMER_CMD/\\\z/\\\\\z}"
-_TIMER_CMD="${_TIMER_CMD/\\\033/<ESC>}"
-_TIMER_CMD="${_TIMER_CMD/\\\007/<BEL>}"
+_TIMER_CMD=${1/\\\a/\\\\\a}
+_TIMER_CMD=${_TIMER_CMD/\\\b/\\\\\b}
+_TIMER_CMD=${_TIMER_CMD/\\\c/\\\\\c}
+_TIMER_CMD=${_TIMER_CMD/\\\d/\\\\\d}
+_TIMER_CMD=${_TIMER_CMD/\\\e/\\\\\e}
+_TIMER_CMD=${_TIMER_CMD/\\\f/\\\\\f}
+_TIMER_CMD=${_TIMER_CMD/\\\g/\\\\\g}
+_TIMER_CMD=${_TIMER_CMD/\\\h/\\\\\h}
+_TIMER_CMD=${_TIMER_CMD/\\\i/\\\\\i}
+_TIMER_CMD=${_TIMER_CMD/\\\j/\\\\\j}
+_TIMER_CMD=${_TIMER_CMD/\\\k/\\\\\k}
+_TIMER_CMD=${_TIMER_CMD/\\\l/\\\\\l}
+_TIMER_CMD=${_TIMER_CMD/\\\m/\\\\\m}
+_TIMER_CMD=${_TIMER_CMD/\\\n/\\\\\n}
+_TIMER_CMD=${_TIMER_CMD/\\\o/\\\\\o}
+_TIMER_CMD=${_TIMER_CMD/\\\p/\\\\\p}
+_TIMER_CMD=${_TIMER_CMD/\\\q/\\\\\q}
+_TIMER_CMD=${_TIMER_CMD/\\\r/\\\\\r}
+_TIMER_CMD=${_TIMER_CMD/\\\s/\\\\\s}
+_TIMER_CMD=${_TIMER_CMD/\\\t/\\\\\t}
+_TIMER_CMD=${_TIMER_CMD/\\\u/\\\\\u}
+_TIMER_CMD=${_TIMER_CMD/\\\v/\\\\\v}
+_TIMER_CMD=${_TIMER_CMD/\\\w/\\\\\w}
+_TIMER_CMD=${_TIMER_CMD/\\\x/\\\\\x}
+_TIMER_CMD=${_TIMER_CMD/\\\y/\\\\\y}
+_TIMER_CMD=${_TIMER_CMD/\\\z/\\\\\z}
+_TIMER_CMD=${_TIMER_CMD/\\\033/<ESC>}
+_TIMER_CMD=${_TIMER_CMD/\\\007/<BEL>}
 local ICON CMD
-case "$_TIMER_CMD" in
+case $_TIMER_CMD in
 "c "*|"cd "*|".."*):;;
 *)[[ -z $_MONORAIL_DATE ]]&&_MONORAIL_DATE=$(LC_MESSAGES=C LC_ALL=C date +%m-%d)
 case $_MONORAIL_DATE in
@@ -129,9 +125,9 @@ fi
 \printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
 }
 if [[ $XDG_CONFIG_HOME ]];then
-_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
+_MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
 else
-_MONORAIL_CONFIG="$HOME/.config/monorail"
+_MONORAIL_CONFIG=$HOME/.config/monorail
 fi
 name(){
 NAME="$*"
@@ -153,11 +149,11 @@ unset _MONORAIL_LONGRUNNING
 return 0
 fi
 local _MONORAIL_REALPWD
-_MONORAIL_REALPWD="$PWD"
-case "$PWD" in
+_MONORAIL_REALPWD=$PWD
+case $PWD in
 /run/user/*/gvfs/*)_MONORAIL_GIT_PS1=;;
 *)local PROMPT_PWD MONORAIL_REPO
-PROMPT_PWD="$PWD"
+PROMPT_PWD=$PWD
 MONORAIL_REPO=
 while [[ "$PROMPT_PWD" ]];do
 if [[ -d "$PROMPT_PWD/.repo" ]];then
@@ -239,10 +235,8 @@ esac
 _MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 _MONORAIL_TEXT="${_MONORAIL_TEXT//\.\.\./…}"
 if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
-local OFFSET
-OFFSET=$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))
 # frequently, the last of the text is the most relevant, cut beginning if too long path
-_MONORAIL_TEXT=" …${_MONORAIL_TEXT:$OFFSET}"
+_MONORAIL_TEXT=" …${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
 fi
 _MONORAIL_TEXT_ARRAY=()
 if [[ $ZSH_NAME ]]
@@ -267,31 +261,25 @@ fi
 # shellcheck disable=SC1090,SC1091 # file will be copied
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh
 local I=0
-if [[ ${#_PROMPT_LUT[@]} -gt 0 ]];then
-_MONORAIL_ATTRIBUTE=
 _MONORAIL_LINE=
-else
-_MONORAIL_ATTRIBUTE=$'\e'"[7m"
-_MONORAIL_LINE=
-fi
 while [[ $I -lt $COLUMNS ]]
 do
 _MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
 I=$((I+1))
 done
-_MONORAIL_LINE+=$'\e'"[7m"
-_MONORAIL_TEXT_FORMATTED=
 local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
+_MONORAIL_TEXT_FORMATTED="$_MONORAIL_PREHIDE"$'\e'"[0;7m${_MONORAIL_POSTHIDE}"
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
-_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED${_MONORAIL_TEXT_ARRAY[I]}"
+_MONORAIL_TEXT_FORMATTED+="${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
 _MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m${_MONORAIL_POSTHIDE}▎"
 else
+_MONORAIL_TEXT_FORMATTED=
 [[ -z ${_PROMPT_TEXT_LUT[*]} ]] && _PROMPT_TEXT_LUT[0]="255;255;255"
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
-_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$(((${#_PROMPT_TEXT_LUT[*]}*I)/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
+_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$(((${#_PROMPT_TEXT_LUT[*]}*I)/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
 # the invisible vertical bar is added to make the prompt displayed better when copied to a chat or text doc
@@ -304,7 +292,7 @@ RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
 HEX_CURSOR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
-[[ $HEX_CURSOR_COLOR ]]||HEX_CURSOR_COLOR="${_COLORS[21]}"
+[[ ${_PROMPT_LUT[0]} ]]||HEX_CURSOR_COLOR="${_COLORS[21]}"
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 \printf "\
@@ -352,7 +340,7 @@ fi
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 # shellcheck disable=SC2025,SC1078,SC1079
 PS1=$'\e'"]0;"'$_MONORAIL_TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
-$_MONORAIL_PREHIDE$_MONORAIL_ATTRIBUTE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
+$_MONORAIL_PREHIDE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
@@ -556,7 +544,7 @@ fi
 esac
 :
 fi
-if [[ "$SSH_CLIENT" ]] || [[ $TMUX ]];then
+if [[ $SSH_CLIENT ]] || [[ $TMUX ]];then
 _MONORAIL_HAS_SUFFIX=1
 _MONORAIL_SUFFIX () {
 _MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
