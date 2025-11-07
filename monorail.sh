@@ -1,5 +1,8 @@
 #!/bin/bash
 # Copyright (c) 2025 Thomas Eriksson
+#
+# Contains code from bash-preexec
+# Copyright (c) 2017 Ryan Caloras and contributors (see https://github.com/rcaloras/bash-preexec)
 # SPDX-License-Identifier: BSD-3-Clause
 # see FAST_SHELL_GUIDELINES.md on coding guidelines for this file.
 {
@@ -532,7 +535,6 @@ alias batch_command=_BATCH_COMMAND
 unalias interactive_command batch_command
 unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
 __git_ps1(){ :;}
-. "$_MONORAIL_DIR"/bash-preexec/bash-preexec.sh
 _MONORAIL_ALERT(){
 (exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
 }
