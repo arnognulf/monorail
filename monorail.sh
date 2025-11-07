@@ -17,41 +17,200 @@ else
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 _MONORAIL_PREHIDE='\['
 _MONORAIL_POSTHIDE='\]'
+
+BP_PIPESTATUS=("${PIPESTATUS[@]}")
+__bp_last_argument_prev_command="$_"
+unset __bp_inside_precmd __bp_inside_preexec
+__bp_install_string=$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'
+__bp_adjust_histcontrol(){
+local histcontrol
+histcontrol="${HISTCONTROL:-}"
+histcontrol="${histcontrol//ignorespace/}"
+if [[ $histcontrol == *"ignoreboth"* ]];then
+histcontrol="ignoredups:${histcontrol//ignoreboth/}"
+fi
+export HISTCONTROL="$histcontrol"
+}
+__bp_preexec_interactive_mode=""
+declare -a precmd_functions
+declare -a preexec_functions
+__bp_trim_whitespace(){
+local var=${1:?} text=${2:-}
+text="${text#"${text%%[![:space:]]*}"}"
+text="${text%"${text##*[![:space:]]}"}"
+printf -v "$var" '%s' "$text"
+}
+__bp_sanitize_string(){
+local var=${1:?} text=${2:-} sanitized
+__bp_trim_whitespace sanitized "$text"
+sanitized=${sanitized%;}
+sanitized=${sanitized#;}
+__bp_trim_whitespace sanitized "$sanitized"
+printf -v "$var" '%s' "$sanitized"
+}
+__bp_preexec_interactive_mode="on"
+__bp_precmd_invoke_cmd(){
+__bp_last_ret_value="$?" BP_PIPESTATUS=("${PIPESTATUS[@]}")
+if [[ $__bp_inside_precmd ]];then
+return
+fi
+local __bp_inside_precmd=1
+local precmd_function
+for precmd_function in "${precmd_functions[@]}";do
+if type -t "$precmd_function" 1>/dev/null;then
+__bp_set_ret_value "$__bp_last_ret_value" "$__bp_last_argument_prev_command"
+"$precmd_function"
+fi
+done
+__bp_set_ret_value "$__bp_last_ret_value"
+}
+__bp_set_ret_value(){
+return ${1:+"$1"}
+}
+__bp_in_prompt_command(){
+local prompt_command_array IFS=$'\n;'
+read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
+local trimmed_arg
+__bp_trim_whitespace trimmed_arg "${1:-}"
+local command trimmed_command
+for command in "${prompt_command_array[@]:-}";do
+__bp_trim_whitespace trimmed_command "$command"
+if [[ $trimmed_command == "$trimmed_arg" ]];then
+return 0
+fi
+done
+return 1
+}
+__bp_preexec_invoke_exec(){
+__bp_last_argument_prev_command="${1:-}"
+if [[ $__bp_inside_preexec ]];then
+return
+fi
+local __bp_inside_preexec=1
+if [[ ! -t 1 && -z ${__bp_delay_install:-} ]];then
+return
+fi
+if [[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]];then
+return
+fi
+if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
+return
+else
+if [[ 0 -eq ${BASH_SUBSHELL:-} ]];then
+__bp_preexec_interactive_mode=""
+fi
+fi
+if __bp_in_prompt_command "${BASH_COMMAND:-}";then
+__bp_preexec_interactive_mode=""
+return
+fi
+local this_command
+this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
+this_command="${this_command#*[[:digit:]][* ] }"
+if [[ -z $this_command ]];then
+return
+fi
+local preexec_function
+local preexec_function_ret_value
+local preexec_ret_value=0
+for preexec_function in "${preexec_functions[@]:-}";do
+if type -t "$preexec_function" 1>/dev/null;then
+__bp_set_ret_value "${__bp_last_ret_value:-}"
+"$preexec_function" "$this_command"
+preexec_function_ret_value="$?"
+if [[ $preexec_function_ret_value != 0 ]];then
+preexec_ret_value="$preexec_function_ret_value"
+fi
+fi
+done
+__bp_set_ret_value "$preexec_ret_value" "$__bp_last_argument_prev_command"
+}
+__bp_install(){
+if [[ ${PROMPT_COMMAND[*]:-} == *"__bp_precmd_invoke_cmd"* ]];then
+return 1
+fi
+trap '__bp_preexec_invoke_exec "$_"' DEBUG
+eval "local trap_argv=(${__bp_trap_string:-})"
+local prior_trap=${trap_argv[2]:-}
+unset __bp_trap_string
+if [[ -n $prior_trap ]];then
+eval '__bp_original_debug_trap() {
+            '"$prior_trap"'
+        }'
+preexec_functions+=(__bp_original_debug_trap)
+fi
+__bp_adjust_histcontrol
+if [[ -n ${__bp_enable_subshells:-} ]];then
+set -o functrace >/dev/null 2>&1
+shopt -s extdebug >/dev/null 2>&1
+fi
+local existing_prompt_command
+existing_prompt_command="${PROMPT_COMMAND:-}"
+existing_prompt_command="${existing_prompt_command//$__bp_install_string/:}"
+existing_prompt_command="${existing_prompt_command//$'\n':$'\n'/$'\n'}"
+existing_prompt_command="${existing_prompt_command//$'\n':;/$'\n'}"
+__bp_sanitize_string existing_prompt_command "$existing_prompt_command"
+if [[ ${existing_prompt_command:-:} == ":" ]];then
+existing_prompt_command=
+fi
+PROMPT_COMMAND='__bp_precmd_invoke_cmd'
+PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
+if ((BASH_VERSINFO[0]>5||(BASH_VERSINFO[0]==5&&BASH_VERSINFO[1]>=1)));then
+PROMPT_COMMAND+=('__bp_preexec_interactive_mode="on"')
+else
+PROMPT_COMMAND+=$'\n__bp_interactive_mode'
+fi
+precmd_functions+=(precmd)
+preexec_functions+=(preexec)
+__bp_precmd_invoke_cmd
+__bp_preexec_interactive_mode="on"
+}
+__bp_install_after_session_init(){
+local sanitized_prompt_command
+__bp_sanitize_string sanitized_prompt_command "${PROMPT_COMMAND:-}"
+if [[ -n $sanitized_prompt_command ]];then
+PROMPT_COMMAND=$sanitized_prompt_command$'\n'
+fi
+PROMPT_COMMAND+=$__bp_install_string
+}
+if [[ -z ${__bp_delay_install:-} ]];then
+__bp_install_after_session_init
+fi
 fi
 preexec(){
 {
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 [[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]] && return
 _MONORAIL_PREV_CMD=$(fc -l -1)
-_TIMER_CMD=${1/\\\a/\\\\\a}
-_TIMER_CMD=${_TIMER_CMD/\\\b/\\\\\b}
-_TIMER_CMD=${_TIMER_CMD/\\\c/\\\\\c}
-_TIMER_CMD=${_TIMER_CMD/\\\d/\\\\\d}
-_TIMER_CMD=${_TIMER_CMD/\\\e/\\\\\e}
-_TIMER_CMD=${_TIMER_CMD/\\\f/\\\\\f}
-_TIMER_CMD=${_TIMER_CMD/\\\g/\\\\\g}
-_TIMER_CMD=${_TIMER_CMD/\\\h/\\\\\h}
-_TIMER_CMD=${_TIMER_CMD/\\\i/\\\\\i}
-_TIMER_CMD=${_TIMER_CMD/\\\j/\\\\\j}
-_TIMER_CMD=${_TIMER_CMD/\\\k/\\\\\k}
-_TIMER_CMD=${_TIMER_CMD/\\\l/\\\\\l}
-_TIMER_CMD=${_TIMER_CMD/\\\m/\\\\\m}
-_TIMER_CMD=${_TIMER_CMD/\\\n/\\\\\n}
-_TIMER_CMD=${_TIMER_CMD/\\\o/\\\\\o}
-_TIMER_CMD=${_TIMER_CMD/\\\p/\\\\\p}
-_TIMER_CMD=${_TIMER_CMD/\\\q/\\\\\q}
-_TIMER_CMD=${_TIMER_CMD/\\\r/\\\\\r}
-_TIMER_CMD=${_TIMER_CMD/\\\s/\\\\\s}
-_TIMER_CMD=${_TIMER_CMD/\\\t/\\\\\t}
-_TIMER_CMD=${_TIMER_CMD/\\\u/\\\\\u}
-_TIMER_CMD=${_TIMER_CMD/\\\v/\\\\\v}
-_TIMER_CMD=${_TIMER_CMD/\\\w/\\\\\w}
-_TIMER_CMD=${_TIMER_CMD/\\\x/\\\\\x}
-_TIMER_CMD=${_TIMER_CMD/\\\y/\\\\\y}
-_TIMER_CMD=${_TIMER_CMD/\\\z/\\\\\z}
-_TIMER_CMD=${_TIMER_CMD/\\\033/<ESC>}
-_TIMER_CMD=${_TIMER_CMD/\\\007/<BEL>}
-local ICON CMD
+local C ICON CMD
+C=${1/\\\a/\\\\\a}
+C=${C/\\\b/\\\\\b}
+C=${C/\\\c/\\\\\c}
+C=${C/\\\d/\\\\\d}
+C=${C/\\\e/\\\\\e}
+C=${C/\\\f/\\\\\f}
+C=${C/\\\g/\\\\\g}
+C=${C/\\\h/\\\\\h}
+C=${C/\\\i/\\\\\i}
+C=${C/\\\j/\\\\\j}
+C=${C/\\\k/\\\\\k}
+C=${C/\\\l/\\\\\l}
+C=${C/\\\m/\\\\\m}
+C=${C/\\\n/\\\\\n}
+C=${C/\\\o/\\\\\o}
+C=${C/\\\p/\\\\\p}
+C=${C/\\\q/\\\\\q}
+C=${C/\\\r/\\\\\r}
+C=${C/\\\s/\\\\\s}
+C=${C/\\\t/\\\\\t}
+C=${C/\\\u/\\\\\u}
+C=${C/\\\v/\\\\\v}
+C=${C/\\\w/\\\\\w}
+C=${C/\\\x/\\\\\x}
+C=${C/\\\y/\\\\\y}
+C=${C/\\\z/\\\\\z}
+C=${C/\\\033/<ESC>}
+_TIMER_CMD=${C/\\\007/<BEL>}
 case $_TIMER_CMD in
 "c "*|"cd "*|".."*):;;
 *)[[ -z $_MONORAIL_DATE ]]&&_MONORAIL_DATE=$(LC_MESSAGES=C LC_ALL=C date +%m-%d)
@@ -76,15 +235,8 @@ done
 _MEASURE=1
 _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-\printf "\
-\e]11;#%s\a\
-\e]10;#%s\a\
-\e]12;#%s\a\
-" \
-"${_COLORS[17]}" \
-"${_COLORS[16]}" \
-"${_COLORS[21]}" \
->/dev/tty 2>&-
+# shellcheck disable=SC2059 # keep printf compact
+printf "\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
 esac
 unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
@@ -102,12 +254,12 @@ SECONDS_M=$((DIFF%3600))
 DURATION_H=$((DIFF/3600))
 DURATION_M=$((SECONDS_M/60))
 DURATION_S=$((SECONDS_M%60))
-\printf "\n\aCommand took "
+printf "\n\aCommand took "
 DURATION=
 [ $DURATION_H -gt 0 ]&&DURATION="${DURATION_H}h "
 [ $DURATION_M -gt 0 ]&&DURATION+="${DURATION_M}m "
 DURATION+="${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).
-\echo "$DURATION"
+echo "$DURATION"
 (exec notify-send -a "Completed $_TIMER_CMD" -i terminal "$_TIMER_CMD" "Command took $DURATION"&)
 _MONORAIL_ALERT
 _MONORAIL_LONGRUNNING=1
@@ -115,23 +267,33 @@ fi
 unset _MEASURE
 } 2>&-
 }
-title(){
-TITLE_OVERRIDE="$*"
+_MONORAIL_SET_TITLE(){
+if [[ $_MONORAIL_TITLE_OVERRIDE ]];then
+_MONORAIL_TITLE_OVERRIDE="$*"
+else
+unset _MONORAIL_TITLE_OVERRIDE
+fi
 }
+alias title=_MONORAIL_SET_TITLE
 _TITLE_RAW(){
 if [[ $_MONORAIL_NOSTYLING ]];then
 return 0
 fi
-\printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
+printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
 }
 if [[ $XDG_CONFIG_HOME ]];then
 _MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
 else
 _MONORAIL_CONFIG=$HOME/.config/monorail
 fi
-name(){
+_MONORAIL_NAME(){
+if [[ "$NAME" ]];then
 NAME="$*"
+else
+unset NAME
+fi
 }
+alias name=_MONORAIL_NAME
 precmd(){
 if [[ $_MONORAIL_LAUNCHED ]];then
 _MONORAIL_STOP_TIMER
@@ -225,7 +387,7 @@ fi
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 esac
 fi
-_MONORAIL_TITLE="$ICON  ${TITLE_OVERRIDE-${TITLE_BASE}}"
+_MONORAIL_TITLE="$ICON  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
 local PWD_BASENAME="${PWD##*/}"
 [ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
 case $PWD in
@@ -295,50 +457,10 @@ HEX_CURSOR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B"
 [[ ${_PROMPT_LUT[0]} ]]||HEX_CURSOR_COLOR="${_COLORS[21]}"
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
-\printf "\
-\e]11;#%s\a\
-\e]10;#%s\a\
-\e]12;#%s\a\
-\e]4;0;#%s\a\
-\e]4;1;#%s\a\
-\e]4;2;#%s\a\
-\e]4;3;#%s\a\
-\e]4;4;#%s\a\
-\e]4;5;#%s\a\
-\e]4;6;#%s\a\
-\e]4;7;#%s\a\
-\e]4;8;#%s\a\
-\e]4;9;#%s\a\
-\e]4;10;#%s\a\
-\e]4;11;#%s\a\
-\e]4;12;#%s\a\
-\e]4;13;#%s\a\
-\e]4;14;#%s\a\
-\e]4;15;#%s\a\
-" \
-"${_COLORS[17]}" \
-"${_COLORS[16]}" \
-"$HEX_CURSOR_COLOR" \
-"${_COLORS[0]}" \
-"${_COLORS[1]}" \
-"${_COLORS[2]}" \
-"${_COLORS[3]}" \
-"${_COLORS[4]}" \
-"${_COLORS[5]}" \
-"${_COLORS[6]}" \
-"${_COLORS[7]}" \
-"${_COLORS[8]}" \
-"${_COLORS[9]}" \
-"${_COLORS[10]}" \
-"${_COLORS[11]}" \
-"${_COLORS[12]}" \
-"${_COLORS[13]}" \
-"${_COLORS[14]}" \
-"${_COLORS[15]}"
-
+# shellcheck disable=SC2059 # keep printf compact
+printf "\e]11;#${_COLORS[17]}#\a\e]10;#${_COLORS[16]}\a\e]12;#$HEX_CURSOR_COLOR\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a"
 
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-# shellcheck disable=SC2025,SC1078,SC1079
 PS1=$'\e'"]0;"'$_MONORAIL_TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
 $_MONORAIL_PREHIDE$_MONORAIL_POSTHIDE$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
@@ -449,13 +571,13 @@ while [[ $i -lt $((COLUMNS/2-${#ANSWER}/2)) ]];do
 SPACES="$SPACES "
 i=$((i+1))
 done
-\echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
+echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 }
 
 _MONORAIL_COMMAND(){
 local CMD_STATUS
 CMD_STATUS=$?
-\printf "%$((COLUMNS-1))s\\r"
+printf "%$((COLUMNS-1))s\\r"
 HISTCONTROL=
 _MONORAIL_HISTCMD_PREV=$(fc -l -1)
 _MONORAIL_HISTCMD_PREV=${_MONORAIL_HISTCMD_PREV%%$'[\t ]'*}
@@ -471,12 +593,12 @@ CR_LEVEL=3
 if \git status >&- 2>&-;then
 CR_LEVEL=1
 else
-\printf "\e[J\n\n"
+printf "\e[J\n\n"
 fi
 ;;
 2)CR_LEVEL=3
 \git -c color.status=always status|\head -n$((LINES-2))|\head -n$((LINES-4))
-\echo -e "        ...\n\n"
+echo -e "        ...\n\n"
 ;;
 *)_MONORAIL_MAGIC_SHELLBALL
 esac
@@ -489,8 +611,8 @@ CR_LEVEL=0
 fi
 unset _MONORAIL_CTRLC
 _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
-trap "_MONORAIL_CTRLC=1;\echo -n" INT
-trap "_MONORAIL_CTRLC=1;\echo -n" ERR
+trap "_MONORAIL_CTRLC=1;echo -n" INT
+trap "_MONORAIL_CTRLC=1;echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
 }
 
@@ -514,7 +636,7 @@ unalias git >/dev/null 2>/dev/null
 ;;
 *)
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-if [[ "$COLORTERM" = "truecolor" ]];then
+if [[ "$COLORTERM" = "truecolor" ]] || [[ "$XTERM_VERSION" ]];then
 :
 else
 # COLORTERM may be filtered (eg. by SSH) or missing (eg. in xterm)
@@ -526,15 +648,8 @@ read -r -t 0.5 -n7 _MONORAIL_RESPONSE
 case "$_MONORAIL_RESPONSE" in
 *";1R")
 # restore color after detection, needed for xterm
-\printf "\
-\e]11;#%s\a\
-\e]10;#%s\a\
-\e]12;#%s\a\
-" \
-"${_COLORS[17]}" \
-"${_COLORS[16]}" \
-"${_COLORS[21]}" \
->/dev/tty 2>&-
+# shellcheck disable=SC2059 # keep printf compact
+printf "\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
 ;;
 *)
 unalias git >/dev/null 2>/dev/null
