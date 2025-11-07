@@ -54,3 +54,11 @@ while [[ $I -lt $FIELDS ]]; do
 	echo "Wrote gradient to: gradients/$NAME".sh
 	I=$((I + 1))
 done
+rm \
+gradients/Instagram.sh \
+gradients/Snapchat.sh \
+gradients/YouTube.sh \
+gradients/EasyMed.sh \
+gradients/Telegram.sh
+
+
