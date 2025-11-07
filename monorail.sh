@@ -271,7 +271,7 @@ unset _MEASURE
 } 2>&-
 }
 _MONORAIL_SET_TITLE(){
-if [[ $_MONORAIL_TITLE_OVERRIDE ]];then
+if [[ $1 ]];then
 _MONORAIL_TITLE_OVERRIDE="$*"
 else
 unset _MONORAIL_TITLE_OVERRIDE
@@ -290,7 +290,7 @@ else
 _MONORAIL_CONFIG=$HOME/.config/monorail
 fi
 _MONORAIL_NAME(){
-if [[ "$NAME" ]];then
+if [[ $1 ]];then
 NAME="$*"
 else
 unset NAME
