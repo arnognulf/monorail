@@ -96,7 +96,7 @@
 	"vt"???)
 		_MONORAIL_VTXXX_TERMINAL=1
 		;;
-	"dm2500" | "dumb")
+	"dm2500" | "dumb" | "vt50")
 		# uppercase only terminals have no underscore character
 		bind 'set enable-bracketed-paste off'
 		_MONORAIL_DUMB_TERMINAL=1
