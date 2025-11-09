@@ -25,15 +25,6 @@ BP_PIPESTATUS=("${PIPESTATUS[@]}")
 __bp_last_argument_prev_command="$_"
 unset __bp_inside_precmd __bp_inside_preexec
 __bp_install_string=$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'
-__bp_adjust_histcontrol(){
-local histcontrol
-histcontrol="${HISTCONTROL:-}"
-histcontrol="${histcontrol//ignorespace/}"
-if [[ $histcontrol == *"ignoreboth"* ]];then
-histcontrol="ignoredups:${histcontrol//ignoreboth/}"
-fi
-export HISTCONTROL="$histcontrol"
-}
 __bp_preexec_interactive_mode=""
 declare -a precmd_functions
 declare -a preexec_functions
@@ -68,6 +59,7 @@ done
 __bp_set_ret_value "$__bp_last_ret_value"
 }
 __bp_set_ret_value(){
+# WTF
 return ${1:+"$1"}
 }
 __bp_in_prompt_command(){
@@ -142,7 +134,13 @@ eval '__bp_original_debug_trap() {
         }'
 preexec_functions+=(__bp_original_debug_trap)
 fi
-__bp_adjust_histcontrol
+local histcontrol
+histcontrol="${HISTCONTROL:-}"
+histcontrol="${histcontrol//ignorespace/}"
+if [[ $histcontrol == *"ignoreboth"* ]];then
+histcontrol="ignoredups:${histcontrol//ignoreboth/}"
+fi
+export HISTCONTROL="$histcontrol"
 if [[ -n ${__bp_enable_subshells:-} ]];then
 set -o functrace >/dev/null 2>&1
 shopt -s extdebug >/dev/null 2>&1
@@ -158,11 +156,7 @@ existing_prompt_command=
 fi
 PROMPT_COMMAND='__bp_precmd_invoke_cmd'
 PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
-if ((BASH_VERSINFO[0]>5||(BASH_VERSINFO[0]==5&&BASH_VERSINFO[1]>=1)));then
 PROMPT_COMMAND+=('__bp_preexec_interactive_mode="on"')
-else
-PROMPT_COMMAND+=$'\n__bp_interactive_mode'
-fi
 precmd_functions+=(precmd)
 preexec_functions+=(preexec)
 __bp_precmd_invoke_cmd
