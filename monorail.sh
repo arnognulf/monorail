@@ -52,15 +52,15 @@ local __bp_inside_precmd=1
 local precmd_function
 for precmd_function in "${precmd_functions[@]}";do
 if type -t "$precmd_function" 1>/dev/null;then
-__bp_set_ret_value "$__bp_last_ret_value" "$__bp_last_argument_prev_command"
+if [[ ${__bp_last_ret_value-0} = 0 ]];then
+true
+else
+(exit "${__bp_last_ret_value-0}")
+fi
 "$precmd_function"
 fi
 done
-__bp_set_ret_value "$__bp_last_ret_value"
-}
-__bp_set_ret_value(){
-# WTF
-return ${1:+"$1"}
+return "${__bp_last_ret_value-0}"
 }
 __bp_in_prompt_command(){
 local prompt_command_array IFS=$'\n;'
@@ -110,7 +110,11 @@ local preexec_function_ret_value
 local preexec_ret_value=0
 for preexec_function in "${preexec_functions[@]:-}";do
 if type -t "$preexec_function" 1>/dev/null;then
-__bp_set_ret_value "${__bp_last_ret_value:-}"
+if [[ ${__bp_last_ret_value-0} = 0 ]];then
+true
+else
+(exit "${__bp_last_ret_value-0}")
+fi
 "$preexec_function" "$this_command"
 preexec_function_ret_value="$?"
 if [[ $preexec_function_ret_value != 0 ]];then
@@ -118,7 +122,7 @@ preexec_ret_value="$preexec_function_ret_value"
 fi
 fi
 done
-__bp_set_ret_value "$preexec_ret_value" "$__bp_last_argument_prev_command"
+return "${__bp_last_ret_value-0}"
 }
 __bp_install(){
 if [[ ${PROMPT_COMMAND[*]:-} == *"__bp_precmd_invoke_cmd"* ]];then
