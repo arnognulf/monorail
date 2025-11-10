@@ -82,7 +82,7 @@ if [[ $__bp_inside_preexec ]];then
 return
 fi
 local __bp_inside_preexec=1
-if [[ ! -t 1 && -z ${__bp_delay_install:-} ]];then
+if [[ ! -t 1 ]];then
 return
 fi
 if [[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]];then
@@ -166,17 +166,12 @@ preexec_functions+=(preexec)
 __bp_precmd_invoke_cmd
 __bp_preexec_interactive_mode="on"
 }
-__bp_install_after_session_init(){
 local sanitized_prompt_command
 __bp_sanitize_string sanitized_prompt_command "${PROMPT_COMMAND:-}"
 if [[ -n $sanitized_prompt_command ]];then
 PROMPT_COMMAND=$sanitized_prompt_command$'\n'
 fi
 PROMPT_COMMAND+=$__bp_install_string
-}
-if [[ -z ${__bp_delay_install:-} ]];then
-__bp_install_after_session_init
-fi
 fi
 preexec(){
 {
