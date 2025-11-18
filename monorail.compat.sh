@@ -8,12 +8,23 @@
 # Terminals tested:
 # konsole
 # gnome-terminal (vte)
-# DEC VT100, VT52, VT05
+# DEC VT240, VT100, VT52, VT05
 # xterm
+# Wyse 30
 # Wyse 60
+# Wyse 370
 # Tek 40xx
 # ADM-3a
+# IBM 3151
 # IBM 3270
+# Ann Arbour
+# HP 2621A
+# Hazeltine 1500
+# Sun Console
+# heath19 (?)
+# vc404
+# hft
+# scoansi
 #
 # Shells tested:
 # bash
@@ -49,9 +60,16 @@
 	"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "xgterm" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
 		# screen and linux vt accepts truecolor control sequencies, but do not display truecolor satisfactory
 		# shellcheck disable=SC2086 # incomprehensible quoting suggestions from shellcheck
-		if [ -n "$XTERM_VERSION" ] && [ "$(echo \"$XTERM_VERSION\" | cut -d'(' -f2 | cut -d')' -f1)" -gt 330 ]; then
-			_MONORAIL_TRUECOLOR_TERMINAL=1
-		fi
+		case "$TERM" in
+		tek* | vt52)
+			_MONORAIL_DUMB_TERMINAL=1
+			;;
+		*)
+			if [ -n "$XTERM_VERSION" ] && [ "$(echo \"$XTERM_VERSION\" | cut -d'(' -f2 | cut -d')' -f1)" -gt 330 ]; then
+				_MONORAIL_TRUECOLOR_TERMINAL=1
+			fi
+			;;
+		esac
 		if [ "$TERM_PROGRAM" = "GNUstep_Terminal" ]; then
 			_MONORAIL_XTERM_TERMINAL=1
 		fi
@@ -68,8 +86,20 @@
 	if [ ! -f "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh ]; then
 		cat "$_MONORAIL_DIR"/gradients/Default.sh "$_MONORAIL_DIR"/colors/Default.sh >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
 	fi
+	# get COLUMNS if unset
+	COLUMNS=$(stty size 2>/dev/null | cut -d" " -f2)
+	# if `stty size` do not report valid size, default to 80x24
+	if [ -z "$COLUMNS" ] || [ "$COLUMNS" = 0 ]; then
+		COLUMNS=80
+		LINES=24
+	fi
+	export COLUMNS
+	export LINES
+
 	_MONORAIL_ELIPSIS="..."
 	_MONORAIL_LINE_SEGMENT=_
+	_MONORAIL_OFFSET=0
+
 	case "$TERM" in
 	"xterm-color")
 		_MONORAIL_XTERM_TERMINAL=1
@@ -93,8 +123,31 @@
 	"Eterm" | "xgterm" | "rxvt"*)
 		_MONORAIL_XTERM_TERMINAL=1
 		;;
+		#    "ibm3151")
+		#        rev=$(printf '\1b')$(printf '\34' 2161
+		#    ;;
+	"at386" | "hft" | "scoansi")
+		bind 'set enable-bracketed-paste off'
+		_MONORAIL_ANSI_TERMINAL=1
+		_MONORAIL_OFFSET=1
+		;;
+	"aaa" | "sun" | "wy370")
+		bind 'set enable-bracketed-paste off'
+		_MONORAIL_ANSI_TERMINAL=1
+		;;
 	"vt"???)
-		_MONORAIL_VTXXX_TERMINAL=1
+		bind 'set enable-bracketed-paste off'
+		_MONORAIL_ANSI_TERMINAL=1
+		# vt100 or vt220 emulators normally do not support DEC alternate graphics
+		# which is used to draw the horizontal line but sets "vt100" or "vt220"
+		# as TERM for compatibility.
+		# detect these terminals by checking if they have supported sizes
+		if [ "$COLUMNS" = 80 ] || [ "$COLUMNS" = 132 ]; then
+			if [ $LINES = 24 ] || [ "$LINES" = 14 ]; then
+				_MONORAIL_LINE_SEGMENT=s
+				_MONORAIL_VTXXX_TERMINAL=1
+			fi
+		fi
 		;;
 	"dm2500" | "dumb" | "vt50")
 		# uppercase only terminals have no underscore character
@@ -102,25 +155,41 @@
 		_MONORAIL_DUMB_TERMINAL=1
 		_MONORAIL_LINE_SEGMENT=-
 		_MONORAIL_NORMAL="!"
+		_MONORAIL_OFFSET=1
 		;;
-	"wyse60")
+	"tek"*)
+		# dumb lowercase terminals
+		bind 'set enable-bracketed-paste off'
+		_MONORAIL_DUMB_TERMINAL=1
+		_MONORAIL_OFFSET=2
+		if [ "$TERM" = "tek4010" ]; then
+			_MONORAIL_LINE_SEGMENT=-
+			_MONORAIL_NORMAL="!"
+		else
+			_MONORAIL_NORMAL="|"
+		fi
+		;;
+	"ibm-327"* | "dp33"?? | "adm3a" | "vt"?? | "hp2621" | "hz1500" | "wy30" | "vc404" | "dg2"*)
+		echo foo
+		# dumb lowercase terminals
+		bind 'set enable-bracketed-paste off'
+		_MONORAIL_OFFSET=1
+		_MONORAIL_DUMB_TERMINAL=1
+		_MONORAIL_NORMAL="|"
+		;;
+	"wyse60" | "wy60" | "wy50" | "wy160")
+		_MONORAIL_OFFSET=1
 		_MONORAIL_REVERSE="$_MONORAIL_PREHIDE${ESC}G4$_MONORAIL_POSTHIDE"
 		_MONORAIL_NORMAL="$_MONORAIL_PREHIDE${ESC}G0$_MONORAIL_POSTHIDE"
 		bind 'set enable-bracketed-paste off'
-		_MONORAIL_WYSE60_TERMINAL=1
 		_MONORAIL_DUMB_TERMINAL=1
-		;;
-	"tek"* | "ibm-327"* | "dp33"?? | "adm3a" | "vt"??)
-		bind 'set enable-bracketed-paste off'
-		_MONORAIL_DUMB_TERMINAL=1
-		_MONORAIL_NORMAL="|"
 		;;
 	*)
 		_MONORAIL_NORMAL="|"
 		;;
 	esac
-	if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
-		_MONORAIL_REVERSE="$_MONORAIL_PREHIDE${ESC}[7m$_MONORAIL_REVERSE"
+	if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
+		_MONORAIL_REVERSE="$_MONORAIL_PREHIDE${ESC}[7m$_MONORAIL_POSTHIDE"
 		_MONORAIL_NORMAL="$_MONORAIL_PREHIDE${ESC}[0m$_MONORAIL_POSTHIDE"
 	fi
 
@@ -195,7 +264,7 @@
 		_MONORAIL_TEXT_FORMATTED=""
 		while [ "$I" -lt "${_MONORAIL_TEXT_ARRAY_LEN}" ]; do
 			LUT=$((${#_PROMPT_LUT[*]} * I / $((COLUMNS + 1))))
-			TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * I) / $((COLUMNS + 1))))
+			TEXT_LUT=$((${#_PROMPT_TEXT_LUT[*]} * I / $((COLUMNS + 1))))
 			# shellcheck disable=SC3054 # ksh
 			_MONORAIL_TEXT_FORMATTED="$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE${ESC}[0m${ESC}[48;2;${_PROMPT_LUT[LUT]}m${ESC}[38;2;${_PROMPT_TEXT_LUT[TEXT_LUT]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
 			I=$((I + 1))
@@ -231,22 +300,16 @@
 		if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 			_MONORAIL_TITLE="${ESC}]0;$TITLE$BEL"
 		fi
-		# get COLUMNS if unset
-		COLUMNS=$(stty size 2>/dev/null | cut -d" " -f2)
-		# serial terminals do not set SIZE
-		[ -z "$COLUMNS" ] && COLUMNS=78
+
 		_MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 		I=0
-		LINE_WIDTH=$COLUMNS
+		# cannot draw the end column in some terminals
+		LINE_WIDTH=$((COLUMNS - _MONORAIL_OFFSET))
 		_MONORAIL_LINE=
-
 		if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 			_MONORAIL_LINE="$CR${ESC}[0m"
-		elif [ "$_MONORAIL_DUMB_TERMINAL" ]; then
-			# cannot draw the end column in some terminals
-			LINE_WIDTH=$((COLUMNS - 2))
-		else
-			LINE_WIDTH=$COLUMNS
+		elif [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
+			_MONORAIL_LINE="${ESC}[0m${ESC}(0$CR"
 		fi
 		# shellcheck disable=SC1090 # file will be available
 		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
@@ -261,11 +324,8 @@
 		fi
 		if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 			_MONORAIL_LINE="$_MONORAIL_LINE$ESC(1"
-		elif [ "$_MONORAIL_DUMB_TERMINAL" ]; then
-			# cannot draw the end column in some terminals
-			LINE_WIDTH=$((COLUMNS - 2))
-		else
-			LINE_WIDTH=$COLUMNS
+		elif [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
+			_MONORAIL_LINE="$_MONORAIL_LINE$ESC(B${ESC}[7m"
 		fi
 
 		PS1="$_MONORAIL_TITLE$_MONORAIL_CURSOR$_MONORAIL_LINE

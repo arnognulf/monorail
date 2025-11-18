@@ -232,6 +232,24 @@ I do not wish to infringe trademarks, nor do I want to endorse organizations tha
 
 Also, please keep gradients look-up-tables at up to 200 elements to conserve space.
 
+Vintage terminal emulators
+--------------------------
+vt100 XScreenSaver `./apple2 -fast -program bash -text`
+
+vt100, vt52 terminal-simulator: https://github.com/larsbrinkhoff/terminal-simulator
+
+vt240 simulator: https://github.com/unknown-technologies/vt240
+
+dp3300, vt52, vt50, vt05: https://github.com/aap/vt05
+
+tek4014 xterm `xterm -t`: https://invisible-island.net/xterm/
+
+vt52 xterm `xterm -ti vt52 -tn vt52`: https://invisible-island.net/xterm/
+
+adm3a termu: https://github.com/jtsiomb/termu
+
+kermit95: https://kermitproject.org/ckw10beta.html
+
 Credits
 -------
 Oklab: A perceptual color space for image processing: https://bottosson.github.io/posts/oklab/
