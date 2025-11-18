@@ -230,8 +230,6 @@ _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 # shellcheck disable=SC2059 # keep printf compact
 printf "\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
-# shellcheck disable=SC2059 # keep printf compact
-( { sleep 0.1;printf "\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-;} & )
 esac
 unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
