@@ -55,10 +55,8 @@ while [[ $I -lt $FIELDS ]]; do
 	I=$((I + 1))
 done
 rm \
-gradients/Instagram.sh \
-gradients/Snapchat.sh \
-gradients/YouTube.sh \
-gradients/EasyMed.sh \
-gradients/Telegram.sh
-
-
+	gradients/Instagram.sh \
+	gradients/Snapchat.sh \
+	gradients/YouTube.sh \
+	gradients/EasyMed.sh \
+	gradients/Telegram.sh
