@@ -602,8 +602,7 @@ echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 }
 
 if [[ "$TERM" = "xterm-256color" ]] && [[ $COLORTERM = "truecolor" ]];then
-# blank terminal at startup to reduce flicker
-printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
+:
 elif [[ "$MC_TMPDIR" ]];then
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
