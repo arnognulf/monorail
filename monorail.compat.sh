@@ -120,7 +120,7 @@
 			;;
 		esac
 		;;
-	"Eterm" | "xgterm" | "rxvt"*)
+	"Eterm" | "rxvt"*)
 		_MONORAIL_XTERM_TERMINAL=1
 		;;
 		#    "ibm3151")
