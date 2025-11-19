@@ -22,31 +22,11 @@ _MONORAIL_PREHIDE='\['
 _MONORAIL_POSTHIDE='\]'
 
 __bp_last_argument_prev_command="$_"
-unset __bp_inside_precmd __bp_inside_preexec
+unset __bp_inside_preexec
 __bp_preexec_interactive_mode=""
-declare -a precmd_functions
 declare -a preexec_functions
 
 __bp_preexec_interactive_mode="on"
-__bp_precmd_invoke_cmd(){
-__bp_last_ret_value="$?"
-if [[ $__bp_inside_precmd ]];then
-return
-fi
-local __bp_inside_precmd=1
-local precmd_function
-for precmd_function in "${precmd_functions[@]}";do
-if type -t "$precmd_function" 1>/dev/null;then
-if [[ ${__bp_last_ret_value-0} = 0 ]];then
-true
-else
-(exit "${__bp_last_ret_value-0}")
-fi
-"$precmd_function"
-fi
-done
-return "${__bp_last_ret_value-0}"
-}
 __bp_in_prompt_command(){
 local prompt_command_array IFS=$'\n;'
 read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
@@ -111,7 +91,7 @@ done
 return "${__bp_last_ret_value-0}"
 }
 __bp_install(){
-if [[ ${PROMPT_COMMAND[*]:-} == *"__bp_precmd_invoke_cmd"* ]];then
+if [[ ${PROMPT_COMMAND[*]:-} == *"precmd"* ]];then
 return 1
 fi
 trap '__bp_preexec_invoke_exec "$_"' DEBUG
@@ -143,19 +123,17 @@ existing_prompt_command="${existing_prompt_command//$'\n':;/$'\n'}"
 
 local text="$existing_prompt_command"
 text="${text#"${text%%[![:space:]]*}"}"
-sanitized="${text%"${text##*[![:space:]]}"}"
-sanitized=${sanitized%;}
-sanitized=${sanitized#;}
-existing_prompt_command=$sanitized 
+existing_prompt_command="${text%"${text##*[![:space:]]}"}"
+existing_prompt_command=${existing_prompt_command%;}
+existing_prompt_command=${existing_prompt_command#;}
 if [[ ${existing_prompt_command:-:} == ":" ]];then
 existing_prompt_command=
 fi
-PROMPT_COMMAND='__bp_precmd_invoke_cmd'
+PROMPT_COMMAND='precmd'
 PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
 PROMPT_COMMAND+=('__bp_preexec_interactive_mode="on"')
-precmd_functions+=(precmd)
 preexec_functions+=(preexec)
-__bp_precmd_invoke_cmd
+__bp_inside_precmd=1 precmd
 __bp_preexec_interactive_mode="on"
 }
 text="${PROMPT_COMMAND:-}"
