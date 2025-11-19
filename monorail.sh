@@ -241,7 +241,6 @@ fi
 }
 alias name=_MONORAIL_NAME
 precmd(){
-echo 1
 if [[ $_MONORAIL_LAUNCHED ]];then
 {
 # bash line editor (ble.sh) do not like others messing with the tty
