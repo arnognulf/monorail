@@ -263,9 +263,12 @@ fi
 }
 alias name=_MONORAIL_NAME
 precmd(){
+echo 1
 if [[ $_MONORAIL_LAUNCHED ]];then
 {
-LC_MESSAGES=C LC_ALL=C stty echo 2>&-
+# bash line editor (ble.sh) do not like others messing with the tty
+# enable stty echo in case some command has disabled it up
+[[ $BLE_ATTACHED ]] || LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 CURRENT_SECONDS=$SECONDS
 DIFF=$((CURRENT_SECONDS-_START_SECONDS))
