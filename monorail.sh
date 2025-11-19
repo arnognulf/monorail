@@ -138,10 +138,9 @@ __bp_preexec_interactive_mode="on"
 }
 text="${PROMPT_COMMAND:-}"
 text="${text#"${text%%[![:space:]]*}"}"
-sanitized="${text%"${text##*[![:space:]]}"}"
-sanitized=${sanitized%;}
-sanitized=${sanitized#;}
-sanitized_prompt_command="$sanitized"
+sanitized_prompt_command="${text%"${text##*[![:space:]]}"}"
+sanitized_prompt_command=${sanitized_prompt_command%;}
+sanitized_prompt_command=${sanitized_prompt_command#;}
 
 if [[ -n $sanitized_prompt_command ]];then
 PROMPT_COMMAND=("$sanitized_prompt_command")
