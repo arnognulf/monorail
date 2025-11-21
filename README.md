@@ -248,7 +248,11 @@ vt52 xterm `xterm -ti vt52 -tn vt52`: https://invisible-island.net/xterm/
 
 adm3a termu: https://github.com/jtsiomb/termu
 
-kermit95: https://kermitproject.org/ckw10beta.html
+kermit95 (~40 emulated terminals): https://kermitproject.org/ckw10beta.html
+
+Teletype ASR-33: https://github.com/hughpyle/ttyemu
+
+
 
 Credits
 -------
