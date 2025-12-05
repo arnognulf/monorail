@@ -31,7 +31,7 @@ if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+_MR_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
 	:
 else
@@ -39,7 +39,7 @@ else
 	exit 42
 fi
 
-_MONORAIL_CONFIG=$HOME/.config/monorail
+_MR_CONFIG=$HOME/.config/monorail
 mkdir -p colors
 rm -f colors/*
 (
@@ -47,7 +47,7 @@ rm -f colors/*
 	git checkout Default.sh
 )
 for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
-	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	. "${_MR_CONFIG}/colors-${_MR_SHORT_HOSTNAME}.sh"
 	eval $(
 		printf "_COLORS=( "
 		for color in $(cat "${file}" | sort | grep printf | cut -c16-21); do printf "$color "; done

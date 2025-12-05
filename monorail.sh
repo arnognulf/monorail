@@ -18,6 +18,7 @@ else
 _MR_HOST=${_MR_HOST,,}
 _MR_PREHIDE='\['
 _MR_POSTHIDE='\]'
+
 _MR_last_argument_prev_command="$_"
 unset _MR_inside_preexec
 _MR_preexec_interactive_mode=""
@@ -438,6 +439,8 @@ unset _MR_NOSTYLING
 _TITLE(){
 if [[ $_MR_MEASURE ]];then
 _TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
+elif [[ "$PWD" = "$HOME" ]];then
+_TITLE_RAW "$*"
 else
 _TITLE_RAW "$* in ${PWD##*/}"
 fi
@@ -503,7 +506,7 @@ unalias interactive_command batch_command
 unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
 __git_ps1(){ :;}
 _MR_MAGIC_SHELLBALL(){
-local A S SPACES i
+local A S i
 S=
 i=0
 case "$RANDOM" in

@@ -3,9 +3,9 @@ if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+_MR_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
-_MONORAIL_CONTRAST() {
+_MR_CONTRAST() {
 	if which bc &>/dev/null; then
 		:
 	else
@@ -47,7 +47,7 @@ _MONORAIL_CONTRAST() {
 	fi
 }
 _COLOR() {
-	_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+	_MR_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 	case "$1" in
 	"")
@@ -63,21 +63,21 @@ _COLOR() {
 		_PROMPT_LUT=()
 		_PROMPT_TEXT_LUT=()
 		_COLORS=()
-		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		. "${_MR_CONFIG}/colors-${_MR_SHORT_HOSTNAME}.sh"
 		[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
 		[[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
 		[[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
 		[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
-		THEME=$(\cd ${_MONORAIL_DIR}/colors && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
+		THEME=$(\cd ${_MR_DIR}/colors && fzf --preview "${_MR_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
 			_COLORS=()
-			. "${_MONORAIL_DIR}/colors/${THEME}"
+			. "${_MR_DIR}/colors/${THEME}"
 			_UPDATE_CONFIG
 		fi
 		exit 0
 		;;
 	--list | -l)
-		cd "$_MONORAIL_DIR/colors"
+		cd "$_MR_DIR/colors"
 		if [ -t 1 ]; then
 			for SCHEME in *.sh; do
 				echo "$SCHEME" | sed 's/\.sh//g'
@@ -114,7 +114,7 @@ Examples:
 	_PROMPT_LUT=()
 	unset _COLORS
 	unset "_COLORS[*]"
-	. "$_MONORAIL_CONFIG"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
+	. "$_MR_CONFIG"/colors-${_MR_SHORT_HOSTNAME}.sh
 
 	if [ "$1" = "000000" ]; then
 		HANDLE_COLOR_ARG "$@"
@@ -125,7 +125,7 @@ Examples:
 		case "$1" in
 		*/*) . "$1" ;;
 		*)
-			cd "${_MONORAIL_DIR}"/colors
+			cd "${_MR_DIR}"/colors
 			. ./"$1".sh
 			;;
 		esac
@@ -142,7 +142,7 @@ HANDLE_COLOR_ARG() {
 		_COLORS[21]="$3"
 	fi
 
-	_MONORAIL_CONTRAST "${_COLORS[17]}" "$1" || return 1
+	_MR_CONTRAST "${_COLORS[17]}" "$1" || return 1
 }
 _UPDATE_CONFIG() {
 	_DEFAULT_BGCOLOR=${_COLORS[17]}
@@ -151,7 +151,7 @@ _UPDATE_CONFIG() {
 	if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
 		_PROMPT_TEXT_LUT=([0]="255;255;255")
 	fi
-	rm -f "${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
+	rm -f "${_MR_CONFIG}"/colors-${_MR_SHORT_HOSTNAME}.sh
 	{
 		I=0
 		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
@@ -170,7 +170,7 @@ _UPDATE_CONFIG() {
 		done
 		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
-	} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
+	} >"${_MR_CONFIG}"/colors-${_MR_SHORT_HOSTNAME}.sh
 	killall -s WINCH bash zsh &>/dev/null
 }
 _COLOR "$@"

@@ -37,6 +37,12 @@
 # osh
 # brush
 {
+	if [ "$BASH_VERSION" ]; then
+		# shellcheck disable=SC3047 # trap DEBUG undefined in posix shell
+		trap - DEBUG
+		unset "PROMPT_COMMAND[*]"
+	fi
+	unset -f _MR_install
 	CR=$(printf '\015')
 	ESC=$(printf '\033')
 	BEL=$(printf '\007')
@@ -61,10 +67,10 @@
 		# screen and linux vt accepts truecolor control sequencies, but do not display truecolor satisfactory
 		# shellcheck disable=SC2086 # incomprehensible quoting suggestions from shellcheck
 		case "$TERM" in
-		"tek"* | "vt"?? |"tty"*)
+		"tek"* | "vt"?? | "tty"*)
 			_MR_DUMB_TERMINAL=1
 			;;
-		*)
+		xterm*)
 			if [ -n "$XTERM_VERSION" ] && [ "$(echo \"$XTERM_VERSION\" | cut -d'(' -f2 | cut -d')' -f1)" -gt 330 ]; then
 				_MR_TRUECOLOR_TERMINAL=1
 			fi
@@ -108,9 +114,9 @@
 	"xterm"* | "tmux"* | "screen"* | "alacritty"* | "rio" | "rxvt-unicode"*)
 		_MR_XTERM_TERMINAL=1
 		# netbsd sets LC_CTYPE, Linux sets LANG, xterm may also set values
-        if [ "$XTERM_LOCALE" ];then
-            _MR_LANG=$XTERM_LOCALE
-        elif [ "$LANG" ]; then
+		if [ "$XTERM_LOCALE" ]; then
+			_MR_LANG=$XTERM_LOCALE
+		elif [ "$LANG" ]; then
 			_MR_LANG=$LANG
 		else
 			_MR_LANG=$LC_CTYPE
@@ -152,18 +158,18 @@
 			fi
 		fi
 		;;
-        "tty33")
+	"tty33")
 
-		    bind 'set enable-bracketed-paste off'
-            COLUMNS=72
-		    LINES=24 # dummy value for compatibility
+		bind 'set enable-bracketed-paste off'
+		COLUMNS=72
+		LINES=24 # dummy value for compatibility
 
-        	_MR_ELIPSIS="..."
-	        _MR_LINE_SEGMENT=_$'\t'
-	        _MR_OFFSET=63
-			_MR_DUMB_TERMINAL=1
-			_MR_NORMAL="!"
-        ;;
+		_MR_ELIPSIS="..."
+		_MR_LINE_SEGMENT=_$(printf '\011')
+		_MR_OFFSET=63
+		_MR_DUMB_TERMINAL=1
+		_MR_NORMAL="!"
+		;;
 	"dm2500" | "dumb" | "vt50")
 		# uppercase only terminals have no underscore character
 		bind 'set enable-bracketed-paste off'
@@ -207,9 +213,9 @@
 		_MR_NORMAL="$_MR_PREHIDE${ESC}[0m$_MR_POSTHIDE"
 	fi
 
-    if [ "$_MR_DUMB_TERMINAL" ];then
-        export NO_COLOR=1
-    fi
+	if [ "$_MR_DUMB_TERMINAL" ]; then
+		export NO_COLOR=1
+	fi
 
 	if [ "$ZSH_NAME" ]; then
 		setopt prompt_subst

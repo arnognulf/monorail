@@ -104,11 +104,11 @@ _GRADIENT() {
 			shift
 			;;
 		--help | -h)
-			cat "${_MONORAIL_DIR}"/gradients/000_README.md
+			cat "${_MR_DIR}"/gradients/000_README.md
 			exit 1
 			;;
 		--list | -l)
-			cd "$_MONORAIL_DIR/gradients"
+			cd "$_MR_DIR/gradients"
 			if [ -t 1 ]; then
 				for SCHEME in *.sh; do
 					echo "$SCHEME" | sed 's/\.sh//g'
@@ -136,19 +136,19 @@ _GRADIENT() {
 		unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		_PROMPT_LUT=()
 		_COLORS=()
-		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		. "${_MR_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
 		[[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
 		[[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
 		[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-		THEME=$(cd "${_MONORAIL_DIR}"/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
+		THEME=$(cd "${_MR_DIR}"/gradients && fzf --preview "${_MR_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [[ ${THEME} ]]; then
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			_PROMPT_LUT=()
 			_PROMPT_TEXT_LUT=()
-			. "${_MONORAIL_DIR}/gradients/${THEME}"
-			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+			. "${_MR_DIR}/gradients/${THEME}"
+			rm "${_MR_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
 				I=0
 				while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
@@ -167,18 +167,18 @@ _GRADIENT() {
 				done
 				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
-			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+			} >"${_MR_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
 		killall -s WINCH bash zsh &>/dev/null
 		exit 0
 		;;
 	esac
 	if [[ "${#@}" = 1 ]]; then
-		if [[ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]]; then
+		if [[ -f "${_MR_DIR}/gradients/${1}.sh" ]]; then
 			_COLORS=()
-			. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+			. "${_MR_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-			. "${_MONORAIL_DIR}/gradients/${1}".sh
+			. "${_MR_DIR}/gradients/${1}".sh
 			if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
 				_PROMPT_TEXT_LUT=([0]="255;255;255")
 			fi
@@ -200,7 +200,7 @@ _GRADIENT() {
 				done
 				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
-			} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
+			} >"${_MR_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 			killall -s WINCH bash zsh &>/dev/null
 			return 0
 		else
@@ -209,7 +209,7 @@ _GRADIENT() {
 				echo "Select any of:
 "
 				local FILE
-				for FILE in ${_MONORAIL_DIR}/gradients/*; do
+				for FILE in ${_MR_DIR}/gradients/*; do
 					FILE="${FILE##*/}"
 					FILE="${FILE%.sh}"
 					echo "${FILE}"
@@ -221,13 +221,13 @@ or \"None\" to use text color"
 			return 1
 		fi
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-		. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
+		. ${_MR_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 		return 0
 	fi
 	# reload in case user has manually modified colors.sh
 	unset "_COLORS[*]"
 	_PROMPT_TEXT_LUT=([0]="255;255;255")
-	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
+	. ${_MR_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 
 	unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 
@@ -295,7 +295,7 @@ or \"None\" to use text color"
 		SRC_b=${DST_b}
 	done
 	if [[ -z "$DEST" ]]; then
-		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		DEST="${_MR_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
 	if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
 		_PROMPT_TEXT_LUT=([0]="255;255;255")

@@ -21,7 +21,7 @@ Examples:
 		exit 1
 		;;
 	esac
-	_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+	_MR_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 	if which identify &>/dev/null && which convert &>/dev/null && which fzf &>/dev/null; then
 		:
@@ -34,18 +34,18 @@ Examples:
 	_PROMPT_LUT=()
 	_PROMPT_TEXT_LUT=()
 	_COLORS=()
-	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	. "${_MR_CONFIG}/colors-${_MR_SHORT_HOSTNAME}.sh"
 	[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
 	[[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
 	[[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
 	[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
 
 	if [[ -z "$DEST" ]]; then
-		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		DEST="${_MR_CONFIG}/colors-${_MR_SHORT_HOSTNAME}.sh"
 	fi
 
 	if [[ -z "$1" ]]; then
-		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh \"${_COLORS[16]}\" \"${_COLORS[17]}\" {}")
+		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MR_DIR}/scripts/preview.sh \"${_COLORS[16]}\" \"${_COLORS[17]}\" {}")
 		if [ -n "$THEME" ]; then
 			THEME="${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}"
 		else
@@ -82,7 +82,7 @@ Examples:
 		I=$((I + 1))
 	done
 
-	rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	rm "${_MR_CONFIG}/colors-${_MR_SHORT_HOSTNAME}.sh"
 	{
 		I=0
 		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
@@ -103,7 +103,7 @@ Examples:
 		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 
-	} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	} >"${_MR_CONFIG}/colors-${_MR_SHORT_HOSTNAME}.sh"
 	killall -s WINCH bash zsh &>/dev/null
 
 	{

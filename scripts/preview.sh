@@ -23,7 +23,7 @@ if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+_MR_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 if [[ "$3" = "000_README.md" ]]; then
 	cat "$3"
@@ -41,12 +41,12 @@ case $(echo "$3" | awk '{print tolower($0)}') in
 *.sh)
 
 	if [[ $XDG_CONFIG_HOME ]]; then
-		_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
+		_MR_CONFIG="$XDG_CONFIG_HOME/monorail"
 	else
-		_MONORAIL_CONFIG="$HOME/.config/monorail"
+		_MR_CONFIG="$HOME/.config/monorail"
 	fi
-	_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
-	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh &>/dev/null || exit 42
+	_MR_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+	. ${_MR_CONFIG}/colors-${_MR_SHORT_HOSTNAME}.sh &>/dev/null || exit 42
 	. "$3" &>/dev/null || exit 42
 	case "${3}" in
 	*/gradients/*)

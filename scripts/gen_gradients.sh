@@ -10,10 +10,10 @@ if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+_MR_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
-_MONORAIL_INVALIDATE_CACHE() { :; }
-export _MONORAIL_CONFIG=$HOME/.config/monorail
+_MR_INVALIDATE_CACHE() { :; }
+export _MR_CONFIG=$HOME/.config/monorail
 FIELDS=$(grep -c \"name\": uiGradients/gradients.json)
 I=0
 while [[ $I -lt $FIELDS ]]; do
@@ -37,7 +37,7 @@ while [[ $I -lt $FIELDS ]]; do
 	done
 	# shellcheck disable=SC2086 # intentional string splitting below
 	bash scripts/gradient.sh ${COLOR_STRING}
-	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	. "${_MR_CONFIG}/colors-${_MR_SHORT_HOSTNAME}.sh"
 	{
 		echo "#!/bin/ksh"
 		J=0
