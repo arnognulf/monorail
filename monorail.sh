@@ -19,13 +19,9 @@ _MR_HOST=${_MR_HOST,,}
 _MR_PREHIDE=\\[
 _MR_POSTHIDE=\\]
 
-_MR_last_argument_prev_command=$_
 unset _MR_PREEXEC
-_MR_preexec_interactive_mode=
-declare -a preexec_functions
-_MR_preexec_interactive_mode=on
+_MR_INTERACTIVE=1
 _MR_preexec_invoke_exec(){
-_MR_last_argument_prev_command=${1:-}
 [[ $_MR_PREEXEC ]]&&return
 local _MR_PREEXEC=1
 [[ -t 1 ]]||return
@@ -33,8 +29,9 @@ local _MR_PREEXEC=1
 if [[ -z ${_MR_preexec_interactive_mode:-} ]];then
 return
 else
-[[ ${BASH_SUBSHELL:-} -eq 0 ]]&&_MR_preexec_interactive_mode=
+[[ ${BASH_SUBSHELL:-} -eq 0 ]]&&_MR_INTERACTIVE=
 fi
+[[ ${_MR_LAUNCHED} ]]||return 0
 local prompt_command_array IFS=$'\n;'
 read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
 local trimmed_arg
@@ -43,28 +40,17 @@ text=${text#"${text%%[![:space:]]*}"}
 trimmed_arg=${text%"${text##*[![:space:]]}"}
 local c trimmed_command
 for c in "${prompt_command_array[@]:-}";do
-c=${c}
 c=${c#"${c%%[![:space:]]*}"}
 c=${c%"${c##*[![:space:]]}"}
 trimmed_command=$c
-[[ $trimmed_command == "$trimmed_arg" ]]&&{ _MR_preexec_interactive_mode=""; return 0;}
+[[ $trimmed_command == "$trimmed_arg" ]]&&{ _MR_INTERACTIVE=""; return 0;}
 done
 local this_command
 this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
 this_command=${this_command#*[[:digit:]][* ] }
 [[ -z $this_command ]]&&return
-local preexec_function
-for preexec_function in "${preexec_functions[@]:-}";do
-if type -t "$preexec_function" 1>/dev/null;then
-if [[ ${_MR_last_ret_value-0} = 0 ]];then
-true
-else
-(exit "${_MR_last_ret_value-0}")
-fi
-"$preexec_function" "$this_command"
-fi
-done
-return "${_MR_last_ret_value-0}"
+preexec "$this_command"
+return 0
 }
 _MR_INSTALL(){
 [[ ${PROMPT_COMMAND[*]:-} == *"precmd"* ]]&&return 1
@@ -91,10 +77,9 @@ existing_prompt_command=${t#;}
 [[ ${existing_prompt_command:-:} == : ]]&&existing_prompt_command=
 PROMPT_COMMAND=precmd
 PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
-PROMPT_COMMAND+=('_MR_preexec_interactive_mode=on')
-preexec_functions+=(preexec)
-_MR_inside_precmd=1 precmd
-_MR_preexec_interactive_mode=on
+PROMPT_COMMAND+=('_MR_INTERACTIVE=1')
+precmd
+_MR_INTERACTIVE=1
 }
 text=${PROMPT_COMMAND:-}
 text=${text#"${text%%[![:space:]]*}"}
@@ -204,7 +189,6 @@ DURATION=
 [ $DURATION_H -gt 0 ]&&DURATION="${DURATION_H}h "
 [ $DURATION_M -gt 0 ]&&DURATION+="${DURATION_M}m "
 DURATION+="${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).
-echo "$DURATION"
 (exec notify-send -a "Completed $_MR_CMD" -i terminal "$_MR_CMD" "Command took $DURATION"&)
 (exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
 _MR_LONGRUNNING=1
