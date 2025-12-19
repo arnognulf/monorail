@@ -305,6 +305,18 @@
 
 	}
 	_MR_UPDATE() {
+		# get COLUMNS if unset
+		COLUMNS=$(stty size 2>/dev/null | cut -d" " -f2)
+		LINES=$(stty size 2>/dev/null | cut -d" " -f1)
+		# if `stty size` do not report valid size, default to 80x24
+		if [ -z "$COLUMNS" ] || [ "$COLUMNS" = 0 ]; then
+			COLUMNS=80
+			LINES=24
+		fi
+
+		export COLUMNS
+		export LINES
+
 		_MR_GIT_PS1=$(
 
 			TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "" | LC_ALL=C sed "s/\.\.\./$_MR_ELIPSIS/g"
@@ -325,6 +337,7 @@
 			_MR_TITLE="${ESC}]0;$TITLE$BEL"
 		fi
 
+		# TODO: add elipsis cut here
 		_MR_TEXT=" $_MR_PWD_BASENAME$_MR_GIT_PS1 "
 		I=0
 		# cannot draw the end column in some terminals
@@ -335,8 +348,6 @@
 		elif [ "$_MR_VTXXX_TERMINAL" ]; then
 			_MR_LINE="${ESC}[0m${ESC}(0$CR"
 		fi
-		# shellcheck disable=SC1090 # file will be available
-		. "$_MR_CONFIG"/colors-"$_MR_HOSTNAME".sh
 		if _MR_SHOW_GRADIENT_PROMPT; then
 			_MR_GRADIENT_PROMPT
 		else
@@ -360,6 +371,17 @@ $_MR_REVERSE$_MR_TEXT_FORMATTED$_MR_NORMAL "
 		else
 			# shellcheck disable=SC2329 # this function may be invoked
 			cd() {
+				# get COLUMNS if unset
+				COLUMNS=$(stty size 2>/dev/null | cut -d" " -f2)
+				# if `stty size` do not report valid size, default to 80x24
+				if [ -z "$COLUMNS" ] || [ "$COLUMNS" = 0 ]; then
+					COLUMNS=80
+					LINES=24
+				fi
+
+				export COLUMNS
+				export LINES
+
 				# need to set/unset 'cd()' since not all shell have `builtin`
 				unset -f cd 2>/dev/null
 				if [ "$1" ]; then
@@ -370,13 +392,13 @@ $_MR_REVERSE$_MR_TEXT_FORMATTED$_MR_NORMAL "
 				_MR_UPDATE
 			}
 			# shellcheck disable=SC2329 # this function may be invoked
-			git() {
+			cd() {
 				# need to set/unset 'git()' since not all shell have `builtin`
 				unset -f cd 2>/dev/null
 				if [ "$1" ]; then
-					git "$1" || return $?
+					cd "$1" || return $?
 				else
-					git "$HOME" || return $?
+					cd "$HOME" || return $?
 				fi
 				_MR_UPDATE
 			}
@@ -414,13 +436,14 @@ $_MR_REVERSE$_MR_TEXT_FORMATTED$_MR_NORMAL "
 		esac
 		"$@"
 	}
+	_MR_GIT_BIN=$(which git)
+
 	if [ "$KSH_VERSION" ] || [ "$ZSH_NAME" ] || [ "$BASH_VERSION" ]; then
 		_MR_CD() {
 			cd "$@" || return $?
 			_MR_UPDATE
 		}
 		alias cd=_MR_CD
-		_MR_GIT_BIN=$(which git)
 		_MR_GIT() {
 			"$_MR_GIT_BIN" "$@" || return $?
 			_MR_UPDATE
