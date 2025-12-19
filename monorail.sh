@@ -65,7 +65,7 @@ if [[ ${_MR_enable_subshells:-} ]];then
 set -o functrace >/dev/null 2>&1
 shopt -s extdebug >/dev/null 2>&1
 fi
-local t existing_prompt_command
+local t
 t=${PROMPT_COMMAND:-}
 t=${t//$'_MR_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n_MR_INSTALL'/:}
 t=${t//$'\n':$'\n'/$'\n'}
@@ -73,10 +73,10 @@ t=${t//$'\n':;/$'\n'}
 t=${t#"${t%%[![:space:]]*}"}
 t=${t%"${t##*[![:space:]]}"}
 t=${t%;}
-existing_prompt_command=${t#;}
-[[ ${existing_prompt_command:-:} == : ]]&&existing_prompt_command=
+t=${t#;}
+[[ ${t:-:} == : ]]&&t=
 PROMPT_COMMAND=precmd
-PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
+PROMPT_COMMAND+=${t:+$'\n'$t}
 PROMPT_COMMAND+=('_MR_INTERACTIVE=1')
 precmd
 _MR_INTERACTIVE=1
