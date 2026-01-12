@@ -386,6 +386,7 @@ elif [[ -e /.dockerenv ]]
 then
 TITLE_BASE="docker"
 ICON="🐋"
+_MONORAIL_SHORT_HOSTNAME=docker
 else
 ICON="🏠"
 TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
