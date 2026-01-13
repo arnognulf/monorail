@@ -642,28 +642,28 @@ printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 ;;
-*)
+xterm*)
 printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-if [[ "$COLORTERM" = "truecolor" ]] || [[ "$XTERM_VERSION" ]];then
-:
-else
 # COLORTERM may be filtered (eg. by SSH) or missing (eg. in xterm)
-# manual detection is needed
-# detect if truecolor sequence is parsed and not printed
-# multiple terminals supports truecolor but not reporting of color
-printf '\e[48:2:1:2:3m\e[6n\e[0m\e]0g' >/dev/tty
-read -r -t 0.5 -n7 _MONORAIL_RESPONSE
-case "$_MONORAIL_RESPONSE" in
-*";1R")
-# restore color after detection, needed for xterm
-# shellcheck disable=SC2059 # keep printf compact
-printf "\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
+# manual detection causes sporadic glitches in ssh.
+# The only two 'xterm' compatible terminals that I know of that do not
+# handle 24bit is:
+# * FreeBSD console
+# * Terminal.app on macOS earlier than Tahoe
+
+# when using ssh from Terminal.app, there is no (known to me) way for
+# the host to detect non-24bit compliance without resorting to
+# buggy manual detection which worsens the experience for everyone else.
+
+# FreeBSD console
+if [[ $(tty) =~ "/dev/ttyv"* ]];then
+unalias git >/dev/null 2>/dev/null
+. "$_MONORAIL_DIR/monorail.compat.sh"
+fi
 ;;
 *)
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
-esac
-fi
 esac
 :
 fi
