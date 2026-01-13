@@ -9,7 +9,40 @@
 if ! [[ $_MONORAIL_DIR ]];then
 _MONORAIL_DIR=${XDG_DATA_HOME-$HOME/.local/share}/monorail
 fi
+if [[ $CRAFT_STATE_DIR ]];then
+_MONORAIL_SHORT_HOSTNAME=snapcraft
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SUFFIX () {
+_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+}
+elif [[ $SSH_CLIENT ]] || [[ $TMUX ]];then
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SUFFIX () {
+_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+}
 _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+elif [[ -e /.dockerenv ]];then
+_MONORAIL_SHORT_HOSTNAME=docker
+# TODO: has suffix and suffix fn can be merged
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SUFFIX () {
+_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+}
+elif [[ -e /.dockerenv ]];then
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SUFFIX () {
+_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+}
+_MONORAIL_SHORT_HOSTNAME=docker
+elif [[ -e /run/containerenv ]];then
+_MONORAIL_HAS_SUFFIX=1
+_MONORAIL_SHORT_HOSTNAME=podman
+_MONORAIL_SUFFIX () {
+_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+}
+else
+_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+fi
 if [[ $ZSH_NAME ]];then
 setopt KSH_ARRAYS
 setopt prompt_subst
@@ -206,6 +239,7 @@ done
 _MEASURE=1
 _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 # shellcheck disable=SC2059 # keep printf compact
 printf "\e]0;$_MONORAIL_TITLE\a\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
 esac
@@ -350,10 +384,8 @@ local ICON TITLE_BASE
 TITLE_BASE="${PWD##*/}"
 if [[ "$MONORAIL_REPO" ]];then
 ICON="🏗️"
-[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 elif [[ "$_MONORAIL_GIT_PS1" ]];then
 ICON="🚧"
-[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 else
 case "$PWD" in
 */etc|*/etc/*)ICON="️🗂️";;
@@ -378,25 +410,31 @@ case "$PWD" in
 esac
 case "$_MONORAIL_REALPWD" in
 "$HOME")
-if [[ $SSH_CLIENT ]]
+if [[ $CRAFT_STATE_DIR ]];then
+TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
+ICON="🛠️"
+elif [[ $SSH_CLIENT ]]
 then
 TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
 ICON="🌐"
 elif [[ -e /.dockerenv ]]
 then
-TITLE_BASE="docker"
+TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
 ICON="🐋"
-_MONORAIL_SHORT_HOSTNAME=docker
+elif [[ -e /run/containerenv ]]
+then
+TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
+ICON="🦭"
 else
 ICON="🏠"
 TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
 fi
 ;;
 *)
-[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 esac
 fi
 _MONORAIL_TITLE="$ICON  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
+[[ $PWD != $HOME ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 local PWD_BASENAME="${PWD##*/}"
 [ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
 case $PWD in
@@ -478,11 +516,16 @@ $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POS
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
+local _MONORAIL_TITLE="$*"
 if [[ $_MEASURE ]];then
-_TITLE_RAW "$* in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
+_MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
+elif [[ "$PWD" = "$HOME" ]];then
+:
 else
-_TITLE_RAW "$* in ${PWD##*/}"
+_MONORAIL_TITLE=" in ${PWD##*/}"
 fi
+[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
+_TITLE_RAW "$_MONORAIL_TITLE"
 }
 _NO_MEASURE(){
 unset _MEASURE
@@ -623,17 +666,6 @@ esac
 fi
 esac
 :
-fi
-if [[ $SSH_CLIENT ]] || [[ $TMUX ]];then
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_SUFFIX () {
-_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
-}
-elif [[ -e /.dockerenv ]];then
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_SUFFIX () {
-_MONORAIL_TITLE="$_MONORAIL_TITLE on docker"
-}
 fi
 # shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $ZSH_NAME$BASH $_MONORAIL_DIR/scripts/color.sh"

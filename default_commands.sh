@@ -31,6 +31,8 @@ batch_command 🐍 python
 batch_command 🐍 python3
 batch_command 🐿️ go
 batch_command 🦀 cargo
+batch_command 🐋 docker
+batch_command 🦭 podman
 
 # Compilers and build systems can take a long time and use lots of computer
 # resources.
