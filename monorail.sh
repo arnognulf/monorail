@@ -522,7 +522,7 @@ _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 elif [[ "$PWD" = "$HOME" ]];then
 :
 else
-_MONORAIL_TITLE=" in ${PWD##*/}"
+_MONORAIL_TITLE+=" in ${PWD##*/}"
 fi
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 _TITLE_RAW "$_MONORAIL_TITLE"
