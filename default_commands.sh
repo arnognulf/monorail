@@ -16,9 +16,10 @@ interactive_command 📈 nload
 interactive_command 🤖 adb
 interactive_command 🤖 gdb
 
-# ls does not accept input, but it is expected to finish quickly and have higher prio than cp and dd
-# treat it as an interactive command
-interactive_command '' ls
+# do not add icon info for the following commands
+ignored_command ls
+ignored_command ll
+ignored_command cd
 
 # shells are listed as batch commands
 # since these are often used to call a heavy batch script

@@ -215,6 +215,13 @@ C=${C/\\\y/\\\\\y}
 C=${C/\\\z/\\\\\z}
 C=${C/\\\033/<ESC>}
 _TIMER_CMD=${C/\\\007/<BEL>}
+local XCMD IGNORED_TITLE=""
+for XCMD in ${_MONORAIL_CMD_IGNORED[@]}
+do
+if [[ "$XCMD" == ${_TIMER_CMD%% *} ]]; then
+IGNORED_TITLE=1
+fi
+done
 case $_TIMER_CMD in
 "c "*|"cd "*|".."*):;;
 *)[[ -z $_MONORAIL_DATE ]]&&_MONORAIL_DATE=$(LC_MESSAGES=C LC_ALL=C date +%m-%d)
@@ -239,9 +246,13 @@ done
 _MEASURE=1
 _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+local _MONORAIL_TITLE_FORMATTED=""
+if [[ -z $IGNORED_TITLE ]];then
+_MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a'
+fi
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 # shellcheck disable=SC2059 # keep printf compact
-printf "\e]0;$_MONORAIL_TITLE\a\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
+printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
 esac
 unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
@@ -581,8 +592,13 @@ _BATCH_COMMAND(){
 # shellcheck disable=SC2139
 command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
 }
+_MONORAIL_CMD_IGNORED=()
+_IGNORED_COMMAND (){
+_MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
+}
 alias interactive_command=_INTERACTIVE_COMMAND
 alias batch_command=_BATCH_COMMAND
+alias ignored_command=_IGNORED_COMMAND
 . "$_MONORAIL_DIR"/default_commands.sh
 unalias interactive_command batch_command
 unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
