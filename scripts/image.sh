@@ -21,7 +21,6 @@ Examples:
 		exit 1
 		;;
 	esac
-	_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 	if which identify &>/dev/null && which convert &>/dev/null && which fzf &>/dev/null; then
 		:
