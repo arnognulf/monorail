@@ -243,7 +243,7 @@ _MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a'
 fi
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 # shellcheck disable=SC2059 # keep printf compact
-printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
+printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
 unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
 } &>/dev/null
@@ -443,10 +443,10 @@ case $PWD in
 *)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
 esac
 _MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
-_MONORAIL_TEXT="${_MONORAIL_TEXT//\.\.\./…}"
+_MONORAIL_TEXT="${_MONORAIL_TEXT//\.\.\./$_MONORAIL_ELIPSIS}"
 if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 # frequently, the last of the text is the most relevant, cut beginning if too long path
-_MONORAIL_TEXT=" …${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
+_MONORAIL_TEXT=" $_MONORAIL_ELIPSIS${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
 fi
 _MONORAIL_TEXT_ARRAY=()
 if [[ $ZSH_NAME ]]
@@ -472,9 +472,12 @@ fi
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh
 local I=0
 _MONORAIL_LINE=
+_MONORAIL_UNDERLINE=$'\xe2\x96\x81'
+_MONORAIL_BAR=$'\xE2\x96\x8E'
+_MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
 while [[ $I -lt $COLUMNS ]]
 do
-_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
+_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e['"$COLUMNS"C$_MONORAIL_UNDERLINE$'\e['"$((COLUMNS - I))"D$_MONORAIL_UNDERLINE
 I=$((I+1))
 done
 local I=0
@@ -484,17 +487,17 @@ while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
 _MONORAIL_TEXT_FORMATTED+="${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
-_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m${_MONORAIL_POSTHIDE}▎"
+_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m${_MONORAIL_POSTHIDE}$_MONORAIL_BAR"
 else
 _MONORAIL_TEXT_FORMATTED=
 [[ -z ${_PROMPT_TEXT_LUT[*]} ]] && _PROMPT_TEXT_LUT[0]="255;255;255"
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
-_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
+_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e['"$((_MONORAIL_TEXT_ARRAY_LEN + 1))C"$'\e'["$((_MONORAIL_TEXT_ARRAY_LEN + 1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
 # the invisible vertical bar is added to make the prompt displayed better when copied to a chat or text doc
 # this is not normally visible, but on some terminals not supporting ^[8m it will fall back the same color as the monorail bar
-_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m"$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE▎"
+_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m"$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE$_MONORAIL_BAR"
 fi
 RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*$((_MONORAIL_TEXT_ARRAY_LEN+1))/$((COLUMNS+1))))]}
 RGB_CUR_R=${RGB_CUR_COLOR%%;*}
@@ -506,14 +509,11 @@ HEX_CURSOR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B"
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 # shellcheck disable=SC2059 # keep printf compact
-printf "\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#$HEX_CURSOR_COLOR\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a"
-# workaround: a data races frequently causes gnome-terminal to ignore setting the colors; set them again after 0.1 seconds as a workaround
-# shellcheck disable=SC2059 # keep printf compact
-( { sleep 0.1;printf "\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#$HEX_CURSOR_COLOR\a" >/dev/tty 2>&-;} & )
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#$HEX_CURSOR_COLOR\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\e\r\e[K"
 
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-PS1=$'\e'"]0;"'$_MONORAIL_TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
+PS1=$'\e[?7l'$'\e'"[${COLUMNS}C"$'\e'"]0;"'$_MONORAIL_TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
+$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e[?7h'$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
@@ -634,8 +634,12 @@ echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 if [[ "$TERM" = "xterm-256color" ]] && [[ $COLORTERM = "truecolor" ]];then
 :
 elif [[ "$MC_TMPDIR" ]];then
+if [[ $_MONORAIL_NO_COMPAT ]];then
+:
+else
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
+fi
 else
 case "$TERM" in
 "alacritty"|"rio"|"xterm-kitty"|"xterm-ghostty" | "rxvt-unicode-256color")
@@ -643,33 +647,34 @@ printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
 # ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
 [[ "$TERM" = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
 ;;
-"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "xgterm" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"* | "cygwin"|"aaa"|"at386"|"hft" | "sun" | "wy370" | "scoansi"|"dg2"*)
+"xterm-color"|"xterm-16color")
+if [[ $_MONORAIL_NO_COMPAT ]];then
+:
+else
 # needed to avoid syntax error in monorail.compat.sh
-unalias git >/dev/null 2>/dev/null
-. "$_MONORAIL_DIR/monorail.compat.sh"
-;;
-xterm*)
-printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-# COLORTERM may be filtered (eg. by SSH) or missing (eg. in xterm)
-# manual detection causes sporadic glitches in ssh.
-# The only two 'xterm' compatible terminals that I know of that do not
-# handle 24bit is:
-# * FreeBSD console
-# * Terminal.app on macOS earlier than Tahoe
-
-# when using ssh from Terminal.app, there is no (known to me) way for
-# the host to detect non-24bit compliance without resorting to
-# buggy manual detection which worsens the experience for everyone else.
-
-# FreeBSD console
-if [[ $(tty) =~ "/dev/ttyv"* ]];then
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi
 ;;
-*)
+xterm*)
+printf "\e[?7l\e[${COLUMNS}C\e]0; \a\e[?25l\r" >/dev/tty 2>&-
+# FreeBSD console lacks UTF-8 and truecolor
+if [[ $(tty) =~ "/dev/ttyv"* ]];then
+if [[ $_MONORAIL_NO_COMPAT ]];then
+:
+else
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
+fi
+fi
+;;
+*)
+if [[ $_MONORAIL_NO_COMPAT ]];then
+:
+else
+unalias git >/dev/null 2>/dev/null
+. "$_MONORAIL_DIR/monorail.compat.sh"
+fi
 esac
 :
 fi
