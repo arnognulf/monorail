@@ -222,16 +222,7 @@ if [[ "$XCMD" == ${_TIMER_CMD%% *} ]]; then
 IGNORED_TITLE=1
 fi
 done
-case $_TIMER_CMD in
-"c "*|"cd "*|".."*):;;
-*)[[ -z $_MONORAIL_DATE ]]&&_MONORAIL_DATE=$(LC_MESSAGES=C LC_ALL=C date +%m-%d)
-case $_MONORAIL_DATE in
-10-2*|10-3*)ICON=🎃
-;;
-12*)ICON=🎄
-;;
-*)ICON="*️⃣"
-esac
+ICON="*️⃣"
 _MONORAIL_TITLE="$ICON  $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 CMD=${_TIMER_CMD%% *}
@@ -253,7 +244,6 @@ fi
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 # shellcheck disable=SC2059 # keep printf compact
 printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a" >/dev/tty 2>&-
-esac
 unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
 } &>/dev/null
@@ -474,7 +464,7 @@ fi
 _MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
 local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
-unset _MONORAIL_DATE _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
+unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh ]];then
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_DIR"/gradients/Default.sh > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh 2>&-
 fi
