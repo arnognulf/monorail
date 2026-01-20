@@ -515,7 +515,7 @@ printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\
 
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 PS1=$'\e[?7l\e'"[${COLUMNS}C"$'\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e['$COLUMNS$'D\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m'"${_MONORAIL_POSTHIDE}"
+$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m\e[K'"${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
@@ -658,17 +658,19 @@ printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]0; \a\r\e[K" >/dev/tty 2>&-
 # ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
 [[ "$TERM" = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
 # FreeBSD console lacks UTF-8 and truecolor
+if [[ -z $_MONORAIL_NO_COMPAT ]];then
 if [[ $(tty) =~ "/dev/ttyv"* ]];then
-if [[ $_MONORAIL_NO_COMPAT ]];then
-:
-else
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
-fi
 fi
 # too many terminal glitches in vscode
 if [[ $TERM_PROGRAM = vscode ]];then
 . "$_MONORAIL_DIR/monorail.compat.sh"
+fi
+# cool-retro-term is cooler without the pipe bar
+if [[ $WINDOWID = 0 ]];then
+. "$_MONORAIL_DIR/monorail.compat.sh"
+fi
 fi
 ;;
 *)
@@ -679,6 +681,10 @@ unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi
 esac
+fi
+if [[ $_MONORAIL_FORCE_COMPAT ]];then
+unalias git >/dev/null 2>/dev/null
+. "$_MONORAIL_DIR/monorail.compat.sh"
 fi
 # shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $ZSH_NAME$BASH $_MONORAIL_DIR/scripts/color.sh"
