@@ -170,7 +170,6 @@
 		fi
 		;;
 	"ibm-327"* | "dp33"?? | "adm3a" | "vt"?? | "hp2621" | "hz1500" | "wy30" | "vc404" | "dg2"*)
-		echo foo
 		# dumb lowercase terminals
 		bind 'set enable-bracketed-paste off'
 		_MONORAIL_OFFSET=1

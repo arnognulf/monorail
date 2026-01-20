@@ -239,7 +239,7 @@ _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 local _MONORAIL_TITLE_FORMATTED=""
 if [[ -z $IGNORED_TITLE ]];then
-_MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a'
+_MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
 fi
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 # shellcheck disable=SC2059 # keep printf compact
@@ -260,7 +260,7 @@ _TITLE_RAW(){
 if [[ $_MONORAIL_NOSTYLING ]];then
 return 0
 fi
-printf "\e]0;%s\a" "$*" >/dev/tty 2>&-
+printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 }
 if [[ $XDG_CONFIG_HOME ]];then
 _MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
@@ -443,6 +443,7 @@ case $PWD in
 *)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
 esac
 _MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
+_MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
 _MONORAIL_TEXT="${_MONORAIL_TEXT//\.\.\./$_MONORAIL_ELIPSIS}"
 if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 # frequently, the last of the text is the most relevant, cut beginning if too long path
@@ -473,13 +474,12 @@ fi
 local I=0
 _MONORAIL_LINE=
 _MONORAIL_UNDERLINE=$'\xe2\x96\x81'
-_MONORAIL_BAR=$'\xE2\x96\x8E'
-_MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
 while [[ $I -lt $COLUMNS ]]
 do
-_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e['"$COLUMNS"C$_MONORAIL_UNDERLINE$'\e['"$((COLUMNS - I))"D$_MONORAIL_UNDERLINE
+_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e['"$COLUMNS"C$'\e['"$((COLUMNS - I))"D$_MONORAIL_UNDERLINE
 I=$((I+1))
 done
+_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e['"$COLUMNS"C$_MONORAIL_UNDERLINE$'\e['"$((COLUMNS - I))"D$_MONORAIL_UNDERLINE
 local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
 _MONORAIL_TEXT_FORMATTED="$_MONORAIL_PREHIDE"$'\e'"[0;7m${_MONORAIL_POSTHIDE}"
@@ -487,7 +487,7 @@ while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
 _MONORAIL_TEXT_FORMATTED+="${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
-_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m${_MONORAIL_POSTHIDE}$_MONORAIL_BAR"
+_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e[0;8m'"${_MONORAIL_POSTHIDE}|"
 else
 _MONORAIL_TEXT_FORMATTED=
 [[ -z ${_PROMPT_TEXT_LUT[*]} ]] && _PROMPT_TEXT_LUT[0]="255;255;255"
@@ -495,9 +495,11 @@ while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
 _MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e['"$((_MONORAIL_TEXT_ARRAY_LEN + 1))C"$'\e'["$((_MONORAIL_TEXT_ARRAY_LEN + 1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
-# the invisible vertical bar is added to make the prompt displayed better when copied to a chat or text doc
-# this is not normally visible, but on some terminals not supporting ^[8m it will fall back the same color as the monorail bar
-_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m"$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE$_MONORAIL_BAR"
+# The invisible vertical bar is added to make the prompt more readable when copied to a chat or text doc.
+# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
+# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
+# In this case the horizontal bar is colored with background color.
+_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m$_MONORAIL_POSTHIDE|"
 fi
 RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*$((_MONORAIL_TEXT_ARRAY_LEN+1))/$((COLUMNS+1))))]}
 RGB_CUR_R=${RGB_CUR_COLOR%%;*}
@@ -512,8 +514,8 @@ fi
 printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#$HEX_CURSOR_COLOR\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\e\r\e[K"
 
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-PS1=$'\e[?7l'$'\e'"[${COLUMNS}C"$'\e'"]0;"'$_MONORAIL_TITLE'$'\a'$'\r'$'\e'"[0m$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e[?7h'$'\e'"[0m"$'\e'"[?25h${_MONORAIL_POSTHIDE}"
+PS1=$'\e[?7l\e'"[${COLUMNS}C"$'\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
+$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\e['$COLUMNS$'D\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m'"${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
@@ -642,12 +644,7 @@ unalias git >/dev/null 2>/dev/null
 fi
 else
 case "$TERM" in
-"alacritty"|"rio"|"xterm-kitty"|"xterm-ghostty" | "rxvt-unicode-256color")
-printf '\e]0; \a\e[?25l' >/dev/tty 2>&-
-# ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
-[[ "$TERM" = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
-;;
-"xterm-color"|"xterm-16color")
+xterm-color|xterm-16color)
 if [[ $_MONORAIL_NO_COMPAT ]];then
 :
 else
@@ -656,8 +653,10 @@ unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi
 ;;
-xterm*)
-printf "\e[?7l\e[${COLUMNS}C\e]0; \a\e[?25l\r" >/dev/tty 2>&-
+xterm*|alacritty|rio|rxvt-unicode-256color|mlterm|st-256color|foot)
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]0; \a\r\e[K" >/dev/tty 2>&-
+# ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
+[[ "$TERM" = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
 # FreeBSD console lacks UTF-8 and truecolor
 if [[ $(tty) =~ "/dev/ttyv"* ]];then
 if [[ $_MONORAIL_NO_COMPAT ]];then
@@ -666,6 +665,10 @@ else
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi
+fi
+# too many terminal glitches in vscode
+if [[ $TERM_PROGRAM = vscode ]];then
+. "$_MONORAIL_DIR/monorail.compat.sh"
 fi
 ;;
 *)
@@ -676,7 +679,6 @@ unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi
 esac
-:
 fi
 # shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $ZSH_NAME$BASH $_MONORAIL_DIR/scripts/color.sh"
