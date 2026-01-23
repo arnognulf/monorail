@@ -1,8 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
+
+TEMPDIR=$(mktemp -d)
+cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh" "${TEMPDIR}"/current.sh
+touch "${TEMPDIR}"/current.sh
+# shellcheck disable=SC1091 # path exists
+. "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
+
 _MAIN() {
-	if [[ $ZSH_NAME ]]; then
+	if [ "$ZSH_NAME" ]; then
 		setopt KSH_ARRAYS
 		setopt prompt_subst
 	fi
@@ -22,40 +29,51 @@ Examples:
 		;;
 	esac
 
-	if which identify &>/dev/null && which convert &>/dev/null && which fzf &>/dev/null; then
+	if command -v identify >/dev/null 2>/dev/null && command -v convert >/dev/null 2>/dev/null; then
 		:
 	else
-		"error: please install fzf, imagemagick"
+		echo "error: please install imagemagick"
 		exit 42
 	fi
 
-	unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-	_PROMPT_LUT=()
-	_PROMPT_TEXT_LUT=()
-	_COLORS=()
-	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-	[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
-	[[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
-	[[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
-	[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
-
-	if [[ -z "$DEST" ]]; then
+	if [ -z "$DEST" ]; then
 		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
 
-	if [[ -z "$1" ]]; then
-		THEME=$(cd "${XDG_PICTURES_DIR-${HOME}/Pictures}" && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh \"${_COLORS[16]}\" \"${_COLORS[17]}\" {}")
+	if [ -z "$1" ]; then
+		if [ "$BASH_VERSION" ] || [ "$ZSH_NAME" ]; then
+			:
+		else
+			echo "error: preview requires bash, zsh, or ksh"
+			exit 42
+		fi
+
+		if command -v fzf >/dev/null 2>/dev/null; then
+			:
+		else
+			echo "error: please install fzf"
+			exit 42
+		fi
+		PREVIEW_SHELL=$(command -v ksh)
+		if [ ! -x "$PREVIEW_SHELL" ]; then
+			PREVIEW_SHELL=$SHELL
+		fi
+
+		if [ -z "$_MONORAIL_IMAGE_DIR" ]; then
+			_MONORAIL_IMAGE_DIR=$XDG_PICTURES_DIR
+		fi
+		THEME=$(cd "${_MONORAIL_IMAGE_DIR}" && fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
+
 		if [ -n "$THEME" ]; then
-			THEME="${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}"
+			THEME="${_MONORAIL_IMAGE_DIR}/$THEME"
 		else
 			exit 1
 		fi
 	else
 		THEME="$1"
 	fi
-	ERR=$(identify "$THEME" 2>&1)
-	if [ $? -ne 0 ]; then
-		echo "monorail_image: decoding failed: ${ERR}" 1>&2 | tee 1>/dev/null
+	if ! identify "$THEME"; then
+		echo "monorail_image: decoding failed"
 		exit 1
 	fi
 
@@ -65,67 +83,23 @@ Examples:
 		echo "monorail_image: $THEME not found"
 		exit 1
 	fi
-	unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-	_PROMPT_LUT=()
-	_PROMPT_TEXT_LUT=()
-
+	# imagemagick have troubles with filenames containing spaces
 	TEMP=$(mktemp --suff=".${THEME##*.}")
 
-	cp "${THEME}" "${TEMP}" &>/dev/null
+	cp "${THEME}" "${TEMP}" >/dev/null 2>/dev/null
+	identify "${TEMP}" 1>/dev/null 2>/dev/null || exit 42
 	# identify will report size
 	WIDTH=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
 	HEIGHT=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f2 | head -n1)
-
-	for RGB in $(convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) "${THEME}" PPM:- | convert -scale 200x "PPM:-" RGB:- | xxd -ps -c3); do
-		_PROMPT_LUT[$I]="$((0x${RGB:0:2}));$((0x${RGB:2:2}));$((0x${RGB:4:2}))"
+	ADD_WHITE_PROMPT_TEXT_LUT
+	printf "_PROMPT_LUT"
+	for RGB in $(convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${THEME}" RGB:- | xxd -ps -c3); do
+		echo " \\"
+		printf "\"%s;%s;%s\"" $((0x$(echo "$RGB" | cut -c1-2))) $((0x$(echo "$RGB" | cut -c3-4))) $((0x$(echo "$RGB" | cut -c5-6)))
 		I=$((I + 1))
 	done
 
-	rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-	{
-		I=0
-		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
-			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
-			I=$((I + 1))
-		done
-		I=0
-		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
-			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
-			I=$((I + 1))
-		done
-		I=0
-		while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
-			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
-			I=$((I + 1))
-		done
-
-		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
-		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
-
-	} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-	killall -s WINCH bash zsh &>/dev/null
-
-	{
-		I=0
-		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
-			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
-			I=$((I + 1))
-		done
-		I=0
-		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
-			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
-			I=$((I + 1))
-		done
-		I=0
-		while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
-			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
-			I=$((I + 1))
-		done
-
-		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
-		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
-
-	} >"${DEST}" 2>/dev/null
-	killall -s WINCH bash zsh &>/dev/null
+	ADD_CURRENT_COLORS
+	killall -s WINCH bash zsh >/dev/null 2>/dev/null
 }
 _MAIN "$@"

@@ -24,37 +24,64 @@ if [[ $ZSH_NAME ]]; then
 	setopt prompt_subst
 fi
 
-if [[ "$3" = "000_README.md" ]]; then
-	cat "$3"
+if [[ "$1" = "000_README.md" ]]; then
+	cat "$1"
 	exit 1
 fi
-_COLORS=()
-_COLORS[16]="$1"
-_COLORS[17]="$2"
-if [[ $LINES -lt 19 ]]; then
-	I=$((19 - LINES))
-else
-	I=0
-fi
-case $(echo "$3" | awk '{print tolower($0)}') in
-*.sh)
 
-	if [[ $XDG_CONFIG_HOME ]]; then
-		_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
-	else
-		_MONORAIL_CONFIG="$HOME/.config/monorail"
-	fi
-	. ${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh &>/dev/null || exit 42
-	. "$3" &>/dev/null || exit 42
-	case "${3}" in
+_PROMPT_LUT() {
+	I=0
+	_PROMPT_LUT=()
+	while [[ $1 ]]; do
+		_PROMPT_LUT[I]=$1
+		shift
+		I=$((I + 1))
+	done
+	unset I
+}
+_PROMPT_TEXT_LUT() {
+	_PROMPT_TEXT_LUT=()
+	I=0
+	while [[ $1 ]]; do
+		_PROMPT_TEXT_LUT[I]=$1
+		shift
+		I=$((I + 1))
+	done
+	unset I
+}
+_COLORS() {
+	_COLORS=()
+	I=0
+	while [[ "$1" ]]; do
+		_COLORS[I]=$1
+		shift
+		I=$((I + 1))
+	done
+	unset I
+}
+
+PREVIEW=$1
+
+if [[ $XDG_CONFIG_HOME ]]; then
+	_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
+else
+	_MONORAIL_CONFIG="$HOME/.config/monorail"
+fi
+# shellcheck disable=SC1090 # file exists
+. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
+*.sh)
+	case "${PWD}" in
 	*/gradients/*)
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		;;
 	esac
+	# shellcheck disable=SC1090 # file exists
+	. "./$PREVIEW"
 	;;
 *)
 
-	THEME="${3}"
+	THEME="${PREVIEW}"
 
 	TEMP=$(mktemp --suff=".${THEME##*.}")
 	cp -f "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "$TEMP"
@@ -69,6 +96,11 @@ case $(echo "$3" | awk '{print tolower($0)}') in
 	;;
 esac
 
+if [[ $LINES -lt 19 ]]; then
+	I=$((19 - LINES))
+else
+	I=0
+fi
 TEXT=(
 	"Lorem ipsum dolor sit amet,"
 	"consectetur adipiscing elit."
@@ -95,23 +127,23 @@ ESC=$'\e'
 PREFG="${ESC}[38;2;"
 PREBG="${ESC}[48;2;"
 POST="m"
-#PRE_LINES=3
 [[ -z $COLUMNS ]] && COLUMNS=$(stty size | awk '{ print $2 }')
 [[ -z $LINES ]] && LINES=$(stty size | awk '{ print $1 }')
+_COLORS() {
+	local I=0
+	while [[ $1 ]]; do
+		_COLORS[I]=$1
+		shift
+	done
+}
 FGCOLOR=${_COLORS[16]}
 BGCOLOR=${_COLORS[17]}
-FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
-BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
-#I=0
-#while [[ $I -lt $PRE_LINES ]]; do
-#	J=0
-#	while [[ $J -lt $COLUMNS ]]; do
-#		printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}$POST "
-#		J=$((J + 1))
-#	done
-#	printf "\n"
-#	I=$((I + 1))
-#done
+if [ -z "$FGCOLOR" ]; then
+	echo "MISSING FGCOLOR"
+	sleep 3
+fi
+FGCOLOR_RGB=$((0x$(echo "$FGCOLOR" | cut -c1-2)))";"$((0x$(echo "$FGCOLOR" | cut -c3-4)))";"$((0x$(echo "$FGCOLOR" | cut -c5-6)))
+BGCOLOR_RGB=$((0x$(echo "$BGCOLOR" | cut -c1-2)))";"$((0x$(echo "$BGCOLOR" | cut -c3-4)))";"$((0x$(echo "$BGCOLOR" | cut -c5-6)))
 
 while [[ $I -lt 17 ]]; do
 	if [[ $I == 16 ]]; then
@@ -119,8 +151,8 @@ while [[ $I -lt 17 ]]; do
 		TEXT1=${TEXT1:0:1}
 		FGCOLOR=${_COLORS[17]}
 		BGCOLOR=${_COLORS[21]}
-		FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
-		BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
+		FGCOLOR_RGB=$((0x$(echo "$FGCOLOR" | cut -c1-2)))";"$((0x$(echo "$FGCOLOR" | cut -c3-4)))";"$((0x$(echo "$FGCOLOR" | cut -c5-6)))
+		BGCOLOR_RGB=$((0x$(echo "$BGCOLOR" | cut -c1-2)))";"$((0x$(echo "$BGCOLOR" | cut -c3-4)))";"$((0x$(echo "$BGCOLOR" | cut -c5-6)))
 		printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST$TEXT1"
 		TEXT1=${TEXT[I]}
 		TEXT1=${TEXT1:1}
@@ -185,7 +217,7 @@ I=0
 while [[ $I -lt $((LINES - PRE_LINES - 3)) ]]; do
 	J=0
 	while [[ $J -lt $COLUMNS ]]; do
-		printf "${PREBG}${BGCOLOR_RGB}$POST "
+		printf "%s%s%s " "${PREBG}" "${BGCOLOR_RGB}" "$POST"
 		J=$((J + 1))
 	done
 	printf "\n"

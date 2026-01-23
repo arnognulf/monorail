@@ -1,23 +1,24 @@
-#!/bin/ksh
-_COLORS[0]="000000"
-_COLORS[1]="ff0000"
-_COLORS[2]="4cc300"
-_COLORS[3]="e2c000"
-_COLORS[4]="008ef6"
-_COLORS[5]="a96cb3"
-_COLORS[6]="00bdc3"
-_COLORS[7]="e0e5db"
-_COLORS[8]="797d76"
-_COLORS[9]="ff0013"
-_COLORS[10]="8af600"
-_COLORS[11]="ffec00"
-_COLORS[12]="76bfff"
-_COLORS[13]="d898d1"
-_COLORS[14]="00f6fa"
-_COLORS[15]="f4f4f2"
-_COLORS[16]="000000"
-_COLORS[17]="ffffff"
-_COLORS[18]="000000"
-_COLORS[19]="c1deff"
-_COLORS[20]="000000"
-_COLORS[21]="000000"
+#!/bin/sh
+_COLORS \
+"000000" \
+"ff0000" \
+"4cc300" \
+"e2c000" \
+"008ef6" \
+"a96cb3" \
+"00bdc3" \
+"babfb5" \
+"797d76" \
+"ff0013" \
+"70dc00" \
+"d9c600" \
+"76bfff" \
+"d898d1" \
+"00d0d4" \
+"f4f4f2" \
+"000000" \
+"ffffff" \
+"000000" \
+"c1deff" \
+"000000" \
+"000000"

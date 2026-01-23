@@ -27,6 +27,7 @@
 #
 # echo -e "\033]Pg4040ff\033\\"
 #
+_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -34,7 +35,7 @@ fi
 if which identify &>/dev/null && which convert &>/dev/null && which bc &>/dev/null && which fzf &>/dev/null; then
 	:
 else
-	"error: please install bc, fzf, imagemagick"
+	echo "error: please install bc, fzf, imagemagick"
 	exit 42
 fi
 
@@ -42,9 +43,21 @@ _MONORAIL_CONFIG=$HOME/.config/monorail
 mkdir -p colors
 rm -f colors/*
 (
-	cd colors
+	cd colors || {
+		echo "error: missing colors directory"
+		exit 42
+	}
 	git checkout Default.sh
 )
+_PROMPT_LUT() {
+	:
+}
+_PROMPT_TEXT_LUT() {
+	:
+}
+_COLORS() {
+	:
+}
 for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	eval $(
@@ -58,11 +71,14 @@ for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	THEME=${THEME//)/}
 	rm -f "colors/${THEME}"
 	{
-		echo "#!/bin/ksh"
+		echo "#!/bin/sh"
+		printf "_COLORS"
 		I=0
 		while [ "$I" -lt "${#_COLORS[*]}" ]; do
-			echo "_COLORS[$I]=\"${_COLORS[I]}\""
+			echo " \\"
+			printf "\"${_COLORS[I]}\""
 			I=$((I + 1))
 		done
+		echo ""
 	} >"colors/${THEME}"
 done

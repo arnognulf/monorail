@@ -2,7 +2,10 @@
 rm -rf bash-preexec
 git clone https://github.com/rcaloras/bash-preexec
 REVISION=$(
-	cd bash-preexec
+	cd bash-preexec || {
+		echo "error"
+		exit 42
+	}
 	git rev-parse HEAD
 )
 rm -rf bash-preexec/.git

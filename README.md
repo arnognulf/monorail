@@ -1,7 +1,7 @@
 🚝 Monorail Prompt
 ==================
 
-Monorail is a simple and beautiful shell prompt for Bash, Zsh, and Ksh with customizable gradient colors.
+Monorail is a simple and beautiful shell prompt for Bash, Zsh, Ksh, and Posix shells with customizable gradient colors.
 
 ![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation_dark.gif#gh-dark-mode-only)
 ![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation_light.gif#gh-light-mode-only)
@@ -39,17 +39,19 @@ For bash and zsh, add the following line to ~/.bashrc or ~/.zshrc
 . ~/.local/share/monorail/monorail.sh
 ```
 
-For ksh, add the following to ~/.profile
+Open a new terminal for changes to take effect.
+
+For posix sh and ksh, add the following to ~/.profile
 ```
-ENV="$HOME"/.kshrc
+ENV="$HOME"/.shrc
 export ENV
 ```
-Additionally for ksh, add the following to ~/.kshrc
+Additionally for posix and ksh, add the following to ~/.shrc
 ```
 . ~/.local/share/monorail/monorail.compat.sh
 ```
 
-Open a new terminal for changes to take effect.
+Log out and log in for changes to take effect.
 
 Usage
 =====
@@ -147,11 +149,11 @@ To configure app icons, and wether to emit a notification or not, we need to def
 
 Interactive commands
 --------------------
-This is a type of command that should be responsive for user input.
+Interactive commands are commands that should be responsive for user input or run with low latency.
 
 
 
-Interactive commands should have a high priority in order for the system to appear responsive to the user.
+These commands should run with high priority so they respond quickly to user requests or play sounds without interrupts.
 
 
 Timing statistics will not be collected for interactive commands since the exit is not dependent on runtime but rather user initiated exit.
@@ -171,14 +173,14 @@ interactive_command 📝 vim
 
 Batch commands
 --------------
-This is a command that consumes lots of CPU resources.
+Batch commands are commands that consumes lots of CPU resources and are not sensitive to latency.
 
 
 
-A batch command is run with low priority since it would otherwise make the system unresponsive.
+These commands should run with low priority so they don't interfere with interactive commands that needs low latency.
 
 
-* measurement of time is important, so artifacts can be used for next task.
+* measurement of time is important for statistics and troubleshooting.
 * notification so user can focus on other task until batch process is complete.
 * low priority, user interactivity is more important than a batch process.
 * examples: compilation tools, encoding of video, and text search utilities such as grep and find.
@@ -201,20 +203,25 @@ Compat version
 --------------
 When monorail is used on a terminal that does not support truecolor or ansi control sequencies it will try to fall back to the compat version of monorail.
 
-The compat version is written in posix/ksh88 shell for maximum compatibility and support for non-bash and non-zsh shells such as `OpenBSD ksh`, `ksh93`, `mksh`, `osh`, `posh`, `dash`, `brush`, and `busybox sh`
+The compat version is written in posix shell for maximum compatibility and support for non-bash and non-zsh shells such as `OpenBSD ksh`, `ksh93`, `mksh`, `osh`, `posh`, `dash`, `brush`, and `busybox sh`
 
 As for terminal support, truecolor terminals are supported as well as non-truecolor terminals, and vintage hardare terminals.
-
-To force `compat` version, set `_MONORAIL_FORCE_COMPAT=1`.
-
-To disable `compat` version, set _MONORAIL_DISABLE_COMPAT=1`; DISABLE has precedence over the ENABLE option.
 
 ![Emulated VT100 displaying a horizontal bar and inverted prompt](images/vt100.png)
 
 
 Supported shells
 ----------------
-Tested on bash 5.2 and zsh 5.9
+Tested on
+* bash 5.2
+* zsh 5.9
+* busybox ash v1.37.0
+* brush
+* Debian posh
+* MirBSD ksh
+* NetBSD ksh
+* OpenBSD ksh
+* ksh93 u+m 1.0.10 - gradients not fully supported due to shell bugs
 
 Supported terminals
 -------------------

@@ -248,6 +248,33 @@ unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
 } &>/dev/null
 }
+_PROMPT_LUT ()
+{
+unset "_PROMPT_LUT[*]"
+_PROMPT_LUT=()
+while [[ $1 ]];do
+_PROMPT_LUT[${#_PROMPT_LUT[@]}]=$1
+shift
+done
+}
+_PROMPT_TEXT_LUT ()
+{
+unset "_PROMPT_TEXT_LUT[*]"
+_PROMPT_TEXT_LUT=()
+while [[ $1 ]];do
+_PROMPT_TEXT_LUT[${#_PROMPT_TEXT_LUT[@]}]=$1
+shift
+done
+}
+_COLORS ()
+{
+unset "_COLORS[*]"
+_COLORS=()
+while [[ "$1" ]];do
+_COLORS[${#_COLORS[@]}]=$1
+shift
+done
+}
 _MONORAIL_SET_TITLE(){
 if [[ $1 ]];then
 _MONORAIL_TITLE_OVERRIDE="$*"
@@ -467,7 +494,11 @@ local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
 unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh ]];then
+if [ "$(gsettings get org.gnome.desktop.interface color-scheme)" = "prefer-dark" ];then
+LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/DefaultDark.sh "$_MONORAIL_DIR"/gradients/Default.sh > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh 2>&-
+else
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_DIR"/gradients/Default.sh > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh 2>&-
+fi
 fi
 # shellcheck disable=SC1090,SC1091 # file will be copied
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh
@@ -515,7 +546,7 @@ printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\
 
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 PS1=$'\e[?7l\e'"[${COLUMNS}C"$'\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m\e[K'"${_MONORAIL_POSTHIDE}"
+$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m'"${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
@@ -563,15 +594,26 @@ fi
 }
 trap "unset _MONORAIL_CACHE" WINCH
 _LOW_PRIO(){
-if type -P chrt >/dev/null 2>&-;then
+if type -P chrt && type -P ionice && type -P ionice;then
 _LOW_PRIO(){
-ionice -c idle chrt -i 0 "$@"
+# As an ordinary user, you cannot raise the priority and mark the importance
+# of a process.
+# However, you can mark which processes are less important than low-prio tasks
+# such as video calls or music.
+# The idea is to mark batch processes as less important to get better 
+# interactivity.
+#
+# `choom -n +1000` will make the OOM killer kill this process first
+# `ionice -c idle` will deprioritize IO from this process
+# `chrt --idle 0`  will set the cpu priority to the lowest possible
+choom -n +1000 ionice -c idle chrt --idle 0 "$@"
 }
 else
 _LOW_PRIO(){
+# `nice -n19` is the lowest priority on non-Linux systems
 nice -n19 "$@"
 }
-fi
+fi >/dev/null 2>&-
 _LOW_PRIO "$@"
 }
 # shellcheck disable=SC2329
@@ -636,36 +678,36 @@ echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 if [[ "$TERM" = "xterm-256color" ]];then
 # zutty (vterm) doesn't handle background color, nor hidden text.
 # thus the horizontal bar  "|" gets visible
-[[ $ZUTTY_VERSION ]]&&_MONORAIL_FORCE_COMPAT=1
+[[ $ZUTTY_VERSION ]]&&_MONORAIL_COMPAT=1
 # vscode does not support disabling line wrapping
 # 
-[[ $TERM_PROGRAM = vscode ]]&&_MONORAIL_FORCE_COMPAT=1
+[[ $TERM_PROGRAM = vscode ]]&&_MONORAIL_COMPAT=1
 elif [[ "$MC_TMPDIR" ]];then
-_MONORAIL_FORCE_COMPAT=1
+_MONORAIL_COMPAT=1
 else
 case "$TERM" in
 xterm-color|xterm-16color)
-_MONORAIL_FORCE_COMPAT=1
+_MONORAIL_COMPAT=1
 ;;
 xterm*|alacritty|rio|rxvt-unicode-256color|mlterm|st-256color|foot)
 printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "${COLUMNS}" >/dev/tty 2>&-
 # ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
 [[ $TERM = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
 # FreeBSD console lacks UTF-8 and truecolor
-[[ $(tty) =~ "/dev/ttyv"* ]]&&_MONORAIL_FORCE_COMPAT=1
+[[ $(tty) =~ "/dev/ttyv"* ]]&&_MONORAIL_COMPAT=1
 # cool-retro-term does not support invisible SGR8
-[[ $WINDOWID = 0 ]]&&_MONORAIL_FORCE_COMPAT=1
+[[ $WINDOWID = 0 ]]&&_MONORAIL_COMPAT=1
 # if not using UTF-8 locale in xterm or not using xterm use compat
 case $XTERM_LOCALE in
 ""|*.UTF-8):;;
-*)_MONORAIL_FORCE_COMPAT=1
+*)_MONORAIL_COMPAT=1
 esac
 ;;
 *)
-_MONORAIL_FORCE_COMPAT=1
+_MONORAIL_COMPAT=1
 esac
 fi
-[[ $_MONORAIL_FORCE_COMPAT ]]&&if [[ ! $_MONORAIL_NO_COMPAT ]];then
+[[ $_MONORAIL_COMPAT ]]&&if [[ ! $_MONORAIL_DISABLE_COMPAT ]];then
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi

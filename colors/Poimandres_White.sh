@@ -1,0 +1,24 @@
+#!/bin/sh
+_COLORS \
+"fefeff" \
+"ff2090" \
+"01dab2" \
+"e5ba4e" \
+"8abacd" \
+"eb8394" \
+"8abacd" \
+"000000" \
+"969cbd" \
+"ff2090" \
+"01dab2" \
+"e5ba4e" \
+"0ebfff" \
+"eb8394" \
+"0ebfff" \
+"000000" \
+"969cbd" \
+"fefeff" \
+"969cbd" \
+"969cbd" \
+"3b3e48" \
+"969cbd"

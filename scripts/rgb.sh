@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 # Usage:
 # rgb 253,33,42
-if [[ $ZSH_NAME ]]; then
+if [ "$ZSH_NAME" ]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi

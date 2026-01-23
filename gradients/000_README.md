@@ -18,8 +18,8 @@ HEX_COLOR   is a hexadecimal RRGGBB color
 Eg. design your gradient at https://cssgradient.io/ and transfer these to gradient script.
 
 Examples:
-monorail_gradient  0 b1e874  100 00d4ff
-monorail_gradient  0 020024  35 1818a1  100 00d4ff
+monorail_gradient  b1e874 0  00d4ff 100
+monorail_gradient  020024 0  1818a1  35  00d4ff 100
 
 To disable gradients and use the foreground color, select:
 monorail_gradient None
