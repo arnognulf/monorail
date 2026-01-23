@@ -248,6 +248,30 @@ unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
 } &>/dev/null
 }
+_PROMPT_LUT ()
+{
+unset "_PROMPT_LUT[*]"
+_PROMPT_LUT=()
+while [[ $1 ]];do
+_PROMPT_LUT[${#_PROMPT_LUT[@]}]=$1
+shift
+done
+}
+_PROMPT_TEXT_LUT ()
+{
+unset "_PROMPT_TEXT_LUT[*]"
+_PROMPT_TEXT_LUT=()
+while [[ $1 ]];do
+_PROMPT_TEXT_LUT[${#_PROMPT_TEXT_LUT[@]}]=$1
+shift
+done
+}
+_COLORS ()
+{
+unset "_COLORS[*]"
+_COLORS=()
+_COLORS[${#_COLORS[@]}]=$1
+}
 _MONORAIL_SET_TITLE(){
 if [[ $1 ]];then
 _MONORAIL_TITLE_OVERRIDE="$*"
