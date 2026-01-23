@@ -216,9 +216,9 @@ C=${C/\\\z/\\\\\z}
 C=${C/\\\033/<ESC>}
 _TIMER_CMD=${C/\\\007/<BEL>}
 local XCMD IGNORED_TITLE=""
-for XCMD in ${_MONORAIL_CMD_IGNORED[@]}
+for XCMD in "${_MONORAIL_CMD_IGNORED[@]}"
 do
-if [[ "$XCMD" == ${_TIMER_CMD%% *} ]]; then
+if [[ "$XCMD" == "${_TIMER_CMD%% *}" ]]; then
 IGNORED_TITLE=1
 fi
 done
@@ -435,7 +435,7 @@ fi
 esac
 fi
 _MONORAIL_TITLE="$ICON  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
-[[ $PWD != $HOME ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
+[[ $PWD != "$HOME" ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 local PWD_BASENAME="${PWD##*/}"
 [ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
 case $PWD in
@@ -633,56 +633,39 @@ done
 echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 }
 
-if [[ "$TERM" = "xterm-256color" ]] && [[ $COLORTERM = "truecolor" ]];then
-:
+if [[ "$TERM" = "xterm-256color" ]];then
+# zutty (vterm) doesn't handle background color, nor hidden text.
+# thus the horizontal bar  "|" gets visible
+[[ $ZUTTY_VERSION ]]&&_MONORAIL_FORCE_COMPAT=1
+# vscode does not support disabling line wrapping
+# 
+[[ $TERM_PROGRAM = vscode ]]&&_MONORAIL_FORCE_COMPAT=1
 elif [[ "$MC_TMPDIR" ]];then
-if [[ $_MONORAIL_NO_COMPAT ]];then
-:
-else
-unalias git >/dev/null 2>/dev/null
-. "$_MONORAIL_DIR/monorail.compat.sh"
-fi
+_MONORAIL_FORCE_COMPAT=1
 else
 case "$TERM" in
 xterm-color|xterm-16color)
-if [[ $_MONORAIL_NO_COMPAT ]];then
-:
-else
-# needed to avoid syntax error in monorail.compat.sh
-unalias git >/dev/null 2>/dev/null
-. "$_MONORAIL_DIR/monorail.compat.sh"
-fi
+_MONORAIL_FORCE_COMPAT=1
 ;;
 xterm*|alacritty|rio|rxvt-unicode-256color|mlterm|st-256color|foot)
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]0; \a\r\e[K" >/dev/tty 2>&-
+printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "${COLUMNS}" >/dev/tty 2>&-
 # ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
-[[ "$TERM" = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
+[[ $TERM = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
 # FreeBSD console lacks UTF-8 and truecolor
-if [[ -z $_MONORAIL_NO_COMPAT ]];then
-if [[ $(tty) =~ "/dev/ttyv"* ]];then
-unalias git >/dev/null 2>/dev/null
-. "$_MONORAIL_DIR/monorail.compat.sh"
-fi
-# too many terminal glitches in vscode
-if [[ $TERM_PROGRAM = vscode ]];then
-. "$_MONORAIL_DIR/monorail.compat.sh"
-fi
-# cool-retro-term is cooler without the pipe bar
-if [[ $WINDOWID = 0 ]];then
-. "$_MONORAIL_DIR/monorail.compat.sh"
-fi
-fi
+[[ $(tty) =~ "/dev/ttyv"* ]]&&_MONORAIL_FORCE_COMPAT=1
+# cool-retro-term does not support invisible SGR8
+[[ $WINDOWID = 0 ]]&&_MONORAIL_FORCE_COMPAT=1
+# if not using UTF-8 locale in xterm or not using xterm use compat
+case $XTERM_LOCALE in
+""|*.UTF-8):;;
+*)_MONORAIL_FORCE_COMPAT=1
+esac
 ;;
 *)
-if [[ $_MONORAIL_NO_COMPAT ]];then
-:
-else
-unalias git >/dev/null 2>/dev/null
-. "$_MONORAIL_DIR/monorail.compat.sh"
-fi
+_MONORAIL_FORCE_COMPAT=1
 esac
 fi
-if [[ $_MONORAIL_FORCE_COMPAT ]];then
+[[ $_MONORAIL_FORCE_COMPAT ]]&&if [[ ! $_MONORAIL_NO_COMPAT ]];then
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.compat.sh"
 fi

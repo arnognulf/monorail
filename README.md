@@ -199,11 +199,15 @@ The commands can be overridden by re-defining them in ~/.bashrc or ~/.zshrc
 
 Compat version
 --------------
-When monorail is used on a terminal that does not support truecolor or ansi control sequencies it will fall back to the compat version of monorail.
+When monorail is used on a terminal that does not support truecolor or ansi control sequencies it will try to fall back to the compat version of monorail.
 
 The compat version is written in posix/ksh88 shell for maximum compatibility and support for non-bash and non-zsh shells such as `OpenBSD ksh`, `ksh93`, `mksh`, `osh`, `posh`, `dash`, `brush`, and `busybox sh`
 
 As for terminal support, truecolor terminals are supported as well as non-truecolor terminals, and vintage hardare terminals.
+
+To force `compat` version, set `_MONORAIL_FORCE_COMPAT=1`.
+
+To disable `compat` version, set _MONORAIL_DISABLE_COMPAT=1`; DISABLE has precedence over the ENABLE option.
 
 ![Emulated VT100 displaying a horizontal bar and inverted prompt](images/vt100.png)
 
