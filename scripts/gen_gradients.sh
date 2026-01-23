@@ -1,4 +1,5 @@
 #!/bin/bash
+export _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 if which jq &>/dev/null && which bc &>/dev/null; then
 	:
 else
@@ -37,19 +38,38 @@ while [[ $I -lt $FIELDS ]]; do
 	done
 	# shellcheck disable=SC2086 # intentional string splitting below
 	bash scripts/gradient.sh ${COLOR_STRING}
+	_PROMPT_LUT() {
+		:
+	}
+	_PROMPT_TEXT_LUT() {
+		:
+	}
+	_COLORS() {
+		:
+	}
 	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	{
-		echo "#!/bin/ksh"
+# _PROMPT_TEXT_LUT needs to be defined before _PROMPT_LUT as _PROMPT_LUT is dependent on it in monorail.compat
+
+		printf "_PROMPT_TEXT_LUT"
 		J=0
-		while [ $J -lt "${#_PROMPT_LUT[*]}" ]; do
-			echo "_PROMPT_LUT[$J]=\"${_PROMPT_LUT[$J]}\""
+		while [[ "$J" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
+			echo " \\"
+			printf "\"${_PROMPT_TEXT_LUT[$J]}\""
 			J=$((J + 1))
 		done
+		echo ""
+		echo ""
+
+		printf "_PROMPT_LUT"
 		J=0
-		while [ $J -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
-			echo "_PROMPT_TEXT_LUT[$J]=\"${_PROMPT_TEXT_LUT[$J]}\""
+		while [[ "$J" -lt "${#_PROMPT_LUT[*]}" ]]; do
+			echo " \\"
+			printf "\"${_PROMPT_LUT[$J]}\""
 			J=$((J + 1))
 		done
+		echo ""
+		echo ""
 	} >gradients/"${NAME}.sh"
 	echo "Wrote gradient to: gradients/$NAME".sh
 	I=$((I + 1))

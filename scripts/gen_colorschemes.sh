@@ -27,6 +27,7 @@
 #
 # echo -e "\033]Pg4040ff\033\\"
 #
+_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -45,6 +46,18 @@ rm -f colors/*
 	cd colors
 	git checkout Default.sh
 )
+_PROMPT_LUT ()
+{
+:
+}
+_PROMPT_TEXT_LUT ()
+{
+:
+}
+_COLORS ()
+{
+:
+}
 for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	eval $(
@@ -58,11 +71,14 @@ for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	THEME=${THEME//)/}
 	rm -f "colors/${THEME}"
 	{
-		echo "#!/bin/ksh"
+		echo "#!/bin/sh"
+printf "_COLORS"
 		I=0
 		while [ "$I" -lt "${#_COLORS[*]}" ]; do
-			echo "_COLORS[$I]=\"${_COLORS[I]}\""
+echo " \\"
+			printf "\"${_COLORS[I]}\""
 			I=$((I + 1))
 		done
+echo ""
 	} >"colors/${THEME}"
 done

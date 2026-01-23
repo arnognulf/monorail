@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright (c) Thomas Eriksson <thomas.eriksson@gmail.com>
 #
@@ -19,6 +19,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+_PROMPT_LUT() {
+		:
+	}
+	_PROMPT_TEXT_LUT() {
+		:
+	}
+	_COLORS() {
+		:
+	}
 
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
@@ -305,16 +315,49 @@ or \"None\" to use text color"
 			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
 			I=$((I + 1))
 		done
+
 		I=0
 		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
 			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
 			I=$((I + 1))
 		done
-		I=0
+
+   		I=0
 		while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
 			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
 			I=$((I + 1))
 		done
+
+    printf "_PROMPT_LUT"
+		I=0
+		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
+            echo " \\"
+			printf "\"${_PROMPT_LUT[$I]}\""
+			I=$((I + 1))
+		done
+        echo ""
+        echo ""
+
+
+printf "_PROMPT_TEXT_LUT"
+		I=0
+		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
+            echo " \\"
+			printf "\"${_PROMPT_TEXT_LUT[$I]}\""
+			I=$((I + 1))
+		done
+        echo ""
+        echo ""
+
+    printf "_COLORS"
+		I=0
+		while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
+            echo " \\"
+			printf "${_COLORS[$I]}"
+			I=$((I + 1))
+		done
+        echo ""
+
 		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 	} >"${DEST}" 2>/dev/null

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst

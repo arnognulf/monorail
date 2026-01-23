@@ -248,6 +248,33 @@ unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
 } &>/dev/null
 }
+_PROMPT_LUT ()
+{
+unset "_PROMPT_LUT[*]"
+_PROMPT_LUT=()
+while [[ $1 ]];do
+_PROMPT_LUT[${#_PROMPT_LUT[@]}]=$1
+shift
+done
+}
+_PROMPT_TEXT_LUT ()
+{
+unset "_PROMPT_TEXT_LUT[*]"
+_PROMPT_TEXT_LUT=()
+while [[ $1 ]];do
+_PROMPT_TEXT_LUT[${#_PROMPT_TEXT_LUT[@]}]=$1
+shift
+done
+}
+_COLORS ()
+{
+unset "_COLORS[*]"
+_COLORS=()
+while [[ "$1" ]];do
+_COLORS[${#_COLORS[@]}]=$1
+shift
+done
+}
 _MONORAIL_SET_TITLE(){
 if [[ $1 ]];then
 _MONORAIL_TITLE_OVERRIDE="$*"
@@ -515,7 +542,7 @@ printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\
 
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 PS1=$'\e[?7l\e'"[${COLUMNS}C"$'\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m\e[K'"${_MONORAIL_POSTHIDE}"
+$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m'"${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
