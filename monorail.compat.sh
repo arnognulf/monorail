@@ -107,7 +107,9 @@
 	"xterm"* | "tmux"* | "screen"* | "alacritty"* | "rio" | "rxvt-unicode"*)
 		_MONORAIL_XTERM_TERMINAL=1
 		# netbsd sets LC_CTYPE, Linux sets LANG
-		if [ "$LANG" ]; then
+        if [ "$XTERM_LOCALE" ];then
+			_MONORAIL_LANG=$XTERM_LOCALE
+		elif [ "$LANG" ]; then
 			_MONORAIL_LANG=$LANG
 		else
 			_MONORAIL_LANG=$LC_CTYPE
