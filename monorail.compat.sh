@@ -57,24 +57,21 @@
 		mkdir -p "$_MONORAIL_CONFIG"
 	fi
 	case "$TERM" in
-	"ansi" | "tek"* | "ibm-327"* | "dp33"?? | "dumb" | "wyse60" | "dm2500" | "adm3a" | "vt"* | "linux" | "xterm-color" | "xgterm" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm" | "tty"* | "tn"* | "ti"*)
+	tek* | dumb | "dm2500" | "adm3a" | vt?? | "wyse60" | "dp33"?? | "ibm-327"* | "tty"* | "tn"* | "ti"*)
+		_MONORAIL_DUMB_TERMINAL=1
+		;;
+
+	"ansi" | "vt"* | "linux" | "xterm-color" | "xgterm" | "wsvt"* | "cons"* | "pc"* | "xterm-16color" | "screen."* | "Eterm")
 		# screen and linux vt accepts truecolor control sequencies, but do not display truecolor satisfactory
-		# shellcheck disable=SC2086 # incomprehensible quoting suggestions from shellcheck
-		case "$TERM" in
-		tek* | vt52)
-			_MONORAIL_DUMB_TERMINAL=1
-			;;
-		*)
-			if [ -n "$XTERM_VERSION" ] && [ "$(echo \"$XTERM_VERSION\" | cut -d'(' -f2 | cut -d')' -f1)" -gt 330 ]; then
-				_MONORAIL_TRUECOLOR_TERMINAL=1
-			fi
-			;;
-		esac
 		if [ "$TERM_PROGRAM" = "GNUstep_Terminal" ]; then
 			_MONORAIL_XTERM_TERMINAL=1
 		fi
 		;;
 	*)
+		if [ -n "$XTERM_VERSION" ] && [ "$(echo \"$XTERM_VERSION\" | cut -d'(' -f2 | cut -d')' -f1)" -gt 330 ]; then
+			_MONORAIL_TRUECOLOR_TERMINAL=1
+		fi
+
 		if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ] || [ "$COLORTERM" = "rxvt-xpm" ]; then
 			if [ "$TERM" != "linux" ]; then
 				_MONORAIL_TRUECOLOR_TERMINAL=1
@@ -107,7 +104,7 @@
 	"xterm"* | "tmux"* | "screen"* | "alacritty"* | "rio" | "rxvt-unicode"*)
 		_MONORAIL_XTERM_TERMINAL=1
 		# netbsd sets LC_CTYPE, Linux sets LANG
-        if [ "$XTERM_LOCALE" ];then
+		if [ "$XTERM_LOCALE" ]; then
 			_MONORAIL_LANG=$XTERM_LOCALE
 		elif [ "$LANG" ]; then
 			_MONORAIL_LANG=$LANG
@@ -190,10 +187,10 @@
 		;;
 	esac
 	if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
-        # vscode does not support disabling line wrap
-        if [ "$TERM_PROGRAM" != "vscode" ];then
-            _MONORAIL_DISABLE_WRAP="${ESC}[?7l"
-        fi
+		# vscode does not support disabling line wrap
+		if [ "$TERM_PROGRAM" != "vscode" ]; then
+			_MONORAIL_DISABLE_WRAP="${ESC}[?7l"
+		fi
 		_MONORAIL_REVERSE="$_MONORAIL_PREHIDE${_MONORAIL_DISABLE_WRAP}${ESC}[7m$_MONORAIL_POSTHIDE"
 		_MONORAIL_REVERSE="$_MONORAIL_PREHIDE${ESC}[7m$_MONORAIL_POSTHIDE"
 		_MONORAIL_NORMAL="$_MONORAIL_PREHIDE${ESC}[?25h${ESC}[?7h${ESC}[0m$_MONORAIL_POSTHIDE"
