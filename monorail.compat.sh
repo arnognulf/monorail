@@ -186,7 +186,7 @@
 	fi
 
 	_MONORAIL_SHOW_GRADIENT_PROMPT() {
-:
+		:
 
 	}
 	_COLORS() {
@@ -198,18 +198,17 @@
 		# 20     `k`           = selected text color
 		# 21     `l`           = cursor
 		# 22     `m`           = cursor text (not present in any iTerm2-Color-Schemes)
-		#
-		#echo "TODO: COLORS"
-		#printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#$HEX_CURSOR_COLOR\a
-
 		I=0
 		while [ "$1" ]; do
 			if [ $I -lt 16 ]; then
 				printf "\e]4;$I;#$1\a"
-			elif true; then
-				:
+			elif [ $I = 16 ]; then
+				printf "\e]10;#$1\a"
+			elif [ $I = 17 ]; then
+				printf "\e]11;#$1\a"
+			elif [ $I = 18 ]; then
+				_MONORAIL_CURSOR_COLOR=$1
 			fi
-			printf "\e]$I;#$1\a"
 			shift
 			I=$((I + 1))
 		done
@@ -219,55 +218,55 @@
 	}
 	_PROMPT_LUT() {
 		if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
-		LUT_SIZE=0
-		for IGNORED in "$@"; do
-			LUT_SIZE=$((LUT_SIZE + 1))
-		done
-		if [[ -z $_PROMPT_TEXT_LUT ]]; then
-			_PROMPT_TEXT_LUT="255;255;255"
-		fi
-		_MONORAIL_TEXT_LINE="${ESC}[38;2;${_PROMPT_TEXT_LUT}m"
-		_MONORAIL_LINE="
+			LUT_SIZE=0
+			for IGNORED in "$@"; do
+				LUT_SIZE=$((LUT_SIZE + 1))
+			done
+			if [[ -z $_PROMPT_TEXT_LUT ]]; then
+				_PROMPT_TEXT_LUT="255;255;255"
+			fi
+			_MONORAIL_TEXT_LINE="${ESC}[38;2;${_PROMPT_TEXT_LUT}m"
+			_MONORAIL_LINE="
 ${ESC}[A"
-		POS=0
-		OLDPOS=0
-		# TODO: USE
-		TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c)
-		PADDED_TEXT_LEN=$((TEXT_LEN + 3))
-		CURSOR_POSITION_FIXUP="${LF}${ESC}["$(printf "%0${PADDED_TEXT_LEN}d" $PADDED_TEXT_LEN)D
-		I=0
-		while [ "$I" -lt "$LINE_WIDTH" ]; do
+			POS=0
+			OLDPOS=0
+			# TODO: USE
+			TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c)
+			PADDED_TEXT_LEN=$((TEXT_LEN + 3))
+			CURSOR_POSITION_FIXUP="${LF}${ESC}["$(printf "%0${PADDED_TEXT_LEN}d" $PADDED_TEXT_LEN)D
+			I=0
+			while [ "$I" -lt "$LINE_WIDTH" ]; do
 
-			POS=$((LUT_SIZE * I / $((COLUMNS + 1))))
-			SHIFT=$((POS - OLDPOS))
-			if [[ $SHIFT -gt 0 ]]; then
-				shift $SHIFT
-			fi
-			if [[ "$I" = "$TEXT_LEN" ]]; then
-				RGB_CUR_COLOR="$1"
-			fi
-			OLDPOS=$POS
-			_MONORAIL_LINE="$_MONORAIL_LINE${ESC}[38;2;${1}m$_MONORAIL_LINE_SEGMENT"
-			if [ "$I" -lt "$((TEXT_LEN - 1))" ]; then
-				_MONORAIL_TEXT_LINE="$_MONORAIL_TEXT_LINE${ESC}[48;2;$1m$(printf "$_MONORAIL_TEXT" | cut -c$((I + 1)))"
-			fi
-			I=$((I + 1))
-		done
-		_MONORAIL_LINE="$_MONORAIL_LINE
+				POS=$((LUT_SIZE * I / $((COLUMNS + 1))))
+				SHIFT=$((POS - OLDPOS))
+				if [[ $SHIFT -gt 0 ]]; then
+					shift $SHIFT
+				fi
+				if [[ "$I" = "$TEXT_LEN" ]]; then
+					RGB_CUR_COLOR="$1"
+				fi
+				OLDPOS=$POS
+				_MONORAIL_LINE="$_MONORAIL_LINE${ESC}[38;2;${1}m$_MONORAIL_LINE_SEGMENT"
+				if [ "$I" -lt "$((TEXT_LEN - 1))" ]; then
+					_MONORAIL_TEXT_LINE="$_MONORAIL_TEXT_LINE${ESC}[48;2;$1m$(printf "$_MONORAIL_TEXT" | cut -c$((I + 1)))"
+				fi
+				I=$((I + 1))
+			done
+			_MONORAIL_LINE="$_MONORAIL_LINE
 $_MONORAIL_TEXT_LINE"
 
-		I=0
-		RGB_CUR_R=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f1)
-		RGB_CUR_G=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f2)
-		RGB_CUR_B=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f3)
-		HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
-		_MONORAIL_CURSOR="${ESC}]12;#${HEX_CURSOR_COLOR}${BEL}"
+			I=0
+			RGB_CUR_R=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f1)
+			RGB_CUR_G=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f2)
+			RGB_CUR_B=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f3)
+			HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
+			_MONORAIL_CURSOR="${ESC}]12;#${HEX_CURSOR_COLOR}${BEL}"
 		else
-_MONORAIL_LINE=""
-		while [ "$I" -lt "$LINE_WIDTH" ]; do
-			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
-			I=$((I + 1))
-		done
+			_MONORAIL_LINE=""
+			while [ "$I" -lt "$LINE_WIDTH" ]; do
+				_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
+				I=$((I + 1))
+			done
 		fi
 	}
 
@@ -275,10 +274,10 @@ _MONORAIL_LINE=""
 		:
 	}
 	_MONORAIL_UPDATE() {
-if [ $_MONORAIL_UPDATING ];then
-return
-fi
-_MONORAIL_UPDATING=1
+		if [ $_MONORAIL_UPDATING ]; then
+			return
+		fi
+		_MONORAIL_UPDATING=1
 
 		_MONORAIL_GIT_PS1=$(
 
@@ -332,29 +331,29 @@ _MONORAIL_UPDATING=1
 		CURSOR_POSITION_FIXUP="${ESC}[A
 ${ESC}["$(printf "%0${PADDED_TEXT_LEN}d" $TEXT_LEN)C
 		PS1="$_MONORAIL_TITLE$_MONORAIL_CURSOR$_MONORAIL_LINE$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
-			# shellcheck disable=SC2329 # this function may be invoked
-			cd() {
-				# need to set/unset 'cd()' since not all shell have `builtin`
-				unset -f cd 2>/dev/null
-				if [ "$1" ]; then
-					cd "$@" || return $?
-				else
-					cd "$HOME" || return $?
-				fi
-				_MONORAIL_UPDATE
-			}
-			# shellcheck disable=SC2329 # this function may be invoked
-			git() {
-				# need to set/unset 'git()' since not all shell have `builtin`
-				unset -f git 2>/dev/null
-				if [ "$1" ]; then
-					git "$@" || return $?
-				else
-					git || return $?
-				fi
-				_MONORAIL_UPDATE
-			}
-unset _MONORAIL_UPDATING
+		# shellcheck disable=SC2329 # this function may be invoked
+		cd() {
+			# need to set/unset 'cd()' since not all shell have `builtin`
+			unset -f cd 2>/dev/null
+			if [ "$1" ]; then
+				cd "$@" || return $?
+			else
+				cd "$HOME" || return $?
+			fi
+			_MONORAIL_UPDATE
+		}
+		# shellcheck disable=SC2329 # this function may be invoked
+		git() {
+			# need to set/unset 'git()' since not all shell have `builtin`
+			unset -f git 2>/dev/null
+			if [ "$1" ]; then
+				git "$@" || return $?
+			else
+				git || return $?
+			fi
+			_MONORAIL_UPDATE
+		}
+		unset _MONORAIL_UPDATING
 	}
 	# update monorail on window resizing
 	trap "_MONORAIL_UPDATE" WINCH
