@@ -30,11 +30,11 @@ _PROMPT_LUT() {
 		:
 	}
 
-if [[ $ZSH_NAME ]]; then
+if [ "$ZSH_NAME" ]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-if which bc &>/dev/null; then
+if which bc 1>/dev/null 2>/dev/null; then
 	:
 else
 	"error: please install bc"
@@ -54,11 +54,11 @@ fi
 # $a - a component 0.0-1.0
 # $b - b component 0.0-1.0
 _LINEAR_SRGB_TO_OKLAB() {
-	local DEF_CBRT="define cbrt(x){return e(l(x)/3)}"
+	DEF_CBRT="define cbrt(x){return e(l(x)/3)}"
 
-	local l=$(\echo "$DEF_CBRT;cbrt(0.4122214708 * $r/255.0 + 0.5363325363 * $g/255.0 + 0.0514459929 * $b/255.0)" | bc -l)
-	local m=$(\echo "$DEF_CBRT;cbrt(0.2119034982 * $r/255.0 + 0.6806995451 * $g/255.0 + 0.1073969566 * $b/255.0)" | bc -l)
-	local s=$(\echo "$DEF_CBRT;cbrt(0.0883024619 * $r/255.0 + 0.2817188376 * $g/255.0 + 0.6299787005 * $b/255.0)" | bc -l)
+	l=$(\echo "$DEF_CBRT;cbrt(0.4122214708 * $r/255.0 + 0.5363325363 * $g/255.0 + 0.0514459929 * $b/255.0)" | bc -l)
+	m=$(\echo "$DEF_CBRT;cbrt(0.2119034982 * $r/255.0 + 0.6806995451 * $g/255.0 + 0.1073969566 * $b/255.0)" | bc -l)
+	s=$(\echo "$DEF_CBRT;cbrt(0.0883024619 * $r/255.0 + 0.2817188376 * $g/255.0 + 0.6299787005 * $b/255.0)" | bc -l)
 
 	L=$(\echo "0.2104542553*$l + 0.7936177850*$m - 0.0040720468*$s" | bc -l)
 	a=$(\echo "1.9779984951*$l - 2.4285922050*$m + 0.4505937099*$s" | bc -l)
@@ -79,9 +79,9 @@ _LINEAR_SRGB_TO_OKLAB() {
 # $G - G component 0-255
 # $B - B component 0-255
 _OKLAB_TO_LINEAR_SRGB() {
-	local l=$(\echo "(($L + $DELTA_L * $NUM) + 0.3963377774 * ($a + $DELTA_a * $NUM) + 0.2158037573 * ($b + $DELTA_b * $NUM))^3" | bc -l)
-	local m=$(\echo "(($L + $DELTA_L * $NUM) - 0.1055613458 * ($a + $DELTA_a * $NUM) - 0.0638541728 * ($b + $DELTA_b * $NUM))^3" | bc -l)
-	local s=$(\echo "(($L + $DELTA_L * $NUM) - 0.0894841775 * ($a + $DELTA_a * $NUM) - 1.2914855480 * ($b + $DELTA_b * $NUM))^3" | bc -l)
+	l=$(\echo "(($L + $DELTA_L * $NUM) + 0.3963377774 * ($a + $DELTA_a * $NUM) + 0.2158037573 * ($b + $DELTA_b * $NUM))^3" | bc -l)
+	m=$(\echo "(($L + $DELTA_L * $NUM) - 0.1055613458 * ($a + $DELTA_a * $NUM) - 0.0638541728 * ($b + $DELTA_b * $NUM))^3" | bc -l)
+	s=$(\echo "(($L + $DELTA_L * $NUM) - 0.0894841775 * ($a + $DELTA_a * $NUM) - 1.2914855480 * ($b + $DELTA_b * $NUM))^3" | bc -l)
 
 	DEF_ROUND="
     define max(x,y){if(x>y)return x;return y}
@@ -100,16 +100,15 @@ int(max(0.0, min(255.0, round(255.0 * (-0.0041960863 * $l - 0.7034186147 * $m + 
 
 # gradient [start_color index]
 _GRADIENT() {
-	local PREFIX=""
+	PREFIX=""
 	_DEFAULT_BGCOLOR=ffffff
 	_DEFAULT_FGCOLOR=444444
-	local RESET_COLORS=""
 
-	while [[ "$1" = "-"* ]]; do
+	while [ "$1" = "-"* ]; do
 		case "$1" in
 		--text)
-			local HELP_PREFIX=text
-			local PREFIX=TEXT_
+			HELP_PREFIX=text
+			PREFIX=TEXT_
 			shift
 			;;
 		--help | -h)
@@ -134,25 +133,24 @@ _GRADIENT() {
 
 	case "$1" in
 	"")
-		if which fzf &>/dev/null; then
+		if which fzf 1>/dev/null 2>/dev/null; then
 			:
 		else
-			"error: please install bc"
+			"error: please install fzf"
 			exit 42
 		fi
 
-		local THEME
 		unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		_PROMPT_LUT=()
 		_COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-		[[ ${_DEFAULT_FGCOLOR} ]] || _DEFAULT_FGCOLOR=444444
-		[[ ${_DEFAULT_BGCOLOR} ]] || _DEFAULT_BGCOLOR=ffffff
-		[[ ${_COLORS[16]} ]] || _COLORS[16]=$_DEFAULT_FGCOLOR
-		[[ ${_COLORS[17]} ]] || _COLORS[17]=$_DEFAULT_BGCOLOR
+		[ ${_DEFAULT_FGCOLOR} ] || _DEFAULT_FGCOLOR=444444
+		[ ${_DEFAULT_BGCOLOR} ] || _DEFAULT_BGCOLOR=ffffff
+		[ ${_COLORS[16]} ] || _COLORS[16]=$_DEFAULT_FGCOLOR
+		[ ${_COLORS[17]} ] || _COLORS[17]=$_DEFAULT_BGCOLOR
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 		THEME=$(cd "${_MONORAIL_DIR}"/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
-		if [[ ${THEME} ]]; then
+		if [ "${THEME}" ]; then
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			_PROMPT_LUT=()
 			_PROMPT_TEXT_LUT=()
@@ -160,17 +158,17 @@ _GRADIENT() {
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
 				I=0
-				while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
+				while [ "$I" -lt "${#_PROMPT_LUT[*]}" ]; do
 					echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
 					I=$((I + 1))
 				done
 				I=0
-				while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
+				while [ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
 					echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
 					I=$((I + 1))
 				done
 				I=0
-				while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
+				while [ "$I" -lt "${#_COLORS[*]}" ]; do
 					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
 					I=$((I + 1))
 				done
@@ -178,46 +176,46 @@ _GRADIENT() {
 				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		fi
-		killall -s WINCH bash zsh &>/dev/null
+		killall -s WINCH bash zsh 1>/dev/null 2>/dev/null
 		exit 0
 		;;
 	esac
-	if [[ "${#@}" = 1 ]]; then
-		if [[ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]]; then
+	if [ "${#@}" = 1 ]; then
+		if [ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]; then
 			_COLORS=()
 			. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			. "${_MONORAIL_DIR}/gradients/${1}".sh
-			if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
+			if [ ${#_PROMPT_TEXT_LUT[@]} = 0 ]; then
 				_PROMPT_TEXT_LUT=([0]="255;255;255")
 			fi
 			{
 				I=0
-				while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
+				while [ "$I" -lt "${#_PROMPT_LUT[*]}" ]; do
 					echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
 					I=$((I + 1))
 				done
 				I=0
-				while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
+				while [ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
 					echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
 					I=$((I + 1))
 				done
 				I=0
-				while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
+				while [ "$I" -lt "${#_COLORS[*]}" ]; do
 					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
 					I=$((I + 1))
 				done
 				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 			} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
-			killall -s WINCH bash zsh &>/dev/null
+			killall -s WINCH bash zsh 1>/dev/null 2>/dev/null
 			return 0
 		else
 			{
 				echo "gradient: No such theme \"$1\""
 				echo "Select any of:
 "
-				local FILE
+				FILE
 				for FILE in ${_MONORAIL_DIR}/gradients/*; do
 					FILE="${FILE##*/}"
 					FILE="${FILE%.sh}"
@@ -240,32 +238,32 @@ or \"None\" to use text color"
 
 	unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 
-	local L
-	local a
-	local b
-	local SRC_L=""
-	local SRC_a=""
-	local SRC_b=""
-	local DST_L=""
-	local DST_a=""
-	local DST_b=""
-	local INDEX=0
+	L=""
+	a=""
+	b=""
+	SRC_L=""
+	SRC_a=""
+	SRC_b=""
+	DST_L=""
+	DST_a=""
+	DST_b=""
+	INDEX=0
 	while [ -n "${1}" ]; do
-		local STEPS=${1}
+		STEPS=${1}
 		[ "$STEPS" -lt 1 ] && STEPS=1
 		if [ "$STEPS" -gt 100 ]; then
 			echo "STEPS must be in range 1-100"
 			exit 42
 		fi
-		local COLOR=$2
+		COLOR=$2
 		# TODO: conversion is broken for pitch black. Work around for now:
-		if [[ $COLOR = 000000 ]]; then
+		if [ $COLOR = 000000 ]; then
 			COLOR=010101
 		fi
 		shift 2
-		local r="$((0x${COLOR:0:2}))"
-		local g="$((0x${COLOR:2:2}))"
-		local b="$((0x${COLOR:4:2}))"
+		r="$((0x${COLOR:0:2}))"
+		g="$((0x${COLOR:2:2}))"
+		b="$((0x${COLOR:4:2}))"
 		_LINEAR_SRGB_TO_OKLAB
 
 		DST_L=$L
@@ -288,11 +286,14 @@ or \"None\" to use text color"
 		DELTA_a=$(echo "($DST_a - $SRC_a)/$TOTAL_STEPS" | bc -l)
 		DELTA_b=$(echo "($DST_b - $SRC_b)/$TOTAL_STEPS" | bc -l)
 
-		local I=0
+		I=0
 		while [ $I -lt $TOTAL_STEPS ]; do
+# TODO: fixfix
+			echo " \\"
 
 			NUM=$I
 			_OKLAB_TO_LINEAR_SRGB
+			printf " \"$R;$G;$B\""
 			eval "_PROMPT_${PREFIX}LUT[$INDEX]=\"$R;$G;$B\""
 			let INDEX++
 			#echo "R=${R}, G=${G}, B=${B}"
@@ -303,34 +304,34 @@ or \"None\" to use text color"
 		SRC_a=${DST_a}
 		SRC_b=${DST_b}
 	done
-	if [[ -z "$DEST" ]]; then
+	if [ -z "$DEST" ]; then
 		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	fi
-	if [[ ${#_PROMPT_TEXT_LUT[@]} = 0 ]]; then
+	if [ ${#_PROMPT_TEXT_LUT[@]} = 0 ]; then
 		_PROMPT_TEXT_LUT=([0]="255;255;255")
 	fi
 	{
 		I=0
-		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
+		while [ "$I" -lt "${#_PROMPT_LUT[*]}" ]; do
 			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
 			I=$((I + 1))
 		done
 
 		I=0
-		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
+		while [ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
 			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
 			I=$((I + 1))
 		done
 
    		I=0
-		while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
+		while [ "$I" -lt "${#_COLORS[*]}" ]; do
 			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
 			I=$((I + 1))
 		done
 
     printf "_PROMPT_LUT"
 		I=0
-		while [[ "$I" -lt "${#_PROMPT_LUT[*]}" ]]; do
+		while [ "$I" -lt "${#_PROMPT_LUT[*]}" ]; do
             echo " \\"
 			printf "\"${_PROMPT_LUT[$I]}\""
 			I=$((I + 1))
@@ -341,7 +342,7 @@ or \"None\" to use text color"
 
 printf "_PROMPT_TEXT_LUT"
 		I=0
-		while [[ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
+		while [ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
             echo " \\"
 			printf "\"${_PROMPT_TEXT_LUT[$I]}\""
 			I=$((I + 1))
@@ -351,7 +352,7 @@ printf "_PROMPT_TEXT_LUT"
 
     printf "_COLORS"
 		I=0
-		while [[ "$I" -lt "${#_COLORS[*]}" ]]; do
+		while [ "$I" -lt "${#_COLORS[*]}" ]; do
             echo " \\"
 			printf "${_COLORS[$I]}"
 			I=$((I + 1))
@@ -361,6 +362,6 @@ printf "_PROMPT_TEXT_LUT"
 		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 	} >"${DEST}" 2>/dev/null
-	killall -s WINCH bash zsh &>/dev/null
+	killall -s WINCH bash zsh 1>/dev/null 2>/dev/null
 }
 _GRADIENT "$@"

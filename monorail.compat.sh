@@ -38,6 +38,9 @@
 CR=$(printf '\015')
 ESC=$(printf '\033')
 BEL=$(printf '\007')
+# use the 'Unit Separator' as a beign intermediate 1 byte character that
+# later will be translated to a 3 byte UTF-8 elipsis
+US=$(printf '\037')
 unset _MONORAIL_UPDATING
 
 if [ -z "$_MONORAIL_DIR" ]; then
@@ -65,6 +68,7 @@ else
 fi
 _MONORAIL_NORMAL="|"
 _MONORAIL_LINE_SEGMENT=_
+_MONORAIL_ELIPSIS="..."
 _MONORAIL_OFFSET=0
 
 case "$TERM" in
@@ -155,6 +159,7 @@ vt?? | "ibm-327"* | "dp33"?? | "adm3a" | "hp2621" | "hz1500" | "wy30" | "vc404" 
 	*.UTF-8)
 		# UTF-8 "Lower one eighth block"
 		_MONORAIL_LINE_SEGMENT=$(printf '\342\226\201')
+		_MONORAIL_ELIPSIS=$(printf '\xe2\x80\xa6')
 		;;
 	esac
 	;;
@@ -233,10 +238,15 @@ ${ESC}[A"
 			OLDPOS=$POS
 			_MONORAIL_LINE="$_MONORAIL_LINE${ESC}[38;2;${1}m$_MONORAIL_LINE_SEGMENT"
 			if [ "$I" -lt "$((_MONORAIL_TEXT_LEN - 1))" ]; then
-				_MONORAIL_TEXT_LINE="$_MONORAIL_TEXT_LINE${ESC}[48;2;$1m$(printf "%s" "$_MONORAIL_TEXT" | cut -c$((I + 1)))"
+				_MONORAIL_TEXT_LINE="$_MONORAIL_TEXT_LINE${ESC}[48;2;$1m"$(printf "%s" "$_MONORAIL_TEXT" | cut -c$((I + 1)))
 			fi
 			I=$((I + 1))
 		done
+		case "$_MONORAIL_LANG" in
+		*.UTF-8)
+			_MONORAIL_TEXT_LINE=$(printf "%s" "$_MONORAIL_TEXT_LINE" | LC_ALL=C sed "s/$US/$_MONORAIL_ELIPSIS/g")
+			;;
+		esac
 		_MONORAIL_LINE="$_MONORAIL_LINE
 $_MONORAIL_TEXT_LINE"
 
@@ -258,7 +268,7 @@ else
 			I=$((I + 1))
 		done
 		if [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
-			_MONORAIL_LINE="$ESC(0$_MONORAIL_LINE$ESC(B$ESC[7m$_MONORAIL_TEXT"
+			_MONORAIL_LINE="$ESC(0$_MONORAIL_LINE${ESC}(B${ESC}[7m$_MONORAIL_TEXT"
 		else
 			_MONORAIL_LINE="$_MONORAIL_LINE
 $_MONORAIL_TEXT"
@@ -272,11 +282,18 @@ _MONORAIL_UPDATE() {
 	fi
 	_MONORAIL_UPDATING=1
 
-	# COLUMNS does not update on 'busybox sh'
 
+	# COLUMNS does not update on 'busybox sh'
 	# get COLUMNS if unset
-	COLUMNS=$(stty size 2>/dev/null | cut -d" " -f2)
-	LINES=$(stty size 2>/dev/null | cut -d" " -f1)
+	I=0
+	for SIZE in $(stty size); do
+		if [ "$I" = 0 ]; then
+			LINES=$SIZE
+		else
+			COLUMNS=$SIZE
+		fi
+		I=$((I + 1))
+	done
 	# if `stty size` do not report valid size, default to 80x24
 	if [ -z "$COLUMNS" ] || [ "$COLUMNS" = 0 ]; then
 		COLUMNS=80
@@ -285,7 +302,11 @@ _MONORAIL_UPDATE() {
 	export COLUMNS
 	export LINES
 	_MONORAIL_COLORS=""
-
+	# TODO: calculate text and compare to old text
+	INODE=$(ls -i "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh)
+	#if [ "$OLD_COLUMNS" = "$COLUMNS" ] && [ "$OLD_LINES" = "$LINES" ] && [ "$OLD_INODE" = "$INODE" ];then
+	#return
+	#fi
 	_MONORAIL_GIT_PS1=$(
 		TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 ""
 	)
@@ -321,18 +342,25 @@ _MONORAIL_UPDATE() {
 	if [ ${_MONORAIL_TEXT_LEN} -gt $((COLUMNS / 3)) ]; then
 
 		# posix sh does not support the unicode elipsis char
-		_MONORAIL_TEXT=" ..."$(echo "${_MONORAIL_TEXT}" | cut -c$(($_MONORAIL_TEXT_LEN - $((COLUMNS / 3)) - 1))-${_MONORAIL_TEXT_LEN})
+		case "$_MONORAIL_LANG" in
+		*.UTF-8)
+			_MONORAIL_TEXT=" $US"$(echo "${_MONORAIL_TEXT}" | cut -c$(($_MONORAIL_TEXT_LEN - $((COLUMNS / 3)) + 1))-${_MONORAIL_TEXT_LEN})
+			;;
+		*)
+			_MONORAIL_TEXT=" $_MONORAIL_ELIPSIS"$(echo "${_MONORAIL_TEXT}" | cut -c$(($_MONORAIL_TEXT_LEN - $((COLUMNS / 3)) + 1))-${_MONORAIL_TEXT_LEN})
+			;;
+		esac
 		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c)
 	fi
 
-if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh ];then
-	# shellcheck disable=SC1090 # file will be available
-	. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
-else
-_PROMPT_TEXT_LUT
-_PROMPT_LUT
-_COLORS
-fi
+	if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh ]; then
+		# shellcheck disable=SC1090 # file will be available
+		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
+	else
+		_PROMPT_TEXT_LUT
+		_PROMPT_LUT
+		_COLORS
+	fi
 	if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 		_MONORAIL_LINE="$_MONORAIL_LINE$ESC(1"
 	elif [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
@@ -340,23 +368,37 @@ fi
 	fi
 	if [ "$_MONORAIL_ANSI_TERMINAL" ]; then
 		PADDED__MONORAIL_TEXT_LEN=$((_MONORAIL_TEXT_LEN - 3))
-
+		# TODO: ksh93u+m doesn't handle the line calculation correctly here
+		# does it try to interprate the leading zeroes?
 		# shellcheck disable=SC1078,SC1079 # deliberate newline needed for line calculation
 		CURSOR_POSITION_FIXUP="${ESC}[A
 ${ESC}["$(printf "%0${PADDED__MONORAIL_TEXT_LEN}d" "$_MONORAIL_TEXT_LEN")C
 	fi
 	PS1="$_MONORAIL_COLORS$_MONORAIL_TITLE$_MONORAIL_CURSOR$_MONORAIL_LINE$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
 	# shellcheck disable=SC2329 # this function may be invoked
-	cd() {
-		# need to set/unset 'cd()' since not all shell have `builtin`
-		unset -f cd 2>/dev/null
-		if [ "$1" ]; then
-			cd "$@" || return $?
-		else
-			cd "$HOME" || return $?
-		fi
-		_MONORAIL_UPDATE
-	}
+
+	if [ "$BASH_VERSION" ] || [ "$ZSH_VERSION" ] || [ "$KSH_VERSION" ]; then
+		_MONORAIL_CD() {
+			if [ "$1" ]; then
+				cd "$@" || return $?
+			else
+				cd "$HOME" || return $?
+			fi
+			_MONORAIL_UPDATE
+		}
+		alias cd=_MONORAIL_CD
+	else
+		cd() {
+			# need to set/unset 'cd()' since not all shell have `builtin`
+			unset -f cd 2>/dev/null
+			if [ "$1" ]; then
+				cd "$@" || return $?
+			else
+				cd "$HOME" || return $?
+			fi
+			_MONORAIL_UPDATE
+		}
+	fi
 	unalias git 2>/dev/null
 	# shellcheck disable=SC2329 # this function may be invoked
 	_MONORAIL_GIT() {
@@ -372,6 +414,10 @@ ${ESC}["$(printf "%0${PADDED__MONORAIL_TEXT_LEN}d" "$_MONORAIL_TEXT_LEN")C
 	git() {
 		_MONORAIL_GIT "$@"
 	}
+	OLD_COLUMNS=$COLUMNS
+	OLD_LINES=$LINES
+	OLD_INODE=$INODE
+	_MONORAIL_OLD_MONORAIL_TEXT=$_MONORAIL_TEXT
 	unset _MONORAIL_UPDATING
 }
 
