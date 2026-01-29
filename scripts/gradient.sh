@@ -20,16 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-_PROMPT_LUT() {
-		:
-	}
-	_PROMPT_TEXT_LUT() {
-		:
-	}
-	_COLORS() {
-		:
-	}
-
+TEMPDIR=$(mktemp -d)
 if [ "$ZSH_NAME" ]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -141,8 +132,6 @@ _GRADIENT() {
 		fi
 
 		unset "_COLORS[*]" "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-		_PROMPT_LUT=()
-		_COLORS=()
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 		[ ${_DEFAULT_FGCOLOR} ] || _DEFAULT_FGCOLOR=444444
 		[ ${_DEFAULT_BGCOLOR} ] || _DEFAULT_BGCOLOR=ffffff
@@ -152,26 +141,9 @@ _GRADIENT() {
 		THEME=$(cd "${_MONORAIL_DIR}"/gradients && fzf --preview "${_MONORAIL_DIR}/scripts/preview.sh "${_COLORS[16]}" "${_COLORS[17]}" {}")
 		if [ "${THEME}" ]; then
 			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
-			_PROMPT_LUT=()
-			_PROMPT_TEXT_LUT=()
 			. "${_MONORAIL_DIR}/gradients/${THEME}"
 			rm "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 			{
-				I=0
-				while [ "$I" -lt "${#_PROMPT_LUT[*]}" ]; do
-					echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
-					I=$((I + 1))
-				done
-				I=0
-				while [ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
-					echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
-					I=$((I + 1))
-				done
-				I=0
-				while [ "$I" -lt "${#_COLORS[*]}" ]; do
-					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
-					I=$((I + 1))
-				done
 				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 			} >"${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
@@ -182,32 +154,8 @@ _GRADIENT() {
 	esac
 	if [ "${#@}" = 1 ]; then
 		if [ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]; then
-			_COLORS=()
 			. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-			unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
 			. "${_MONORAIL_DIR}/gradients/${1}".sh
-			if [ ${#_PROMPT_TEXT_LUT[@]} = 0 ]; then
-				_PROMPT_TEXT_LUT=([0]="255;255;255")
-			fi
-			{
-				I=0
-				while [ "$I" -lt "${#_PROMPT_LUT[*]}" ]; do
-					echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
-					I=$((I + 1))
-				done
-				I=0
-				while [ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
-					echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
-					I=$((I + 1))
-				done
-				I=0
-				while [ "$I" -lt "${#_COLORS[*]}" ]; do
-					echo "_COLORS[$I]=\"${_COLORS[$I]}\""
-					I=$((I + 1))
-				done
-				echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
-				echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
-			} >"${_MONORAIL_CONFIG}"/colors-${_MONORAIL_SHORT_HOSTNAME}.sh
 			killall -s WINCH bash zsh 1>/dev/null 2>/dev/null
 			return 0
 		else
@@ -285,12 +233,42 @@ or \"None\" to use text color"
 		DELTA_L=$(echo "($DST_L - $SRC_L)/$TOTAL_STEPS" | bc -l)
 		DELTA_a=$(echo "($DST_a - $SRC_a)/$TOTAL_STEPS" | bc -l)
 		DELTA_b=$(echo "($DST_b - $SRC_b)/$TOTAL_STEPS" | bc -l)
+	if [ -z "$DEST" ]; then
+		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	fi
 
+_PROMPT_LUT() {
+:
+}
+_PROMPT_TEXT_LUT() {
+:
+echo "_PROMPT_TEXT_LUT"
+for PROMPT_TEXT_LUT in "$@"
+do
+echo " \\"
+printf "\"$PROMPT_TEXT_LUT\""
+done
+echo ""
+echo ""
+}
+_COLORS() {
+echo "_COLORS"
+for COLOR in "$@"
+do
+echo " \\"
+printf "$COLOR"
+done
+echo ""
+echo ""
+}
+
+. "${DEST}"
+rm "${DEST}"
+{
+		printf "_PROMPT_LUT"
 		I=0
 		while [ $I -lt $TOTAL_STEPS ]; do
-# TODO: fixfix
 			echo " \\"
-
 			NUM=$I
 			_OKLAB_TO_LINEAR_SRGB
 			printf " \"$R;$G;$B\""
@@ -299,66 +277,13 @@ or \"None\" to use text color"
 			#echo "R=${R}, G=${G}, B=${B}"
 			let I++
 		done
-
+} >>"${DEST}"
 		SRC_L=${DST_L}
 		SRC_a=${DST_a}
 		SRC_b=${DST_b}
 	done
-	if [ -z "$DEST" ]; then
-		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
-	fi
-	if [ ${#_PROMPT_TEXT_LUT[@]} = 0 ]; then
-		_PROMPT_TEXT_LUT=([0]="255;255;255")
-	fi
+
 	{
-		I=0
-		while [ "$I" -lt "${#_PROMPT_LUT[*]}" ]; do
-			echo "_PROMPT_LUT[$I]=\"${_PROMPT_LUT[$I]}\""
-			I=$((I + 1))
-		done
-
-		I=0
-		while [ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
-			echo "_PROMPT_TEXT_LUT[$I]=\"${_PROMPT_TEXT_LUT[$I]}\""
-			I=$((I + 1))
-		done
-
-   		I=0
-		while [ "$I" -lt "${#_COLORS[*]}" ]; do
-			echo "_COLORS[$I]=\"${_COLORS[$I]}\""
-			I=$((I + 1))
-		done
-
-    printf "_PROMPT_LUT"
-		I=0
-		while [ "$I" -lt "${#_PROMPT_LUT[*]}" ]; do
-            echo " \\"
-			printf "\"${_PROMPT_LUT[$I]}\""
-			I=$((I + 1))
-		done
-        echo ""
-        echo ""
-
-
-printf "_PROMPT_TEXT_LUT"
-		I=0
-		while [ "$I" -lt "${#_PROMPT_TEXT_LUT[*]}" ]; do
-            echo " \\"
-			printf "\"${_PROMPT_TEXT_LUT[$I]}\""
-			I=$((I + 1))
-		done
-        echo ""
-        echo ""
-
-    printf "_COLORS"
-		I=0
-		while [ "$I" -lt "${#_COLORS[*]}" ]; do
-            echo " \\"
-			printf "${_COLORS[$I]}"
-			I=$((I + 1))
-		done
-        echo ""
-
 		echo _DEFAULT_FGCOLOR=$_DEFAULT_FGCOLOR
 		echo _DEFAULT_BGCOLOR=$_DEFAULT_BGCOLOR
 	} >"${DEST}" 2>/dev/null
