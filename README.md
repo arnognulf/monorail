@@ -61,27 +61,27 @@ Change gradient
 
 Run `monorail_gradient` to compute a custom prompt gradient:
 ```
-monorail_gradient  0 b1e874  100 00d4ff
+monorail_gradient b1e874 1  00d4ff 100
 ```
 The `gradient` command has a simple syntax which gives an easy translation of gradients from https://cssgradient.io/ and https://uigradients.com.
 
 Arguments come in pairs, multiple pairs may be specified.
-Each pair has a percentage (0-100) and a color value in hex, eg:
+Each pair has a percentage (1-100) and a color value in hex, eg:
 
 ```
-monorail_gradient  0 b1e874  30 c324f5  100 00d4ff
+monorail_gradient b1e874 1  c324f5 30  00d4ff 100
 ```
 
 There is also a CSS like rgb helper to translate rgb colors to hex:
 
 ```
-monorail_gradient  0 $(rgb 231,67,42)  42 $(rgb 29,67,85)  100 $(rgb 16,57,163) 
+monorail_gradient  $(rgb 231,67,42) 1  $(rgb 29,67,85) 42  $(rgb 16,57,163) 100
 ```
 
 
 Run `monorail_textgradient` to change prompt gradient text:
 ```
-monorail_textgradient  0 ffffff  100 444444
+monorail_textgradient  ffffff 1  444444 100
 ```
 
 
