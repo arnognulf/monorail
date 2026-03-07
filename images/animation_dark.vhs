@@ -31,6 +31,6 @@ Up
 Sleep 500ms
 Enter
 Sleep 1.5s
-Type "monorail_gradient 0 ff5f6d 100 1f1391"
+Type "monorail_gradient ff5f6d 1  1f1391 100"
 Enter
 Sleep 8s
