@@ -607,7 +607,7 @@ _LOW_PRIO(){
 # `choom -n +1000` will make the OOM killer kill this process first
 # `ionice -c idle` will deprioritize IO from this process
 # `chrt --idle 0`  will set the cpu priority to the lowest possible
-choom -n +1000 ionice -c idle chrt --idle 0 "$@"
+choom -n +1000 -- ionice -c idle -- chrt --idle 0 -- "$@"
 }
 else
 _LOW_PRIO(){
