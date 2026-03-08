@@ -71,6 +71,7 @@ _MONORAIL_LINE_SEGMENT=_
 _MONORAIL_ELIPSIS="..."
 _MONORAIL_OFFSET=0
 
+# shellcheck disable=SC2153 # KSH_VERSION is spelled correctly
 case $KSH_VERSION in
 "Version "*93*)
 	# ksh93u+m tries to parse control sequences itself, so skip the fixup code
@@ -394,30 +395,39 @@ _MONORAIL_UPDATE() {
 ${ESC}["$(printf "%0$((_MONORAIL_TEXT_LEN - 3))d" "$_MONORAIL_TEXT_LEN")C
 	fi
 	PS1="$_MONORAIL_COLORS$_MONORAIL_TITLE$_MONORAIL_CURSOR$_MONORAIL_LINE$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
-	if [ "$BASH_VERSION" ] || [ "$ZSH_VERSION" ] || [ "$KSH_VERSION" ]; then
+	# shellcheck disable=SC2262 # cd needs to be aliased for ksh/bash/zsh
+	if alias cd=_MONORAIL_CD >/dev/null 2>/dev/null; then
 		# shellcheck disable=SC2329 # function is for interactive use
 		_MONORAIL_CD() {
 			unalias cd
 			if [ "$1" ]; then
-				cd "$@" || return $?
+				# shellcheck disable=SC2164 # need to run _MONORAIL_UPDATE even if `cd` fails
+				cd "$@"
+				STATUS=$?
 			else
-				cd "$HOME" || return $?
+				# shellcheck disable=SC2164 # need to run _MONORAIL_UPDATE even if `cd` fails
+				cd "$HOME"
+				STATUS=$?
 			fi
 			_MONORAIL_UPDATE
+			return "$STATUS"
 		}
-		# shellcheck disable=SC2262 # cd needs to be aliased for ksh/bash/zsh
-		alias cd=_MONORAIL_CD
 	else
 		# shellcheck disable=SC2329 # function is for interactive use
 		cd() {
 			# need to set/unset 'cd()' since not all shell have `builtin`
 			unset -f cd 2>/dev/null
 			if [ "$1" ]; then
-				cd "$@" || return $?
+				# shellcheck disable=SC2164 # need to run _MONORAIL_UPDATE even if `cd` fails
+				cd "$@"
+				STATUS=$?
 			else
-				cd "$HOME" || return $?
+				# shellcheck disable=SC2164 # need to run _MONORAIL_UPDATE even if `cd` fails
+				cd "$HOME"
+				STATUS=$?
 			fi
 			_MONORAIL_UPDATE
+			return "$STATUS"
 		}
 	fi
 	unalias git 2>/dev/null
@@ -426,11 +436,14 @@ ${ESC}["$(printf "%0$((_MONORAIL_TEXT_LEN - 3))d" "$_MONORAIL_TEXT_LEN")C
 		# need to set/unset 'git()' since not all shell have `builtin`
 		unset -f git 2>/dev/null
 		if [ "$1" ]; then
-			$_MONORAIL_GIT_BIN "$@" || return $?
+			"$_MONORAIL_GIT_BIN" "$@"
+			STATUS=$?
 		else
-			$_MONORAIL_GIT_BIN || return $?
+			"$_MONORAIL_GIT_BIN"
+			STATUS=$?
 		fi
 		_MONORAIL_UPDATE
+		return "$STATUS"
 	}
 	# shellcheck disable=SC2329 # function is for interactive use
 	git() {
@@ -467,12 +480,11 @@ _ICON() {
 	esac
 	"$@"
 }
-if [ "$BASH_VERSION" ] || [ "$ZSH_VERSION" ]; then
-	# shellcheck disable=SC3045 # bash / zsh only
-	_MONORAIL_GIT_BIN=$(type -P git)
-else
-	_MONORAIL_GIT_BIN=$(which git)
-fi
+_MONORAIL_GIT_BIN=$( (
+	unset -f git 2>/dev/null >/dev/null
+	unalias git 2>/dev/null >/dev/null
+	command -v git
+))
 # update monorail on window resizing
 trap "_MONORAIL_UPDATE" WINCH
 kill -s WINCH $$
