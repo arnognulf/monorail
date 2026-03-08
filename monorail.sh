@@ -378,7 +378,7 @@ PROMPT_PWD="${PROMPT_PWD%/*}"
 done
 if [[ -z $_MONORAIL_GIT_LOADED ]];then
 local DIR
-DIR="$PWD"
+DIR=$PWD
 while [[ $DIR ]];do
 if [[ -e "$DIR/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
@@ -391,60 +391,60 @@ fi
 _MONORAIL_GIT_PS1=$(_TITLE () { shift;"$@";};TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 local ICON TITLE_BASE
-TITLE_BASE="${PWD##*/}"
-if [[ "$MONORAIL_REPO" ]];then
-ICON="🏗️"
-elif [[ "$_MONORAIL_GIT_PS1" ]];then
-ICON="🚧"
+TITLE_BASE=${PWD##*/}
+if [[ $MONORAIL_REPO ]];then
+ICON=🏗️
+elif [[ $_MONORAIL_GIT_PS1 ]];then
+ICON=🚧
 else
-case "$PWD" in
-*/etc|*/etc/*)ICON="️🗂️";;
-*/bin|*/sbin)ICON="️⚙️ ";;
-*/lib|*/lib64|*/lib32)ICON="🔩";;
-*/tmp|*/tmp/*|*/.cache|*/.cache/*)ICON="🚽";;
-"$HOME/Trash"*)ICON="🗑️";;
-"$HOME/.local/share/Trash/files"*)ICON="♻️";;
-/boot|/boot/*)ICON="🥾";;
-/)ICON="💻"; TITLE_BASE="/";;
-*/.*)ICON="📌";;
-/media/*)ICON="💾";;
-/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)ICON="🤖";;
-*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)ICON="📑";;
+case $PWD in
+*/etc|*/etc/*)ICON=🗂️;;
+*/bin|*/sbin)ICON=⚙️ ;;
+*/lib|*/lib64|*/lib32)ICON=🔩;;
+*/tmp|*/tmp/*|*/.cache|*/.cache/*)ICON=🚽;;
+"$HOME/Trash"*)ICON=🗑️;;
+"$HOME/.local/share/Trash/files"*)ICON=♻️;;
+/boot|/boot/*)ICON=🥾;;
+/)ICON=💻; TITLE_BASE=/;;
+*/.*)ICON=📌;;
+/media/*)ICON=💾;;
+/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)ICON=🤖;;
+*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)ICON=📑;;
 */out|*/out/*)ICON="🚀  ${PWD##*/}";;
-*/src|*/src/*|*/sources|*/sources/*)ICON="🚧";;
-"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON="🎵";;
-"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON="🖼️";;
-"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON="🎬";;
-*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON="📦";;
-*)ICON="📂"
+*/src|*/src/*|*/sources|*/sources/*)ICON=🚧;;
+"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON=🎵;;
+"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON=🖼️;;
+"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON=🎬;;
+*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=📦;;
+*)ICON=📂
 esac
-case "$_MONORAIL_REALPWD" in
+case $_MONORAIL_REALPWD in
 "$HOME")
 if [[ $CRAFT_STATE_DIR ]];then
-TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
-ICON="🛠️"
+TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+ICON=🛠️
 elif [[ $SSH_CLIENT ]]
 then
-TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
-ICON="🌐"
+TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+ICON=🌐
 elif [[ -e /.dockerenv ]]
 then
-TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
-ICON="🐋"
+TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+ICON=🐋
 elif [[ -e /run/containerenv ]]
 then
-TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
-ICON="🦭"
+TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+ICON=🦭
 else
-ICON="🏠"
-TITLE_BASE="$_MONORAIL_SHORT_HOSTNAME"
+ICON=🏠
+TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
 fi
 ;;
 *)
 esac
 fi
 _MONORAIL_TITLE="$ICON  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
-[[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
+[[ $PWD != $HOME ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 local PWD_BASENAME="${PWD##*/}"
 [ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
 case $PWD in
@@ -453,7 +453,7 @@ case $PWD in
 esac
 _MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
-_MONORAIL_TEXT="${_MONORAIL_TEXT//\.\.\./$'\xe2\x80\xa6'}"
+_MONORAIL_TEXT=${_MONORAIL_TEXT//\.\.\./$'\xe2\x80\xa6'}
 if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 # frequently, the last of the text is the most relevant, cut beginning if too long path
 _MONORAIL_TEXT=" $'\xe2\x80\xa6'${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
@@ -463,12 +463,12 @@ if [[ $ZSH_NAME ]]
 then
 for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
 do
-_MONORAIL_TEXT_ARRAY[I]="${_MONORAIL_TEXT[I]}"
+_MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT[I]}
 done
 else
 for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
 do
-_MONORAIL_TEXT_ARRAY[I]="${_MONORAIL_TEXT:I:1}"
+_MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT:I:1}
 done
 fi
 _MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
@@ -520,7 +520,7 @@ RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
 HEX_CURSOR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
-[[ ${_PROMPT_LUT[0]} ]]||HEX_CURSOR_COLOR="${_COLORS[21]}"
+[[ ${_PROMPT_LUT[0]} ]]||HEX_CURSOR_COLOR=${_COLORS[21]}
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 # shellcheck disable=SC2059 # keep printf compact
@@ -535,7 +535,7 @@ _TITLE(){
 local _MONORAIL_TITLE="$*"
 if [[ $_MEASURE ]];then
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
-elif [[ "$PWD" = "$HOME" ]];then
+elif [[ $PWD = $HOME ]];then
 :
 else
 _MONORAIL_TITLE+=" in ${PWD##*/}"
@@ -663,10 +663,10 @@ if [[ $TERM = xterm-256color ]];then
 # vscode does not support disabling line wrapping
 # 
 [[ $TERM_PROGRAM = vscode ]]&&_MONORAIL_COMPAT=1
-elif [[ "$MC_TMPDIR" ]];then
+elif [[ $MC_TMPDIR ]];then
 _MONORAIL_COMPAT=1
 else
-case "$TERM" in
+case $TERM in
 xterm-color|xterm-16color)
 _MONORAIL_COMPAT=1
 ;;
