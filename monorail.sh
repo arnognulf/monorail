@@ -231,17 +231,13 @@ CMD=${CMD%%;*}
 unset _MONORAIL_CUSTOM_TITLE
 alias "$CMD" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE=1
 for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}";do
-if [[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]];then
-_MONORAIL_CUSTOM_TITLE=1
-fi
+[[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]]&&_MONORAIL_CUSTOM_TITLE=1
 done
 _MEASURE=1
 _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 local _MONORAIL_TITLE_FORMATTED=""
-if [[ -z $IGNORED_TITLE ]];then
-_MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
-fi
+[[ $IGNORED_TITLE ]]||_MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
 [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 # shellcheck disable=SC2059 # keep printf compact
 printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
@@ -277,17 +273,12 @@ shift
 done
 }
 _MONORAIL_SET_TITLE(){
-if [[ $1 ]];then
-_MONORAIL_TITLE_OVERRIDE="$*"
-else
 unset _MONORAIL_TITLE_OVERRIDE
-fi
+[[ $1 ]]&&_MONORAIL_TITLE_OVERRIDE="$*"
 }
 alias title=_MONORAIL_SET_TITLE
 _TITLE_RAW(){
-if [[ $_MONORAIL_NOSTYLING ]];then
-return 0
-fi
+[[ $_MONORAIL_NOSTYLING ]]&&return 0
 printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 }
 if [[ $XDG_CONFIG_HOME ]];then
@@ -296,11 +287,8 @@ else
 _MONORAIL_CONFIG=$HOME/.config/monorail
 fi
 _MONORAIL_NAME(){
-if [[ $1 ]];then
-NAME="$*"
-else
 unset NAME
-fi
+[[ $1 ]]&&NAME="$*"
 }
 alias name=_MONORAIL_NAME
 precmd(){
@@ -505,13 +493,13 @@ fi
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh
 local I=0
 _MONORAIL_LINE=
-_MONORAIL_UNDERLINE=$'\xe2\x96\x81'
+_MONORAIL_UNDERLINE=
 while [[ $I -lt $COLUMNS ]]
 do
-_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e['"$COLUMNS"C$'\e['"$((COLUMNS - I))"D$_MONORAIL_UNDERLINE
+_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
 I=$((I+1))
 done
-_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e['"$COLUMNS"C$_MONORAIL_UNDERLINE$'\e['"$((COLUMNS - I))"D$_MONORAIL_UNDERLINE
+_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
 local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
 _MONORAIL_TEXT_FORMATTED="$_MONORAIL_PREHIDE"$'\e'"[0;7m${_MONORAIL_POSTHIDE}"
@@ -675,7 +663,6 @@ i=$((i+1))
 done
 echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 }
-
 if [[ "$TERM" = "xterm-256color" ]];then
 # zutty (vterm) doesn't handle background color, nor hidden text.
 # thus the horizontal bar  "|" gets visible
