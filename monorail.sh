@@ -24,17 +24,10 @@ _MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
 _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 elif [[ -e /.dockerenv ]];then
 _MONORAIL_SHORT_HOSTNAME=docker
-# TODO: has suffix and suffix fn can be merged
 _MONORAIL_HAS_SUFFIX=1
 _MONORAIL_SUFFIX () {
 _MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
 }
-elif [[ -e /.dockerenv ]];then
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_SUFFIX () {
-_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
-}
-_MONORAIL_SHORT_HOSTNAME=docker
 elif [[ -e /run/containerenv ]];then
 _MONORAIL_HAS_SUFFIX=1
 _MONORAIL_SHORT_HOSTNAME=podman
@@ -460,10 +453,10 @@ case $PWD in
 esac
 _MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
-_MONORAIL_TEXT="${_MONORAIL_TEXT//\.\.\./$_MONORAIL_ELIPSIS}"
+_MONORAIL_TEXT="${_MONORAIL_TEXT//\.\.\./$'\xe2\x80\xa6'}"
 if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 # frequently, the last of the text is the most relevant, cut beginning if too long path
-_MONORAIL_TEXT=" $_MONORAIL_ELIPSIS${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
+_MONORAIL_TEXT=" $'\xe2\x80\xa6'${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
 fi
 _MONORAIL_TEXT_ARRAY=()
 if [[ $ZSH_NAME ]]
