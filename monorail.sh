@@ -9,14 +9,14 @@
 if ! [[ $_MONORAIL_DIR ]];then
 _MONORAIL_DIR=${XDG_DATA_HOME-$HOME/.local/share}/monorail
 fi
-[[ $HOSTNAME ]] || HOSTNAME=$(hostname)
+[[ $HOSTNAME ]]||HOSTNAME=$(hostname)
 if [[ $CRAFT_STATE_DIR ]];then
 _MONORAIL_SHORT_HOSTNAME=snapcraft
 _MONORAIL_HAS_SUFFIX=1
 _MONORAIL_SUFFIX () {
 _MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
 }
-elif [[ $SSH_CLIENT ]] || [[ $TMUX ]];then
+elif [[ $SSH_CLIENT ]]||[[ $TMUX ]];then
 _MONORAIL_HAS_SUFFIX=1
 _MONORAIL_SUFFIX () {
 _MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
@@ -57,10 +57,10 @@ _MONORAIL_POSTHIDE='\]'
 
 __bp_last_argument_prev_command="$_"
 unset __bp_inside_preexec
-__bp_preexec_interactive_mode=""
+__bp_preexec_interactive_mode=
 declare -a preexec_functions
 
-__bp_preexec_interactive_mode="on"
+__bp_preexec_interactive_mode=on
 __bp_in_prompt_command(){
 local prompt_command_array IFS=$'\n;'
 read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
@@ -68,7 +68,7 @@ local trimmed_arg
 local text=${1:-}
 text="${text#"${text%%[![:space:]]*}"}"
 text="${text%"${text##*[![:space:]]}"}"
-trimmed_arg="$text"
+trimmed_arg=$text
 
 local command trimmed_command
 for command in "${prompt_command_array[@]:-}";do
@@ -113,7 +113,7 @@ return
 fi
 local preexec_function
 for preexec_function in "${preexec_functions[@]:-}";do
-if type -t "$preexec_function" 1>/dev/null;then
+if type -t "$preexec_function" >/dev/null;then
 if [[ ${__bp_last_ret_value-0} = 0 ]];then
 true
 else
@@ -185,7 +185,7 @@ fi
 preexec(){
 {
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
-[[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]] && return
+[[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]]&&return
 _MONORAIL_PREV_CMD=$(fc -l -1)
 local C ICON CMD
 C=${1/\\\a/\\\\\a}
@@ -225,7 +225,7 @@ fi
 done
 ICON="*️⃣"
 _MONORAIL_TITLE="$ICON  $_TIMER_CMD"
-[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
+[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 CMD=${_TIMER_CMD%% *}
 CMD=${CMD%%;*}
 unset _MONORAIL_CUSTOM_TITLE
@@ -238,7 +238,7 @@ _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 local _MONORAIL_TITLE_FORMATTED=""
 [[ $IGNORED_TITLE ]]||_MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
-[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
+[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 # shellcheck disable=SC2059 # keep printf compact
 printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
 unset _MONORAIL_CUSTOM_TITLE
@@ -296,7 +296,7 @@ if [[ $_MONORAIL_LAUNCHED ]];then
 {
 # bash line editor (ble.sh) do not like others messing with the tty
 # enable stty echo in case some command has disabled it up
-[[ $BLE_ATTACHED ]] || LC_MESSAGES=C LC_ALL=C stty echo 2>&-
+[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 CURRENT_SECONDS=$SECONDS
 DIFF=$((CURRENT_SECONDS-_START_SECONDS))
@@ -365,7 +365,7 @@ _MONORAIL_LAUNCHED=1
 fi
 if [[ $_MONORAIL_LONGRUNNING ]] ;then
 _MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
-[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
+[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 unset _MONORAIL_LONGRUNNING
 return 0
 fi
@@ -451,7 +451,7 @@ fi
 esac
 fi
 _MONORAIL_TITLE="$ICON  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
-[[ $PWD != "$HOME" ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
+[[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 local PWD_BASENAME="${PWD##*/}"
 [ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
 case $PWD in
@@ -510,7 +510,7 @@ done
 _MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e[0;8m'"${_MONORAIL_POSTHIDE}|"
 else
 _MONORAIL_TEXT_FORMATTED=
-[[ -z ${_PROMPT_TEXT_LUT[*]} ]] && _PROMPT_TEXT_LUT[0]="255;255;255"
+[[ -z ${_PROMPT_TEXT_LUT[*]} ]]&&_PROMPT_TEXT_LUT[0]="255;255;255"
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
 _MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e['"$((_MONORAIL_TEXT_ARRAY_LEN + 1))C"$'\e'["$((_MONORAIL_TEXT_ARRAY_LEN + 1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
@@ -534,7 +534,7 @@ fi
 printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#$HEX_CURSOR_COLOR\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\e\r\e[K"
 
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-PS1=$'\e[?7l\e'"[${COLUMNS}C"$'\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
+PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m'"${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
@@ -547,7 +547,7 @@ elif [[ "$PWD" = "$HOME" ]];then
 else
 _MONORAIL_TITLE+=" in ${PWD##*/}"
 fi
-[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
+[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 _TITLE_RAW "$_MONORAIL_TITLE"
 }
 _NO_MEASURE(){
@@ -572,7 +572,7 @@ shift
 fi
 FIRST_NON_OPTION="$2"
 done
-[[ "$ICON" ]] && if [[ -z "$FIRST_NON_OPTION" ]];then
+[[ $ICON ]]&&if [[ -z "$FIRST_NON_OPTION" ]];then
 _TITLE "$ICON  ${FIRST_ARG##*/}"
 else
 _TITLE "$ICON  ${FIRST_NON_OPTION##*/}"
@@ -583,7 +583,7 @@ fi
 }
 trap "unset _MONORAIL_CACHE" WINCH
 _LOW_PRIO(){
-if type -P chrt && type -P ionice && type -P ionice;then
+if type -P chrt&&type -P ionice&&type -P ionice;then
 _LOW_PRIO(){
 # As an ordinary user, you cannot raise the priority and mark the importance
 # of a process.
@@ -663,7 +663,7 @@ i=$((i+1))
 done
 echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 }
-if [[ "$TERM" = "xterm-256color" ]];then
+if [[ $TERM = xterm-256color ]];then
 # zutty (vterm) doesn't handle background color, nor hidden text.
 # thus the horizontal bar  "|" gets visible
 [[ $ZUTTY_VERSION ]]&&_MONORAIL_COMPAT=1
@@ -680,7 +680,7 @@ _MONORAIL_COMPAT=1
 xterm*|alacritty|rio|rxvt-unicode-256color|mlterm|st-256color|foot)
 printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "${COLUMNS}" >/dev/tty 2>&-
 # ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
-[[ $TERM = "xterm-ghostty" ]] && unalias ssh 2>/dev/null
+[[ $TERM = xterm-ghostty ]]&&unalias ssh 2>/dev/null
 # FreeBSD console lacks UTF-8 and truecolor
 [[ $(tty) =~ "/dev/ttyv"* ]]&&_MONORAIL_COMPAT=1
 # cool-retro-term does not support invisible SGR8
