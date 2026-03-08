@@ -248,7 +248,8 @@ or \"None\" to use text color"
 		if [ -z "$COLOR" ]; then
 			COLOR=$ARG
 			(
-				BASE10=$((0x$COLOR))
+				# shellcheck disable=SC2034 # need to assign an unused variable to see if conversion is possible or not
+				UNUSED=$((0x$COLOR))
 			) 2>/dev/null || {
 				echo "error: $COLOR is not a valid color"
 				exit 42
