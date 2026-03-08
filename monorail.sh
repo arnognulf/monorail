@@ -69,7 +69,7 @@ text=${command}
 text="${text#"${text%%[![:space:]]*}"}"
 text="${text%"${text##*[![:space:]]}"}"
 trimmed_command="$text"
-if [[ $trimmed_command == "$trimmed_arg" ]];then
+if [[ $trimmed_command = "$trimmed_arg" ]];then
 return 0
 fi
 done
@@ -118,7 +118,7 @@ done
 return "${__bp_last_ret_value-0}"
 }
 __bp_install(){
-if [[ ${PROMPT_COMMAND[*]:-} == *"precmd"* ]];then
+if [[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]];then
 return 1
 fi
 trap '__bp_preexec_invoke_exec "$_"' DEBUG
@@ -134,7 +134,7 @@ fi
 local histcontrol
 histcontrol="${HISTCONTROL:-}"
 histcontrol="${histcontrol//ignorespace/}"
-if [[ $histcontrol == *"ignoreboth"* ]];then
+if [[ $histcontrol = *"ignoreboth"* ]];then
 histcontrol="ignoredups:${histcontrol//ignoreboth/}"
 fi
 export HISTCONTROL="$histcontrol"
@@ -153,7 +153,7 @@ text="${text#"${text%%[![:space:]]*}"}"
 existing_prompt_command="${text%"${text##*[![:space:]]}"}"
 existing_prompt_command=${existing_prompt_command%;}
 existing_prompt_command=${existing_prompt_command#;}
-if [[ ${existing_prompt_command:-:} == ":" ]];then
+if [[ ${existing_prompt_command:-:} = ":" ]];then
 existing_prompt_command=
 fi
 PROMPT_COMMAND='precmd'
@@ -178,7 +178,7 @@ fi
 preexec(){
 {
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
-[[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]]&&return
+[[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]]&&return
 _MONORAIL_PREV_CMD=$(fc -l -1)
 local C ICON CMD
 C=${1/\\\a/\\\\\a}
@@ -212,7 +212,7 @@ _TIMER_CMD=${C/\\\007/<BEL>}
 local XCMD IGNORED_TITLE=""
 for XCMD in "${_MONORAIL_CMD_IGNORED[@]}"
 do
-if [[ "$XCMD" == "${_TIMER_CMD%% *}" ]]; then
+if [[ $XCMD = "${_TIMER_CMD%% *}" ]]; then
 IGNORED_TITLE=1
 fi
 done
@@ -224,7 +224,7 @@ CMD=${CMD%%;*}
 unset _MONORAIL_CUSTOM_TITLE
 alias "$CMD" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE=1
 for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}";do
-[[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]]&&_MONORAIL_CUSTOM_TITLE=1
+[[ $COMMAND = "${_TIMER_CMD:0:${#COMMAND}}" ]]&&_MONORAIL_CUSTOM_TITLE=1
 done
 _MEASURE=1
 _START_SECONDS=$SECONDS
@@ -300,8 +300,8 @@ DURATION_M=$((SECONDS_M/60))
 DURATION_S=$((SECONDS_M%60))
 printf "\n\aCommand took "
 DURATION=
-[ $DURATION_H -gt 0 ]&&DURATION="${DURATION_H}h "
-[ $DURATION_M -gt 0 ]&&DURATION+="${DURATION_M}m "
+[[ $DURATION_H -gt 0 ]]&&DURATION="${DURATION_H}h "
+[[ $DURATION_M -gt 0 ]]&&DURATION+="${DURATION_M}m "
 DURATION+="${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).
 echo "$DURATION"
 (exec notify-send -a "Completed $_TIMER_CMD" -i terminal "$_TIMER_CMD" "Command took $DURATION"&)
@@ -320,8 +320,8 @@ if [[ -z $_MONORAIL_PENULTIMATE ]];then
 _MONORAIL_CR_FIRST=1
 CR_LEVEL=0
 unset _MONORAIL_CTRLC
-elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
-if [[ -z $_MONORAIL_CR_FIRST ]] &&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
+elif [[ $_MONORAIL_PENULTIMATE = "$_MONORAIL_HISTCMD_PREV" ]];then
+if [[ -z $_MONORAIL_CR_FIRST ]] &&[[ $CMD_STATUS = 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
 case "$CR_LEVEL" in
 0)ls
 CR_LEVEL=3
@@ -444,9 +444,9 @@ fi
 esac
 fi
 _MONORAIL_TITLE="$ICON  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
-[[ $PWD != $HOME ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
+[[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 local PWD_BASENAME="${PWD##*/}"
-[ -z "$PWD_BASENAME" ]&&PWD_BASENAME=/
+[[ $PWD_BASENAME ]]||PWD_BASENAME=/
 case $PWD in
 "$HOME")_MONORAIL_PWD_BASENAME="~";;
 *)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
@@ -476,7 +476,7 @@ local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
 unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh ]];then
-if [ "$(gsettings get org.gnome.desktop.interface color-scheme)" = "prefer-dark" ];then
+if [[ $(gsettings get org.gnome.desktop.interface color-scheme) = prefer-dark ]];then
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/DefaultDark.sh "$_MONORAIL_DIR"/gradients/Default.sh > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh 2>&-
 else
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.sh "$_MONORAIL_DIR"/gradients/Default.sh > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh 2>&-
@@ -535,7 +535,7 @@ _TITLE(){
 local _MONORAIL_TITLE="$*"
 if [[ $_MEASURE ]];then
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
-elif [[ $PWD = $HOME ]];then
+elif [[ $PWD = "$HOME" ]];then
 :
 else
 _MONORAIL_TITLE+=" in ${PWD##*/}"
@@ -550,14 +550,14 @@ unset _MEASURE
 _ICON(){
 local ICON="$1"
 shift
-if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} == "_NO_MEASURE" ]];then
+if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} = "_NO_MEASURE" ]];then
 local FIRST_ARG="$1"
 (case "$FIRST_ARG" in
 _*)shift
 esac
 FIRST_ARG="$1"
 FIRST_NON_OPTION="$2"
-while [[ ${FIRST_NON_OPTION:0:1} == '-' ]]||[ "${FIRST_NON_OPTION:0:1}" = '_' ]||[ "$FIRST_NON_OPTION" = '.' ];do
+while [[ ${FIRST_NON_OPTION:0:1} = '-' ]]||[ "${FIRST_NON_OPTION:0:1}" = '_' ]||[ "$FIRST_NON_OPTION" = '.' ];do
 if [ "$FIRST_NON_OPTION" = '-u' ];then
 shift 2
 else
