@@ -701,5 +701,5 @@ alias monorail_image="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORA
 # shellcheck disable=SC2139
 alias monorail_textgradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $ZSH_NAME$BASH $_MONORAIL_DIR/scripts/gradient.sh --text"
 # shellcheck disable=SC2139
-alias rgb="bash $_MONORAIL_DIR/scripts/rgb.sh"
+alias rgb="$0 $_MONORAIL_DIR/scripts/rgb.sh"
 } >&- 2>&-
