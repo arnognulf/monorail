@@ -270,6 +270,11 @@ unset _MONORAIL_TITLE_OVERRIDE
 [[ $1 ]]&&_MONORAIL_TITLE_OVERRIDE="$*"
 }
 alias title=_MONORAIL_SET_TITLE
+_MONORAIL_SET_ICON(){
+unset _MONORAIL_ICON_OVERRIDE
+[[ $1 ]]&&_MONORAIL_ICON_OVERRIDE="$*"
+}
+alias icon=_MONORAIL_SET_ICON
 _TITLE_RAW(){
 [[ $_MONORAIL_NOSTYLING ]]&&return 0
 printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
@@ -443,7 +448,7 @@ fi
 *)
 esac
 fi
-_MONORAIL_TITLE="$ICON  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
+_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${ICON}}  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
 [[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 local PWD_BASENAME="${PWD##*/}"
 [[ $PWD_BASENAME ]]||PWD_BASENAME=/
@@ -566,9 +571,9 @@ fi
 FIRST_NON_OPTION="$2"
 done
 [[ $ICON ]]&&if [[ -z "$FIRST_NON_OPTION" ]];then
-_TITLE "$ICON  ${FIRST_ARG##*/}"
+_TITLE "${_MONORAIL_ICON_OVERRIDE-${ICON}}  ${FIRST_ARG##*/}"
 else
-_TITLE "$ICON  ${FIRST_NON_OPTION##*/}"
+_TITLE "${_MONORAIL_ICON_OVERRIDE-${ICON}}  ${FIRST_NON_OPTION##*/}"
 fi
 ) >&- 2>&-
 fi
@@ -588,7 +593,7 @@ _LOW_PRIO(){
 # `choom -n +1000` will make the OOM killer kill this process first
 # `ionice -c idle` will deprioritize IO from this process
 # `chrt --idle 0`  will set the cpu priority to the lowest possible
-choom -n +1000 -- ionice -c idle -- chrt --idle 0 -- "$@"
+choom -n +1000 -- ionice -c idle -- chrt --idle 0 "$@"
 }
 else
 _LOW_PRIO(){
