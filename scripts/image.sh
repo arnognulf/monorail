@@ -41,7 +41,7 @@ Examples:
 	fi
 
 	if [ -z "$1" ]; then
-		if [ "$BASH_VERSION" ] || [ "$ZSH_NAME" ]; then
+		if [ "$BASH_VERSION" ] || [ "$ZSH_NAME" ] || [ "$KSH_VERSION" ]; then
 			:
 		else
 			echo "error: preview requires bash, zsh, or ksh"
@@ -56,7 +56,7 @@ Examples:
 		fi
 		PREVIEW_SHELL=$(command -v ksh)
 		if [ ! -x "$PREVIEW_SHELL" ]; then
-			PREVIEW_SHELL=$SHELL
+			PREVIEW_SHELL="$0"
 		fi
 
 		if [ -z "$_MONORAIL_IMAGE_DIR" ]; then
@@ -91,13 +91,14 @@ Examples:
 	# identify will report size
 	WIDTH=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
 	HEIGHT=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f2 | head -n1)
+	rm "${DEST}"
 	ADD_WHITE_PROMPT_TEXT_LUT
 	printf "_PROMPT_LUT"
 	for RGB in $(convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${THEME}" RGB:- | xxd -ps -c3); do
 		echo " \\"
 		printf "\"%s;%s;%s\"" $((0x$(echo "$RGB" | cut -c1-2))) $((0x$(echo "$RGB" | cut -c3-4))) $((0x$(echo "$RGB" | cut -c5-6)))
 		I=$((I + 1))
-	done
+	done >>"${DEST}"
 
 	ADD_CURRENT_COLORS
 	killall -s WINCH bash zsh >/dev/null 2>/dev/null

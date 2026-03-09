@@ -72,8 +72,15 @@ fi
 case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.sh)
 	case "${PWD}" in
-	*/gradients/*)
+	${_MONORAIL_DIR}/gradients)
 		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+		;;
+	${_MONORAIL_DIR}/colors)
+		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+		;;
+	*)
+		echo "Not a theme: ${PREVIEW}"
+		exit 42
 		;;
 	esac
 	# shellcheck disable=SC1090 # file exists
@@ -82,6 +89,10 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *)
 
 	THEME="${PREVIEW}"
+	identify "${THEME}" >/dev/null 2>/dev/null || {
+		echo "Not a theme: ${THEME}"
+		exit 1
+	}
 
 	TEMP=$(mktemp --suff=".${THEME##*.}")
 	cp -f "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "$TEMP"
