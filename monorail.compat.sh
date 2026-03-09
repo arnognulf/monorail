@@ -233,7 +233,7 @@ if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 		fi
 		_MONORAIL_TEXT_LINE=""
 		_MONORAIL_LINE="
-${ESC}[A"
+"
 		POS=0
 		OLDPOS=0
 		I=0
