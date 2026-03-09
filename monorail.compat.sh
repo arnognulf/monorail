@@ -80,7 +80,7 @@ case $KSH_VERSION in
 esac
 case "$TERM" in
 "vt"???)
-	bind 'set enable-bracketed-paste off'
+	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
 	# vt100 or vt220 emulators normally do not support DEC alternate graphics
 	# which is used to draw the horizontal line but sets "vt100" or "vt220"
@@ -98,12 +98,12 @@ case "$TERM" in
 	# TODO: fix after the cursor positioning revamp
 	#_MONORAIL_REVERSE="$_MONORAIL_PREHIDE${ESC}G4$_MONORAIL_POSTHIDE"
 	#_MONORAIL_NORMAL="$_MONORAIL_PREHIDE${ESC}G0$_MONORAIL_POSTHIDE"
-	bind 'set enable-bracketed-paste off'
+	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_DUMB_TERMINAL=1
 	;;
 "dm2500" | "dumb" | "vt50")
 	# uppercase only terminals have no underscore character
-	bind 'set enable-bracketed-paste off'
+	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_DUMB_TERMINAL=1
 	_MONORAIL_LINE_SEGMENT=-
 	_MONORAIL_NORMAL="!"
@@ -111,7 +111,7 @@ case "$TERM" in
 	;;
 "tek"*)
 	# dumb lowercase terminals
-	bind 'set enable-bracketed-paste off'
+	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_DUMB_TERMINAL=1
 	_MONORAIL_OFFSET=2
 	if [ "$TERM" = "tek4010" ]; then
@@ -123,7 +123,7 @@ case "$TERM" in
 	;;
 vt?? | "ibm-327"* | "dp33"?? | "adm3a" | "hp2621" | "hz1500" | "wy30" | "vc404" | "dg2"*)
 	# dumb lowercase terminals
-	bind 'set enable-bracketed-paste off'
+	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_OFFSET=1
 	_MONORAIL_DUMB_TERMINAL=1
 	_MONORAIL_NORMAL="|"
@@ -138,12 +138,12 @@ vt?? | "ibm-327"* | "dp33"?? | "adm3a" | "hp2621" | "hz1500" | "wy30" | "vc404" 
 	_MONORAIL_XTERM_TERMINAL=1
 	;;
 "at386" | "hft" | "scoansi")
-	bind 'set enable-bracketed-paste off'
+	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
 	_MONORAIL_OFFSET=1
 	;;
 "aaa" | "sun" | "wy370")
-	bind 'set enable-bracketed-paste off'
+	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
 	;;
 *)
