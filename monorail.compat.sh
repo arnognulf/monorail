@@ -82,6 +82,24 @@ case "$TERM" in
 "vt"???)
 	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
+
+	# get COLUMNS if unset
+	I=0
+	for SIZE in $(stty size); do
+		if [ "$I" = 0 ]; then
+			LINES=$SIZE
+		else
+			COLUMNS=$SIZE
+		fi
+		I=$((I + 1))
+	done
+	# if `stty size` do not report valid size, default to 80x24
+	if [ -z "$COLUMNS" ] || [ "$COLUMNS" = 0 ]; then
+		COLUMNS=80
+		LINES=24
+	fi
+	export COLUMNS
+	export LINES
 	# vt100 or vt220 emulators normally do not support DEC alternate graphics
 	# which is used to draw the horizontal line but sets "vt100" or "vt220"
 	# as TERM for compatibility.
@@ -180,7 +198,6 @@ if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
 	if [ "$TERM_PROGRAM" != "vscode" ]; then
 		_MONORAIL_DISABLE_WRAP="${ESC}[?7l"
 	fi
-	_MONORAIL_REVERSE="${_MONORAIL_DISABLE_WRAP}${ESC}[7m"
 	_MONORAIL_REVERSE="${ESC}[7m"
 	_MONORAIL_NORMAL="${ESC}[?25h${ESC}[?7h${ESC}[0m"
 fi
@@ -282,6 +299,9 @@ else
 	_COLORS() {
 		:
 	}
+	_PROMPT_TEXT_LUT() {
+		:
+	}
 
 	_PROMPT_LUT() {
 		_MONORAIL_LINE=""
@@ -290,7 +310,9 @@ else
 			I=$((I + 1))
 		done
 		if [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
-			_MONORAIL_LINE="$ESC(0$_MONORAIL_LINE${ESC}(B${ESC}[7m$_MONORAIL_TEXT"
+			_MONORAIL_LINE="$ESC(0$_MONORAIL_LINE${ESC}(B$_MONORAIL_REVERSE$_MONORAIL_TEXT"
+		elif [ "$_MONORAIL_ANSI_TERMINAL" ]; then
+			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_REVERSE$_MONORAIL_TEXT"
 		else
 			_MONORAIL_LINE="$_MONORAIL_LINE
 $_MONORAIL_TEXT"
@@ -384,7 +406,7 @@ _MONORAIL_UPDATE() {
 	if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 		_MONORAIL_LINE="$_MONORAIL_LINE$ESC(1"
 	elif [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
-		_MONORAIL_LINE="$_MONORAIL_LINE$ESC(B${ESC}[7m"
+		_MONORAIL_LINE="$_MONORAIL_LINE$ESC(B$_MONORAIL_REVERSE"
 	fi
 	if [ "$_MONORAIL_KSH93" ]; then
 		# ksh93u+m tries to parse control sequences itself, so skip the fixup code
