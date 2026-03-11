@@ -1,5 +1,5 @@
 #!/bin/sh
-. scripts/sandbox.inc.sh
+. "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 # do not format monorail.sh
 _SANDBOX shellcheck -x monorail.sh

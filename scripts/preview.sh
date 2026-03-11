@@ -19,17 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-if command -v bwrap >/dev/null 2>/dev/null; then
-	_SANDBOX() {
-		bwrap --ro-bind / / --proc /proc --dev /dev --tmpfs /tmp \
-			--unshare-all --die-with-parent \
-			"$@"
-	}
-else
-	_SANDBOX() {
-		"$@"
-	}
-fi
+. "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS

@@ -1,13 +1,13 @@
 #!/bin/sh
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
-
+set -x
 TEMPDIR=$(mktemp -d)
 cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh" "${TEMPDIR}"/current.sh
 touch "${TEMPDIR}"/current.sh
 # shellcheck disable=SC1091 # path exists
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
-. scripts/sandbox.inc.sh
+. "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 _MAIN() {
 	if [ "$ZSH_NAME" ]; then
@@ -63,7 +63,7 @@ Examples:
 		if [ -z "$_MONORAIL_IMAGE_DIR" ]; then
 			_MONORAIL_IMAGE_DIR=$XDG_PICTURES_DIR
 		fi
-		THEME=$(cd "${_MONORAIL_IMAGE_DIR}" && _SANDBOX fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
+		THEME=$(cd "${_MONORAIL_IMAGE_DIR}" && fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
 
 		if [ -n "$THEME" ]; then
 			THEME="${_MONORAIL_IMAGE_DIR}/$THEME"
@@ -88,7 +88,7 @@ Examples:
 	TEMP=$(mktemp --suff=".${THEME##*.}")
 
 	cp "${THEME}" "${TEMP}" >/dev/null 2>/dev/null
-	_SANDBOX identify "${TEMP}" 1>/dev/null 2>/dev/null || exit 42
+	_SANDBOX identify "${TEMP}" 1>/dev/null 2>/dev/null || { exit 42;}
 	# identify will report size
 	WIDTH=$(_SANDBOX identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
 	HEIGHT=$(_SANDBOX identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f2 | head -n1)
