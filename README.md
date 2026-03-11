@@ -215,13 +215,17 @@ Supported shells
 Tested on
 * bash 5.2
 * zsh 5.9
-* busybox ash v1.37.0
+* busybox ash
+* busybox hush
 * brush
 * Debian posh
+* Debian dash
 * MirBSD ksh
 * NetBSD ksh
+* NetBSD sh
 * OpenBSD ksh
 * ksh93 u+m 1.0.10 - gradients not fully supported due to shell bugs
+* FreeBSD 15 sh - gradients disabled due to shell bugs
 
 Supported terminals
 -------------------
