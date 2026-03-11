@@ -249,8 +249,7 @@ if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 			_PROMPT_TEXT_LUT="255;255;255"
 		fi
 		_MONORAIL_TEXT_LINE=""
-		_MONORAIL_LINE="
-"
+		_MONORAIL_LINE=""
 		POS=0
 		OLDPOS=0
 		I=0
@@ -273,7 +272,7 @@ if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 			# backspace.
 			# Disabling gradient of the bar is the unfortunate
 			# workaround here.
-			if [ "$_MONORAIL_KSH93" ] && [ "$I" = 0 ]; then
+			if [ "$_MONORAIL_KSH93" ] && [ "$I" = "${_MONORAIL_TEXT_LEN}" ]; then
 				_MONORAIL_TEXT_LINE_INIT="${ESC}[48;2;${1}m"
 				_MONORAIL_TEXT_LINE="$_MONORAIL_TEXT"
 			elif [ -z "$_MONORAIL_KSH93" ] && [ "$I" -lt "$((_MONORAIL_TEXT_LEN - 1))" ]; then
@@ -286,8 +285,8 @@ if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 			_MONORAIL_TEXT_LINE=$(printf "%s" "$_MONORAIL_TEXT_LINE" | LC_ALL=C sed "s/$US/$_MONORAIL_ELIPSIS/g")
 			;;
 		esac
-		_MONORAIL_LINE="$_MONORAIL_LINE${ESC}[38;2;${_PROMPT_TEXT_LUT}m${_MONORAIL_TEXT_LINE_INIT}
-$_MONORAIL_TEXT_LINE"
+		_MONORAIL_LINE="$_MONORAIL_LINE${ESC}[38;2;${_PROMPT_TEXT_LUT}m
+${_MONORAIL_TEXT_LINE_INIT}$_MONORAIL_TEXT_LINE"
 
 		RGB_CUR_R=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f1)
 		RGB_CUR_G=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f2)
