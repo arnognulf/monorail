@@ -78,28 +78,28 @@ case $KSH_VERSION in
 	_MONORAIL_KSH93=1
 	;;
 esac
+I=0
+for SIZE in $(stty size); do
+	if [ "$I" = 0 ]; then
+		LINES=$SIZE
+	else
+		COLUMNS=$SIZE
+	fi
+	I=$((I + 1))
+done
+# if `stty size` do not report valid size, default to 80x24
+if [ -z "$COLUMNS" ] || [ "$COLUMNS" = 0 ]; then
+	COLUMNS=80
+	LINES=24
+fi
+export COLUMNS
+export LINES
+
 case "$TERM" in
 "vt"???)
 	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
 
-	# get COLUMNS if unset
-	I=0
-	for SIZE in $(stty size); do
-		if [ "$I" = 0 ]; then
-			LINES=$SIZE
-		else
-			COLUMNS=$SIZE
-		fi
-		I=$((I + 1))
-	done
-	# if `stty size` do not report valid size, default to 80x24
-	if [ -z "$COLUMNS" ] || [ "$COLUMNS" = 0 ]; then
-		COLUMNS=80
-		LINES=24
-	fi
-	export COLUMNS
-	export LINES
 	# vt100 or vt220 emulators normally do not support DEC alternate graphics
 	# which is used to draw the horizontal line but sets "vt100" or "vt220"
 	# as TERM for compatibility.
@@ -175,20 +175,38 @@ vt?? | "ibm-327"* | "dp33"?? | "adm3a" | "hp2621" | "hz1500" | "wy30" | "vc404" 
 	if [ "$TERM_PROGRAM" = "GNUstep_Terminal" ]; then
 		_MONORAIL_XTERM_TERMINAL=1
 	fi
-	if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ] || [ "$COLORTERM" = "rxvt-xpm" ]; then
+	case $COLORTERM in
+	"" | "truecolor" | "24bit" | "rxvt-xpm")
 		if [ "$TERM" != "linux" ]; then
 			_MONORAIL_TRUECOLOR_TERMINAL=1
 		fi
-	fi
+		;;
+	esac
 	case "$_MONORAIL_LANG" in
 	*.UTF-8)
 		# UTF-8 "Lower one eighth block"
 		_MONORAIL_LINE_SEGMENT=$(printf '\342\226\201')
 		_MONORAIL_ELIPSIS=$(printf '\xe2\x80\xa6')
+		:
 		;;
 	esac
 	;;
 esac
+
+# freebsd 15 sh(1) have some bugs which causes shell to segfault/block on amd64
+if [ "$(command -v freebsd_wordexp 2>/dev/null)" = "freebsd_wordexp" ]; then
+	echo foo
+	_MONORAIL_DUMB_TERMINAL=1
+	_MONORAIL_NORMAL="|"
+	_MONORAIL_OFFSET=1
+	_MONORAIL_LANG=""
+	unset _MONORAIL_XTERM_TERMINAL
+	unset _MONORAIL_ANSI_TERMINAL
+	unset _MONORAIL_TRUECOLOR_TERMINAL
+	_MONORAIL_LINE_SEGMENT=_
+	_MONORAIL_ELIPSIS=...
+
+fi
 _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 if [ ! -f "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh ]; then
 	cat "$_MONORAIL_DIR"/gradients/Default.sh "$_MONORAIL_DIR"/colors/Default.sh >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
@@ -374,8 +392,9 @@ _MONORAIL_UPDATE() {
 		_MONORAIL_LINE="${ESC}[0m${ESC}(0$CR"
 	fi
 
+	# freebsd `wc` adds some cosmetic spacing that needs to be removed here
 	# shellcheck disable=SC2000 # ${#variable} gives wrong results here
-	_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c)
+	_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c | tr -d ' ')
 	if [ "${_MONORAIL_TEXT_LEN}" -gt $((COLUMNS / 3)) ]; then
 
 		# posix sh does not support the unicode elipsis char
@@ -388,7 +407,7 @@ _MONORAIL_UPDATE() {
 			;;
 		esac
 		# shellcheck disable=SC2000 # ${#variable} gives wrong results here
-		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c)
+		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c | tr -d ' ')
 	fi
 
 	if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh ]; then
