@@ -7,6 +7,7 @@ cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh" "${TEMPDIR}"/curr
 touch "${TEMPDIR}"/current.sh
 # shellcheck disable=SC1091 # path exists
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
+. scripts/sandbox.inc.sh
 
 _MAIN() {
 	if [ "$ZSH_NAME" ]; then
@@ -62,7 +63,7 @@ Examples:
 		if [ -z "$_MONORAIL_IMAGE_DIR" ]; then
 			_MONORAIL_IMAGE_DIR=$XDG_PICTURES_DIR
 		fi
-		THEME=$(cd "${_MONORAIL_IMAGE_DIR}" && fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
+		THEME=$(cd "${_MONORAIL_IMAGE_DIR}" && _SANDBOX fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
 
 		if [ -n "$THEME" ]; then
 			THEME="${_MONORAIL_IMAGE_DIR}/$THEME"
@@ -72,7 +73,7 @@ Examples:
 	else
 		THEME="$1"
 	fi
-	if ! identify "$THEME"; then
+	if ! _SANDBOX identify "$THEME"; then
 		echo "monorail_image: decoding failed"
 		exit 1
 	fi
@@ -87,14 +88,14 @@ Examples:
 	TEMP=$(mktemp --suff=".${THEME##*.}")
 
 	cp "${THEME}" "${TEMP}" >/dev/null 2>/dev/null
-	identify "${TEMP}" 1>/dev/null 2>/dev/null || exit 42
+	_SANDBOX identify "${TEMP}" 1>/dev/null 2>/dev/null || exit 42
 	# identify will report size
-	WIDTH=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
-	HEIGHT=$(identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f2 | head -n1)
+	WIDTH=$(_SANDBOX identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
+	HEIGHT=$(_SANDBOX identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f2 | head -n1)
 	rm "${DEST}"
 	ADD_WHITE_PROMPT_TEXT_LUT
 	printf "_PROMPT_LUT"
-	for RGB in $(convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${THEME}" RGB:- | xxd -ps -c3); do
+	for RGB in $(_SANDBOX convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${THEME}" RGB:- | xxd -ps -c3); do
 		echo " \\"
 		printf "\"%s;%s;%s\"" $((0x$(echo "$RGB" | cut -c1-2))) $((0x$(echo "$RGB" | cut -c3-4))) $((0x$(echo "$RGB" | cut -c5-6)))
 		I=$((I + 1))

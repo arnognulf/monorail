@@ -6,6 +6,7 @@ fi
 
 # shellcheck disable=SC1091 # path exists
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
+. "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 TEMPDIR=$(mktemp -d)
 cp -f "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh" "${TEMPDIR}"/current.sh
@@ -71,7 +72,7 @@ _COLOR() {
 		[ "${_DEFAULT_BGCOLOR}" ] || _DEFAULT_BGCOLOR=ffffff
 		[ "${_COLORS_16}" ] || _COLORS_16=$_DEFAULT_FGCOLOR
 		[ "${_COLORS_17}" ] || _COLORS_17=$_DEFAULT_BGCOLOR
-		THEME=$(\cd "${_MONORAIL_DIR}"/colors && fzf --preview "$PREVIEW_SHELL \"${_MONORAIL_DIR}/scripts/preview.sh\" {}")
+		THEME=$(\cd "${_MONORAIL_DIR}"/colors && _SANDBOX fzf --preview "$PREVIEW_SHELL \"${_MONORAIL_DIR}/scripts/preview.sh\" {}")
 		if [ "${THEME}" ]; then
 			# shellcheck disable=SC1090 # non-constant source will exist
 			. "${_MONORAIL_DIR}/colors/${THEME}"

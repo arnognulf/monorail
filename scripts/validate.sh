@@ -1,11 +1,12 @@
 #!/bin/sh
-# do not format monorail.sh
-shellcheck -x monorail.sh
-shfmt -w monorail.compat.sh
-shellcheck -x monorail.compat.sh
-for file in scripts/*.sh; do
-	shfmt -w "$file"
-	shellcheck -x "$file"
-done
+. scripts/sandbox.inc.sh
 
-shellcheck -x scripts/gradient.sh
+# do not format monorail.sh
+_SANDBOX shellcheck -x monorail.sh
+_SANDBOX_RWCWD shfmt -w monorail.compat.sh
+_SANDBOX shellcheck -x monorail.compat.sh
+for file in scripts/*.sh; do
+	_SANDBOX_RWCWD shfmt -w "$file"
+	_SANDBOX shellcheck -x "$file"
+done
+_SANDBOX shellcheck -x scripts/gradient.sh

@@ -19,6 +19,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+if command -v bwrap >/dev/null 2>/dev/null; then
+	_SANDBOX() {
+		bwrap --ro-bind / / --proc /proc --dev /dev --tmpfs /tmp \
+			--unshare-all --die-with-parent \
+			"$@"
+	}
+else
+	_SANDBOX() {
+		"$@"
+	}
+fi
+
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -89,17 +101,17 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *)
 
 	THEME="${PREVIEW}"
-	identify "${THEME}" >/dev/null 2>/dev/null || {
+	_SANDBOX identify "${THEME}" >/dev/null 2>/dev/null || {
 		echo "Not a theme: ${THEME}"
 		exit 1
 	}
 
 	TEMP=$(mktemp --suff=".${THEME##*.}")
 	cp -f "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" "$TEMP"
-	WIDTH=$(identify "$TEMP" 2>/dev/null | awk '{ print $3 }' | cut -dx -f1 | head -n1)
-	HEIGHT=$(identify "$TEMP" 2>/dev/null | awk '{ print $3 }' | cut -dx -f2 | head -n1)
+	WIDTH=$(_SANDBOX identify "$TEMP" 2>/dev/null | awk '{ print $3 }' | cut -dx -f1 | head -n1)
+	HEIGHT=$(_SANDBOX identify "$TEMP" 2>/dev/null | awk '{ print $3 }' | cut -dx -f2 | head -n1)
 
-	for RGB in $(convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" PPM:- | convert -scale 200x PPM:- RGB:- | xxd -ps -c3); do
+	for RGB in $(_SANDBOX convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${XDG_PICTURES_DIR-${HOME}/Pictures}/${THEME}" RGB:- | xxd -ps -c3); do
 		_PROMPT_LUT[I]="$((0x${RGB:0:2}));$((0x${RGB:2:2}));$((0x${RGB:4:2}))"
 		I=$((I + 1))
 	done
