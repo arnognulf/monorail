@@ -1,7 +1,7 @@
 🚝 Monorail Prompt
 ==================
 
-Monorail is a simple and beautiful shell prompt for Bash, Zsh, Ksh, and Posix shells with customizable gradient colors.
+Monorail is a simple and beautiful shell prompt for Bash, Zsh, Fish, and Posix shells with customizable gradient colors.
 
 ![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation_dark.gif#gh-dark-mode-only)
 ![Animation showing changing gradient in monorail_gradient by selecting them in fzf with preview. Aftwards, two colors are entered manually to create a gradient](images/animation_light.gif#gh-light-mode-only)
@@ -52,6 +52,12 @@ Additionally for posix and ksh, add the following to ~/.shrc
 ```
 
 Log out and log in for changes to take effect.
+
+For fish
+create the following file:
+```
+mkdir -p ~/.local/fish
+```
 
 Usage
 =====
@@ -213,19 +219,18 @@ As for terminal support, truecolor terminals are supported as well as non-trueco
 Supported shells
 ----------------
 Tested on
-* bash 5.2
-* zsh 5.9
-* busybox ash
-* busybox hush
-* brush
-* Debian posh
-* Debian dash
-* MirBSD ksh
-* NetBSD ksh
-* NetBSD sh
-* OpenBSD ksh
-* ksh93 u+m 1.0.10 - gradients not fully supported due to shell bugs
-* FreeBSD 15 sh - gradients disabled due to shell bugs
+* [bash](https://www.gnu.org/software/bash/) 5.2
+* [zsh](https://www.zsh.org/) 5.9
+* [busybox ash](https://busybox.net/)
+* [busybox hush](https://busybox.net/)
+* [brush](https://github.com/reubeno/brush) - note: use monorail.compat.sh
+* [Debian dash](https://manpages.debian.org/main/dash/dash.1.en.html)
+* [MirBSD ksh](https://github.com/MirBSD/mksh)
+* [NetBSD ksh](https://man.netbsd.org/ksh.1)
+* [NetBSD sh](https://man.netbsd.org/sh.1)
+* [OpenBSD ksh](https://man.openbsd.org/ksh)
+* [ksh93](https://github.com/ksh93/ksh) u+m 1.0.10 - gradients not fully supported due to shell bugs
+* [FreeBSD 15 sh](https://man.freebsd.org/cgi/man.cgi?sh(1)) - gradients disabled due to shell bugs
 
 Supported terminals
 -------------------
@@ -249,6 +254,8 @@ Also, please keep gradients look-up-tables at up to 200 elements to conserve spa
 
 Vintage terminal emulators
 --------------------------
+vt420 blaze: https://github.com/mmastrac/blaze
+
 vt100 XScreenSaver `./apple2 -fast -program bash -text`
 
 vt100, vt52 terminal-simulator: https://github.com/larsbrinkhoff/terminal-simulator

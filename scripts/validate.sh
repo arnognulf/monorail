@@ -10,3 +10,4 @@ for file in scripts/*.sh; do
 	_SANDBOX shellcheck -x "$file"
 done
 _SANDBOX shellcheck -x scripts/gradient.sh
+_SANDBOX_RWCWD fish_indent -w monorail.fish
