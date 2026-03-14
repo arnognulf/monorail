@@ -72,7 +72,7 @@ Examples:
 	else
 		THEME="$1"
 	fi
-	if ! _SANDBOX identify "$THEME"; then
+	if ! cat "$THEME" | _SANDBOX identify - >/dev/null 2>/dev/null; then
 		echo "monorail_image: decoding failed"
 		exit 1
 	fi
@@ -83,22 +83,24 @@ Examples:
 		echo "monorail_image: $THEME not found"
 		exit 1
 	fi
-	# imagemagick have troubles with filenames containing spaces
-	TEMP=$(mktemp --suff=".${THEME##*.}")
 
-	cp "${THEME}" "${TEMP}" >/dev/null 2>/dev/null
 rm "${DEST}"
 	# identify will report size
-	WIDTH=$(_SANDBOX identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f1 | head -n1)
-	HEIGHT=$(_SANDBOX identify "${TEMP}" | awk '{ print $3 }' | cut -dx -f2 | head -n1)
-	rm "${DEST}"
+	WIDTH=$(cat "${THEME}" | _SANDBOX identify - | awk '{ print $3 }' | cut -dx -f1 | head -n1)
+	HEIGHT=$(cat "${THEME}" | _SANDBOX identify - | awk '{ print $3 }' | cut -dx -f2 | head -n1)
+
 	ADD_WHITE_PROMPT_TEXT_LUT
-	printf "_PROMPT_LUT" >>"${DEST}"
+{
+	printf "_PROMPT_LUT"
+
 	for RGB in $(_SANDBOX convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${THEME}" RGB:- | xxd -ps -c3); do
 		echo " \\"
 		printf "\"%s;%s;%s\"" $((0x$(echo "$RGB" | cut -c1-2))) $((0x$(echo "$RGB" | cut -c3-4))) $((0x$(echo "$RGB" | cut -c5-6)))
 		I=$((I + 1))
-	done >>"${DEST}"
+	done
+echo ""
+echo ""
+} >>"${DEST}"
 
 	ADD_CURRENT_COLORS
 	killall -s WINCH bash zsh >/dev/null 2>/dev/null

@@ -56,7 +56,6 @@ if [ -z "$_MONORAIL_CONFIG" ]; then
 	else
 		_MONORAIL_CONFIG="$HOME/.config/monorail"
 	fi
-	mkdir -p "$_MONORAIL_CONFIG"
 fi
 # netbsd sets LC_CTYPE, Linux sets LANG
 if [ "$XTERM_LOCALE" ]; then
@@ -209,6 +208,7 @@ if [ "$(command -v freebsd_wordexp 2>/dev/null)" = "freebsd_wordexp" ]; then
 fi
 _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 if [ ! -f "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh ]; then
+	mkdir -p "$_MONORAIL_CONFIG"
 	cat "$_MONORAIL_DIR"/gradients/Default.sh "$_MONORAIL_DIR"/colors/Default.sh >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
 fi
 if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then

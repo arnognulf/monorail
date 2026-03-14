@@ -75,10 +75,10 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.sh)
 	case "${PWD}" in
 	${_MONORAIL_DIR}/gradients)
-		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+:
 		;;
 	${_MONORAIL_DIR}/colors)
-		unset "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]"
+:
 		;;
 	*)
 		echo "Not a theme: ${PREVIEW}"
