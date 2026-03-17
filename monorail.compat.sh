@@ -104,7 +104,7 @@ case "$TERM" in
 	# as TERM for compatibility.
 	# detect these terminals by checking if they have supported sizes
 	if [ "$COLUMNS" = 80 ] || [ "$COLUMNS" = 132 ]; then
-		if [ $LINES = 24 ] || [ "$LINES" = 14 ]; then
+		if [ "$LINES" = 24 ] || [ "$LINES" = 14 ]; then
 			_MONORAIL_LINE_SEGMENT=s
 			_MONORAIL_VTXXX_TERMINAL=1
 		fi
@@ -234,7 +234,7 @@ if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 		# 18     `i`           = bold color
 		# 19     `j`           = selection color
 		# 20     `k`           = selected text color
-		# 21     `l`           = cursor
+		# 2     `l`           = cursor
 		# 22     `m`           = cursor text (not present in any iTerm2-Color-Schemes)
 		_MONORAIL_COLORS=""
 		I=0
@@ -470,35 +470,36 @@ ${ESC}["$(printf "%0$((_MONORAIL_TEXT_LEN - 3))d" "$_MONORAIL_TEXT_LEN")C
 			return "$STATUS"
 		}
 	fi
-	unalias git 2>/dev/null
-	# shellcheck disable=SC2329 # this function may be invoked
-	_MONORAIL_GIT() {
-		# need to set/unset 'git()' since not all shell have `builtin`
-		unset -f git 2>/dev/null
-		if [ "$1" ]; then
-			"$_MONORAIL_GIT_BIN" "$@"
-			STATUS=$?
-		else
-			"$_MONORAIL_GIT_BIN"
-			STATUS=$?
-		fi
-		_MONORAIL_UPDATE
-		return "$STATUS"
-	}
-	# shellcheck disable=SC2329 # function is for interactive use
-	git() {
-		_MONORAIL_GIT "$@"
-	}
 	unset _MONORAIL_UPDATING
+}
+unalias git 2>/dev/null
+# shellcheck disable=SC2329 # function is for interactive use
+git() {
+	$(
+		unset -f git >/dev/null 2>/dev/null
+		unalias git >/dev/null 2>/dev/null
+		command -v git
+	) "$@"
+	STATUS=$?
+	_MONORAIL_UPDATE
+	return $STATUS
 }
 
 # __git_ps1 posix sh compatible with version shipped in git
 __git_ps1() {
-	__GIT_PS1_REV=$(basename "$($_MONORAIL_GIT_BIN symbolic-ref HEAD 2>/dev/null)")
+	__GIT_PS1_REV=$(basename "$($(
+		unset -f git >/dev/null 2>/dev/null
+		unalias git >/dev/null 2>/dev/null
+		command -v git
+	) symbolic-ref HEAD 2>/dev/null)")
 	if [ "$__GIT_PS1_REV" ]; then
 		echo " ($__GIT_PS1_REV)"
 	else
-		__GIT_PS1_REV=$("$_MONORAIL_GIT_BIN" rev-parse HEAD 2>/dev/null | cut -c1-7)
+		__GIT_PS1_REV=$($(
+			unset -f git >/dev/null 2>/dev/null
+			unalias git >/dev/null 2>/dev/null
+			command -v git
+		) rev-parse HEAD 2>/dev/null | cut -c1-7)
 		if [ "$__GIT_PS1_REV" ]; then
 			echo " ((${__GIT_PS1_REV}...))"
 		fi
@@ -520,11 +521,6 @@ _ICON() {
 	esac
 	"$@"
 }
-_MONORAIL_GIT_BIN=$( (
-	unset -f git 2>/dev/null >/dev/null
-	unalias git 2>/dev/null >/dev/null
-	command -v git
-))
 # update monorail on window resizing
 trap "_MONORAIL_UPDATE" WINCH
 kill -s WINCH $$
