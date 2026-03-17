@@ -17,6 +17,8 @@ Features
 
 Installation
 ============
+Common
+------
 The following dependencies are recommended but not required:
 `bc`, `xxd`, `fzf`, and `ImageMagick`
 
@@ -24,8 +26,6 @@ On Debian and Ubuntu based systems, these can be installed with
 
 `sudo apt install bc xxd fzf imagemagick`
 
-Bash / Zsh
-----------
 Add monorail to your prompt by running the following:
 
 ```
@@ -35,6 +35,8 @@ git clone https://github.com/arnognulf/monorail
 ```
 (if not using git, download zip from https://github.com/arnognulf/monorail/archive/refs/heads/master.zip)
 
+Bash / Zsh
+----------
 For bash and zsh, add the following line to ~/.bashrc or ~/.zshrc
 
 ```
@@ -45,13 +47,13 @@ Open a new terminal for changes to take effect.
 
 Fish
 ----
-create the ~/.config/fish/conf.d directory:
+Create the ~/.config/fish/conf.d directory:
 ```
 mkdir -p ~/.config/fish/conf.d/
 ```
-Run the following command to load monorail at startup.
+Add the following to ~/.config/fish/conf.d/load_monorail.fish
 ```
-echo "source ~/.local/share/monorail/monorail.fish" >~/.config/fish/conf.d/load_monorail.fish
+source ~/.local/share/monorail/monorail.fish
 ```
 Open a new terminal for changes to take effect.
 
@@ -68,6 +70,28 @@ Add the following to ~/.shrc
 ```
 
 Log out and log in for changes to take effect.
+
+Yash
+----
+Add the following to ~/.yashrc
+```
+. ~/.local/share/monorail/monorail.compat.sh
+```
+Open a new terminal for changes to take effect.
+
+Brush
+-----
+Remove any previous calls to `$HOME/.local/share/monorail/monorail.sh` from `~/.bashrc`.
+
+Add the following lines to `~/.bashrc`:
+```
+if [[ $BRUSH_VERSION ]];then
+. $HOME/.local/share/monorail/monorail.compat.sh
+else
+. $HOME/.local/share/monorail/monorail.sh
+fi
+```
+Open a new terminal for changes to take effect.
 
 Usage
 =====
@@ -232,11 +256,12 @@ Tested on
 * [bash](https://www.gnu.org/software/bash/) 5.2
 * [zsh](https://www.zsh.org/) 5.9
 * [fish](https://fishshell.com/) 4.2.1 
+* [yash](https://magicant.github.io/yash/) 2.60
 * [busybox ash](https://busybox.net/)
 * [busybox hush](https://busybox.net/)
-* [brush](https://github.com/reubeno/brush) - note: use monorail.compat.sh
-* [Debian dash](https://manpages.debian.org/main/dash/dash.1.en.html)
-* [MirBSD ksh](https://github.com/MirBSD/mksh)
+* [brush](https://github.com/reubeno/brush)
+* [Debian dash](https://manpages.debian.org/main/dash/dash.1.en.html) 0.5.12
+* [MirBSD ksh](https://github.com/MirBSD/mksh) `@(#)MIRBSD KSH R59 2025/12/23 +Debian`
 * [NetBSD ksh](https://man.netbsd.org/ksh.1)
 * [NetBSD sh](https://man.netbsd.org/sh.1)
 * [OpenBSD ksh](https://man.openbsd.org/ksh)
@@ -252,6 +277,19 @@ See https://github.com/termstandard/colors for a comprehensive list of supported
 
 
 Notably, macOS Terminal prior to macOS 26 Tahoe does not support truecolor.
+
+
+Foreground, background, and 16 color theming set with `monorail_color` are less supported than truecolor.
+Known supported terminals:
+
+* gnome-terminal
+* konsole
+* ghostty
+* alacritty
+* xterm
+* rxvt-unicode
+* foot
+* mlterm
 
 Contributing themes
 -------------------
