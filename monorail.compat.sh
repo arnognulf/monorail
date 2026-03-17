@@ -4,37 +4,6 @@
 
 # monorail.compat.sh is the fallback of monorail if using a non-supported terminal or a non-supported shell.
 
-# Terminals tested:
-# konsole
-# gnome-terminal (vte)
-# DEC VT240, VT100, VT52, VT05
-# xterm
-# Wyse 30
-# Wyse 60
-# Wyse 370
-# Tek 40xx
-# ADM-3a
-# IBM 3151
-# IBM 3270
-# Ann Arbour
-# HP 2621A
-# Hazeltine 1500
-# Sun Console
-# heath19 (?)
-# vc404
-# hft
-# scoansi
-#
-# Shells tested:
-# bash
-# zsh
-# ksh93
-# posh
-# dash
-# mksh
-# busybox sh
-# osh
-# brush
 CR=$(printf '\015')
 ESC=$(printf '\033')
 BEL=$(printf '\007')
@@ -194,7 +163,6 @@ esac
 
 # freebsd 15 sh(1) have some bugs which causes shell to segfault/block on amd64
 if [ "$(command -v freebsd_wordexp 2>/dev/null)" = "freebsd_wordexp" ]; then
-	echo foo
 	_MONORAIL_DUMB_TERMINAL=1
 	_MONORAIL_NORMAL="|"
 	_MONORAIL_OFFSET=1
