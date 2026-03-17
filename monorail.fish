@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
-#TODO: color & cursor setting
 #TODO: title
+#TODO: batch commands / interactive commands / icons
 #TODO: missing caching, thus a bit slow
 
 function _PROMPT_LUT
@@ -22,22 +22,36 @@ function _COLORS
 end
 
 set -x _MONORAIL_CONFIG $HOME/.config/monorail
-set -x _MONORAIL_DIR $HOME/.local/share/dotfiles/monorail
+if test -z $_MONORAIL_DIR
+    set -x _MONORAIL_DIR $HOME/.local/share/dotfiles/monorail
+end
+if test -f $_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME.sh
+    true
+else
+    mkdir -p $_MONORAIL_CONFIG
+    cat $_MONORAIL_DIR/gradients/Default.sh $_MONORAIL_DIR/colors/Default.sh >$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME.sh
+end
 set -x _MONORAIL_SHORT_HOSTNAME $(string split -f1 . $(hostname))
 
 function _monorail_line
-    source $_MONORAIL_CONFIG/colors-kakburken.sh
+    source $_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME.sh
+    set text $(string split "" $(_monorail_prompt_text))
+    set text_length $(count $text)
     set -l i 1
     set -l line ""
     set -l _monorail_prompt_lut_length $(count $_monorail_prompt_lut)
     while test $i -lt $(math $COLUMNS + 1)
         set a $(math $_monorail_prompt_lut_length \* $i)
         set b $(math $COLUMNS + 2)
-        set index $(math -s 0 1 + $a / $b)
-        set line $line$(set_color $_monorail_prompt_lut[$index])\u2581
+        set lut_index $(math -s 0 1 + $a / $b)
+        set line $line$(set_color $_monorail_prompt_lut[$lut_index])\u2581
+        if test $i = $text_length
+            set -g _monorail_cursor $_monorail_prompt_lut[$lut_index]
+        end
         set i $(math $i + 1)
+
     end
-    printf $line
+    printf $line"\e]12;#$_monorail_cursor\a\e[?7h"
 end
 
 function fish_prompt
@@ -48,6 +62,7 @@ end
 
 function _monorail_bar
     set text $(string split "" $(_monorail_prompt_text))
+
     set -l bar ""
     set -l i 1
     while test $i -le $(count $text)
@@ -75,17 +90,16 @@ end
 trap _monorail_update WINCH
 
 function monorail_gradient
-    bash $_MONORAIL_DIR/scripts/gradient.sh $argv
+    sh $_MONORAIL_DIR/scripts/gradient.sh $argv
 end
 function monorail_image
-    bash $_MONORAIL_DIR/scripts/gradient.sh $argv
+    sh $_MONORAIL_DIR/scripts/image.sh $argv
 end
 function monorail_color
-    bash $_MONORAIL_DIR/scripts/gradient.sh $argv
+    sh $_MONORAIL_DIR/scripts/color.sh $argv
 end
 
-#function _monorail_preexec --on-event fish_preexec
-#end
+function _monorail_restore_cursor --on-event fish_preexec
+    printf "\e]12;#$_monorail_colors[22]\a"
 
-#function _monorail_postexec --on-event fish_postexec
-#end
+end

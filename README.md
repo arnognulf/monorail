@@ -16,7 +16,7 @@ Features
 * Falls back to compat version for non-bash/zsh shells and terminals lacking truecolor support.
 
 Installation
-------------
+============
 The following dependencies are recommended but not required:
 `bc`, `xxd`, `fzf`, and `ImageMagick`
 
@@ -24,6 +24,8 @@ On Debian and Ubuntu based systems, these can be installed with
 
 `sudo apt install bc xxd fzf imagemagick`
 
+Bash / Zsh
+----------
 Add monorail to your prompt by running the following:
 
 ```
@@ -41,23 +43,31 @@ For bash and zsh, add the following line to ~/.bashrc or ~/.zshrc
 
 Open a new terminal for changes to take effect.
 
-For posix sh and ksh, add the following to ~/.profile
+Fish
+----
+create the ~/.config/fish/conf.d directory:
+```
+mkdir -p ~/.config/fish/conf.d/
+```
+Run the following command to load monorail at startup.
+```
+echo "source ~/.local/share/monorail/monorail.fish" >~/.config/fish/conf.d/load_monorail.fish
+```
+Open a new terminal for changes to take effect.
+
+Posix sh and Ksh
+----------------
+Add the following to ~/.profile
 ```
 ENV="$HOME"/.shrc
 export ENV
 ```
-Additionally for posix and ksh, add the following to ~/.shrc
+Add the following to ~/.shrc
 ```
 . ~/.local/share/monorail/monorail.compat.sh
 ```
 
 Log out and log in for changes to take effect.
-
-For fish
-create the following file:
-```
-mkdir -p ~/.local/fish
-```
 
 Usage
 =====
@@ -221,6 +231,7 @@ Supported shells
 Tested on
 * [bash](https://www.gnu.org/software/bash/) 5.2
 * [zsh](https://www.zsh.org/) 5.9
+* [fish](https://fishshell.com/) 4.2.1 
 * [busybox ash](https://busybox.net/)
 * [busybox hush](https://busybox.net/)
 * [brush](https://github.com/reubeno/brush) - note: use monorail.compat.sh
