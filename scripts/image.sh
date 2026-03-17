@@ -41,10 +41,14 @@ Examples:
 	fi
 
 	if [ -z "$1" ]; then
-		if [ "$BASH_VERSION" ] || [ "$ZSH_NAME" ] || [ "$KSH_VERSION" ]; then
-			:
-		else
-			echo "error: preview requires bash, zsh, or ksh"
+		for REQUIRED_SHELL in bash zsh ksh; do
+			PREVIEW_SHELL=$(command -v "${REQUIRED_SHELL}")
+			if [ "$PREVIEW_SHELL" ]; then
+				break
+			fi
+		done
+		if [ -z "$PREVIEW_SHELL" ]; then
+			echo "error: preview requires bash, zsh, or ksh to be installed"
 			exit 42
 		fi
 
@@ -54,14 +58,10 @@ Examples:
 			echo "error: please install fzf"
 			exit 42
 		fi
-		PREVIEW_SHELL=$(command -v ksh)
-		if [ ! -x "$PREVIEW_SHELL" ]; then
-			PREVIEW_SHELL="$0"
-		fi
-
 		if [ -z "$_MONORAIL_IMAGE_DIR" ]; then
 			_MONORAIL_IMAGE_DIR=$XDG_PICTURES_DIR
 		fi
+
 		THEME=$(cd "${_MONORAIL_IMAGE_DIR}" && fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
 
 		if [ -n "$THEME" ]; then
@@ -84,23 +84,23 @@ Examples:
 		exit 1
 	fi
 
-rm "${DEST}"
+	rm "${DEST}"
 	# identify will report size
 	WIDTH=$(cat "${THEME}" | _SANDBOX identify - | awk '{ print $3 }' | cut -dx -f1 | head -n1)
 	HEIGHT=$(cat "${THEME}" | _SANDBOX identify - | awk '{ print $3 }' | cut -dx -f2 | head -n1)
 
 	ADD_WHITE_PROMPT_TEXT_LUT
-{
-	printf "_PROMPT_LUT"
+	{
+		printf "_PROMPT_LUT"
 
-	for RGB in $(_SANDBOX convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${THEME}" RGB:- | xxd -ps -c3); do
-		echo " \\"
-		printf "\"%s;%s;%s\"" $((0x$(echo "$RGB" | cut -c1-2))) $((0x$(echo "$RGB" | cut -c3-4))) $((0x$(echo "$RGB" | cut -c5-6)))
-		I=$((I + 1))
-	done
-echo ""
-echo ""
-} >>"${DEST}"
+		for RGB in $(_SANDBOX convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${THEME}" RGB:- | xxd -ps -c3); do
+			echo " \\"
+			printf "\"%s;%s;%s\"" $((0x$(echo "$RGB" | cut -c1-2))) $((0x$(echo "$RGB" | cut -c3-4))) $((0x$(echo "$RGB" | cut -c5-6)))
+			I=$((I + 1))
+		done
+		echo ""
+		echo ""
+	} >>"${DEST}"
 
 	ADD_CURRENT_COLORS
 	killall -s WINCH bash zsh >/dev/null 2>/dev/null

@@ -62,9 +62,15 @@ _COLOR() {
 			echo "error: please install fzf"
 			exit 42
 		fi
-		PREVIEW_SHELL=$(command -v ksh)
-		if [ ! -x "$PREVIEW_SHELL" ]; then
-			PREVIEW_SHELL=$SHELL
+		for REQUIRED_SHELL in bash zsh ksh; do
+			PREVIEW_SHELL=$(command -v "${REQUIRED_SHELL}")
+			if [ "$PREVIEW_SHELL" ]; then
+				break
+			fi
+		done
+		if [ -z "$PREVIEW_SHELL" ]; then
+			echo "error: preview requires bash, zsh, or ksh to be installed"
+			exit 42
 		fi
 		# shellcheck disable=SC1090 # file will exist
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"

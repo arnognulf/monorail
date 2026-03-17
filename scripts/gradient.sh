@@ -132,20 +132,17 @@ _GRADIENT() {
 	esac
 	case "$1" in
 	"")
-		if [ "$BASH_VERSION" ] || [ "$ZSH_NAME" ] || [ "$KSH_VERSION" ]; then
-			:
-		else
-			echo "error: preview requires bash, zsh, or ksh"
+		for REQUIRED_SHELL in bash zsh ksh; do
+			PREVIEW_SHELL=$(command -v "${REQUIRED_SHELL}")
+			if [ "$PREVIEW_SHELL" ]; then
+				break
+			fi
+		done
+		if [ -z "$PREVIEW_SHELL" ]; then
+			echo "error: preview requires bash, zsh, or ksh to be installed"
 			exit 42
 		fi
 
-		# prefer ksh if available to ensure it does not bitrot by adding zshism/bashism in the future
-		PREVIEW_SHELL=bash
-		# TODO: uncomment
-		#PREVIEW_SHELL=$(command -v ksh)
-		if [ ! -x "$PREVIEW_SHELL" ]; then
-			PREVIEW_SHELL=$SHELL
-		fi
 		THEME=$(cd "${_MONORAIL_DIR}"/gradients && fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
 		if [ "${THEME}" ]; then
 

@@ -75,10 +75,10 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.sh)
 	case "${PWD}" in
 	${_MONORAIL_DIR}/gradients)
-:
+		:
 		;;
 	${_MONORAIL_DIR}/colors)
-:
+		:
 		;;
 	*)
 		echo "Not a theme: ${PREVIEW}"
