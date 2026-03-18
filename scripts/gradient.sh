@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 TEMPDIR=$(mktemp -d)
-cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh" "${TEMPDIR}"/current.sh
-touch "${TEMPDIR}"/current.sh
-DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
+touch "${TEMPDIR}"/current.conf
+DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 if [ "$ZSH_NAME" ]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -119,12 +119,12 @@ _GRADIENT() {
 			exit 42
 		}
 		if [ -t 1 ]; then
-			for SCHEME in *.sh; do
-				echo "$SCHEME" | sed 's/\.sh//g'
+			for SCHEME in *.conf; do
+				echo "$SCHEME" | sed 's/\.conf//g'
 			done | less
 		else
-			for SCHEME in *.sh; do
-				echo "$SCHEME" | sed 's/\.sh//g'
+			for SCHEME in *.conf; do
+				echo "$SCHEME" | sed 's/\.conf//g'
 			done
 		fi
 		exit 1
@@ -187,7 +187,7 @@ _GRADIENT() {
 		ARGC=$((ARGC + 1))
 	done
 	if [ "$ARGC" = 1 ]; then
-		if [ -f "${_MONORAIL_DIR}/gradients/${1}.sh" ]; then
+		if [ -f "${_MONORAIL_DIR}/gradients/${1}.conf" ]; then
 			RESET_CALLBACKS
 			_PROMPT_TEXT_LUT() {
 				printf "_PROMPT_TEXT_LUT"
@@ -198,7 +198,7 @@ _GRADIENT() {
 				echo ""
 				echo ""
 			}
-			. "${_MONORAIL_DIR}/gradients/${1}".sh >>"${DEST}"
+			. "${_MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
 			RESET_CALLBACKS
 			_PROMPT_LUT() {
 				printf "_PROMPT_LUT"
@@ -209,7 +209,7 @@ _GRADIENT() {
 				echo ""
 				echo ""
 			}
-			. "${_MONORAIL_DIR}/gradients/${1}".sh >>"${DEST}"
+			. "${_MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
 
 			ADD_CURRENT_COLORS
 			killall -s WINCH bash zsh >/dev/null 2>/dev/null
@@ -222,7 +222,7 @@ _GRADIENT() {
 				FILE
 				for FILE in "${_MONORAIL_DIR}"/gradients/*; do
 					FILE="${FILE##*/}"
-					FILE="${FILE%.sh}"
+					FILE="${FILE%.conf}"
 					echo "${FILE}"
 				done
 
@@ -231,7 +231,7 @@ or \"None\" to use text color"
 			} | less
 			return 1
 		fi
-		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 		return 0
 	fi
 	SRC_L=""

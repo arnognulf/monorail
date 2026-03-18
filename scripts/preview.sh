@@ -70,9 +70,9 @@ else
 	_MONORAIL_CONFIG="$HOME/.config/monorail"
 fi
 # shellcheck disable=SC1090 # file exists
-. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
-*.sh)
+*.conf)
 	case "${PWD}" in
 	${_MONORAIL_DIR}/gradients)
 		:

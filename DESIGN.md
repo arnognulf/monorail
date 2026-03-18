@@ -36,6 +36,12 @@ Misconfigured terminals should be usable
 Render a usable prompt (not necesarily estetically pleasing) on terminals that do not support truecolor control sequencies and specifies `TERM=xterm`.
 In particular FreeBSD console specifies `TERM=xterm` but do not handle truecolor. In `ssh` all other identifying values are filtered.
 
+Configuration format should be useable on most shells
+-----------------------------------------------------
+Use the '.conf' format as color/gradient/command configuration.
+This is a simple KEY VALUE1 VALUE2 VALUEn format where KEY can be implemented as a callback in almost any shell.
+Benefit of using the '.conf' extension is that this has syntax highlighting in various editors.
+
 Non-goals
 =========
 256 colors

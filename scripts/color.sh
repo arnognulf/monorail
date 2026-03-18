@@ -9,8 +9,8 @@ fi
 . "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 TEMPDIR=$(mktemp -d)
-cp -f "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh" "${TEMPDIR}"/current.sh
-DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+cp -f "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
+DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 
 _MONORAIL_CONTRAST() {
 	if command -v bc 1>/dev/null 2>/dev/null; then
@@ -73,7 +73,7 @@ _COLOR() {
 			exit 42
 		fi
 		# shellcheck disable=SC1090 # file will exist
-		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 		[ "${_DEFAULT_FGCOLOR}" ] || _DEFAULT_FGCOLOR=444444
 		[ "${_DEFAULT_BGCOLOR}" ] || _DEFAULT_BGCOLOR=ffffff
 		[ "${_COLORS_16}" ] || _COLORS_16=$_DEFAULT_FGCOLOR
@@ -92,12 +92,12 @@ _COLOR() {
 			exit 42
 		}
 		if [ -t 1 ]; then
-			for SCHEME in *.sh; do
-				echo "$SCHEME" | sed 's/\.sh//g'
+			for SCHEME in *.conf; do
+				echo "$SCHEME" | sed 's/\.conf//g'
 			done | less
 		else
-			for SCHEME in *.sh; do
-				echo "$SCHEME" | sed 's/\.sh//g'
+			for SCHEME in *.conf; do
+				echo "$SCHEME" | sed 's/\.conf//g'
 			done
 		fi
 		exit 1
@@ -149,7 +149,7 @@ Examples:
 		done
 	}
 	# shellcheck disable=SC1091 # file will be created
-	. "${TEMPDIR}/current.sh"
+	. "${TEMPDIR}/current.conf"
 
 	NUM_ARGS=0
 	for ARG in "$@"; do
@@ -190,7 +190,7 @@ Examples:
 				exit 42
 			}
 			# shellcheck disable=SC1090 # file exists
-			. ./"$THEME".sh
+			. ./"$THEME".conf
 			;;
 		esac
 	fi
@@ -225,8 +225,8 @@ _UPDATE_CONFIG() {
 	THEME=$1
 	case $THEME in
 	"") THEME="" ;;
-	*.sh) : ;;
-	*) THEME=${THEME}.sh ;;
+	*.conf) : ;;
+	*) THEME=${THEME}.conf ;;
 	esac
 	FGCOLOR=$2
 	BGCOLOR=$3
@@ -293,7 +293,7 @@ _UPDATE_CONFIG() {
 			echo ""
 		}
 		# shellcheck disable=SC1091 # file will exist
-		. "${TEMPDIR}/current.sh" >>"${DEST}"
+		. "${TEMPDIR}/current.conf" >>"${DEST}"
 	fi
 
 	killall -s WINCH bash zsh 1>/dev/null 2>/dev/null

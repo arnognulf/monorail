@@ -175,9 +175,9 @@ if [ "$(command -v freebsd_wordexp 2>/dev/null)" = "freebsd_wordexp" ]; then
 
 fi
 _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
-if [ ! -f "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh ]; then
+if [ ! -f "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf ]; then
 	mkdir -p "$_MONORAIL_CONFIG"
-	cat "$_MONORAIL_DIR"/gradients/Default.sh "$_MONORAIL_DIR"/colors/Default.sh >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
+	cat "$_MONORAIL_DIR"/gradients/Default.conf "$_MONORAIL_DIR"/colors/Default.conf >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf
 fi
 if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
 	# vscode does not support disabling line wrap
@@ -378,9 +378,9 @@ _MONORAIL_UPDATE() {
 		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c | tr -d ' ')
 	fi
 
-	if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".sh ]; then
+	if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME"conf ]; then
 		# shellcheck disable=SC1090 # file will be available
-		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".sh
+		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf
 	else
 		# shellcheck disable=SC2119 # called without arguments
 		_PROMPT_TEXT_LUT

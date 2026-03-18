@@ -25,7 +25,7 @@ ADD_CURRENT_COLORS() {
 		_COLORS() { :; }
 	}
 	# shellcheck disable=SC1091 # file will be created
-	. "${TEMPDIR}/current.sh" >>"${DEST}"
+	. "${TEMPDIR}/current.conf" >>"${DEST}"
 }
 ADD_CURRENT_PROMPT_LUT() {
 	# shellcheck disable=SC2329 # callback function
@@ -46,7 +46,7 @@ ADD_CURRENT_PROMPT_LUT() {
 	}
 
 	# shellcheck disable=SC1091 # file will be created
-	. "${TEMPDIR}/current.sh" >>"${DEST}"
+	. "${TEMPDIR}/current.conf" >>"${DEST}"
 }
 ADD_CURRENT_PROMPT_TEXT_LUT() {
 	# shellcheck disable=SC2329 # callback function
@@ -66,7 +66,7 @@ ADD_CURRENT_PROMPT_TEXT_LUT() {
 		_PROMPT_TEXT_LUT() { :; }
 	}
 	# shellcheck disable=SC1091 # file will be created
-	. "${TEMPDIR}/current.sh" >>"${DEST}"
+	. "${TEMPDIR}/current.conf" >>"${DEST}"
 }
 ADD_WHITE_PROMPT_TEXT_LUT() {
 	{

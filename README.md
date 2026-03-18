@@ -234,7 +234,7 @@ batch_command ⚒️  make
 
 Predefined list of commands
 ---------------------------
-For simplicity, a default list of commands and icons are defined in default_commands.sh.
+For simplicity, a default list of commands and icons are defined in commands/default.sh.
 
 
 The commands can be overridden by re-defining them in ~/.bashrc or ~/.zshrc

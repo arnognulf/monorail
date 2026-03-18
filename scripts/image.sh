@@ -2,8 +2,8 @@
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
 TEMPDIR=$(mktemp -d)
-cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh" "${TEMPDIR}"/current.sh
-touch "${TEMPDIR}"/current.sh
+cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
+touch "${TEMPDIR}"/current.conf
 # shellcheck disable=SC1091 # path exists
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
 . "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
@@ -37,7 +37,7 @@ Examples:
 	fi
 
 	if [ -z "$DEST" ]; then
-		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 	fi
 
 	if [ -z "$1" ]; then
