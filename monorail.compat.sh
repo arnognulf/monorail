@@ -491,7 +491,6 @@ _ICON() {
 }
 # update monorail on window resizing
 trap "_MONORAIL_UPDATE" WINCH
-kill -s WINCH $$
 unalias monorail_color 2>/dev/null
 monorail_color() {
 	# shellcheck disable=SC2097,SC2098 # don't export variables only needed for monorail
@@ -531,4 +530,6 @@ if [ "$ZSH_NAME" ]; then
 elif [ "$BASH_VERSION" ]; then
 	unset -f precmd preexec
 	PROMPT_COMMAND="_MONORAIL_UPDATE"
+else
+	_MONORAIL_UPDATE
 fi

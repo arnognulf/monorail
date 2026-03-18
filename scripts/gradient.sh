@@ -255,11 +255,8 @@ or \"None\" to use text color"
 		else
 			STEPS=$(echo "$ARG" | cut -d. -f1)
 			unset COLOR
-			if [ "$STEPS" -lt 1 ] || [ "$STEPS" -gt 100 ]; then
-				echo "error: STEPS must be in range 1-100"
-				exit 42
-			fi
-
+			[ "$STEPS" -lt 1 ] && STEPS=1
+			[ "$STEPS" -gt 100 ] && STEPS=100
 		fi
 	done
 	{
@@ -267,7 +264,6 @@ or \"None\" to use text color"
 		while [ "${1}" ]; do
 			COLOR=$1
 			STEPS=$2
-			[ "$STEPS" -lt 1 ] && STEPS=1
 			# TODO: conversion is broken for pitch black. Work around for now:
 			if [ "$COLOR" = 000000 ]; then
 				COLOR=010101

@@ -13,7 +13,7 @@ Features
 * Theme selector of pre-computed gradients and images.
 * Gradient creator command with similar syntax to css gradients.
 * Favicon like title icons for commands and folders
-* Falls back to compat version for non-bash/zsh shells and terminals lacking truecolor support.
+* Falls back to `posix sh` version for non-bash/zsh shells and terminals lacking truecolor support.
 
 Installation
 ============
@@ -70,6 +70,15 @@ Add the following to ~/.shrc
 ```
 
 Log out and log in for changes to take effect.
+
+Oils OSH
+--------
+Add the following to ~/.config/oils/oshrc
+```
+. ~/.local/share/monorail/monorail.compat.sh
+```
+
+Open a new terminal for changes to take effect.
 
 Yash
 ----
@@ -234,24 +243,10 @@ batch_command ⚒️  make
 
 Predefined list of commands
 ---------------------------
-For simplicity, a default list of commands and icons are defined in commands/default.sh.
-
-
-The commands can be overridden by re-defining them in ~/.bashrc or ~/.zshrc
-
-Compat version
---------------
-When monorail is used on a terminal that does not support truecolor or ansi control sequencies it will try to fall back to the compat version of monorail.
-
-The compat version is written in posix shell for maximum compatibility and support for non-bash and non-zsh shells such as `OpenBSD ksh`, `ksh93`, `mksh`, `osh`, `posh`, `dash`, `brush`, and `busybox sh`
-
-As for terminal support, truecolor terminals are supported as well as non-truecolor terminals, and vintage hardare terminals.
-
-![Emulated VT100 displaying a horizontal bar and inverted prompt](images/vt100.png)
-
+Default commands and icons are read from `~/.config/monorail/commands-$(hostname -s).conf` .
 
 Supported shells
-----------------
+================
 Tested on
 * [bash](https://www.gnu.org/software/bash/) 5.2
 * [zsh](https://www.zsh.org/) 5.9
@@ -260,6 +255,7 @@ Tested on
 * [busybox ash](https://busybox.net/)
 * [busybox hush](https://busybox.net/)
 * [brush](https://github.com/reubeno/brush)
+* [Oils osh](https://oils.pub/) Oils osh 0.37.0
 * [Debian dash](https://manpages.debian.org/main/dash/dash.1.en.html) 0.5.12
 * [MirBSD ksh](https://github.com/MirBSD/mksh) `@(#)MIRBSD KSH R59 2025/12/23 +Debian`
 * [NetBSD ksh](https://man.netbsd.org/ksh.1)
@@ -269,6 +265,8 @@ Tested on
 * [FreeBSD 15 sh](https://man.freebsd.org/cgi/man.cgi?sh(1)) - gradients disabled due to shell bugs
 
 Supported terminals
+===================
+Truecolor gradients
 -------------------
 Monorail gradients are drawn with the truecolor escape codes which are supported on most modern terminals.
 
@@ -278,7 +276,8 @@ See https://github.com/termstandard/colors for a comprehensive list of supported
 
 Notably, macOS Terminal prior to macOS 26 Tahoe does not support truecolor.
 
-
+Color settting with `monorail_color`
+------------------------------------
 Foreground, background, and 16 color theming set with `monorail_color` are less supported than truecolor.
 Known supported terminals:
 
@@ -300,26 +299,6 @@ I do not wish to infringe trademarks, nor do I want to endorse organizations tha
 
 
 Also, please keep gradients look-up-tables at up to 200 elements to conserve space.
-
-Vintage terminal emulators
---------------------------
-vt420 blaze: https://github.com/mmastrac/blaze
-
-vt100 XScreenSaver `./apple2 -fast -program bash -text`
-
-vt100, vt52 terminal-simulator: https://github.com/larsbrinkhoff/terminal-simulator
-
-vt240 simulator: https://github.com/unknown-technologies/vt240
-
-dp3300, vt52, vt50, vt05: https://github.com/aap/vt05
-
-tek4014 xterm `xterm -t`: https://invisible-island.net/xterm/
-
-vt52 xterm `xterm -ti vt52 -tn vt52`: https://invisible-island.net/xterm/
-
-adm3a termu: https://github.com/jtsiomb/termu
-
-kermit95: https://kermitproject.org/ckw10beta.html
 
 Credits
 -------
