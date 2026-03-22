@@ -142,8 +142,6 @@ Use `monorail_image` with an image as argument to set the image as gradient.
 
 Changing colors
 ---------------
-Monorail comes with color scheme setting from the iTerm2 color scheme project: https://github.com/mbadolato/iTerm2-Color-Schemes
-
 *Note: many terminals do not support color setting despite colors showing up in the preview. This is not a bug in monorail*
 
 Run `monorail_color` to change foreground
