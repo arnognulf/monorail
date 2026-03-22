@@ -35,15 +35,25 @@ git clone https://github.com/arnognulf/monorail
 ```
 (if not using git, download zip from https://github.com/arnognulf/monorail/archive/refs/heads/master.zip)
 
-Bash / Zsh
-----------
-For bash and zsh, add the following line to ~/.bashrc or ~/.zshrc
+Bash
+----
+For bash, add the following line to ~/.bashrc
 
 ```
-. ~/.local/share/monorail/monorail.sh
+. ~/.local/share/monorail/monorail.bash
 ```
-
 Open a new terminal for changes to take effect.
+
+Zsh
+----
+For zsh, add the following line to ~/.bashrc
+
+```
+. ~/.local/share/monorail/monorail.zsh
+```
+Open a new terminal for changes to take effect.
+
+
 
 Fish
 ----
@@ -66,7 +76,7 @@ export ENV
 ```
 Add the following to ~/.shrc
 ```
-. ~/.local/share/monorail/monorail.compat.sh
+. ~/.local/share/monorail/monorail.sh
 ```
 
 Log out and log in for changes to take effect.
@@ -75,7 +85,7 @@ Oils OSH
 --------
 Add the following to ~/.config/oils/oshrc
 ```
-. ~/.local/share/monorail/monorail.compat.sh
+. ~/.local/share/monorail/monorail.sh
 ```
 
 Open a new terminal for changes to take effect.
@@ -84,20 +94,20 @@ Yash
 ----
 Add the following to ~/.yashrc
 ```
-. ~/.local/share/monorail/monorail.compat.sh
+. ~/.local/share/monorail/monorail.sh
 ```
 Open a new terminal for changes to take effect.
 
 Brush
 -----
-Remove any previous calls to `$HOME/.local/share/monorail/monorail.sh` from `~/.bashrc`.
+Remove any previous calls to `$HOME/.local/share/monorail/monorail.bash` from `~/.bashrc`.
 
 Add the following lines to `~/.bashrc`:
 ```
 if [[ $BRUSH_VERSION ]];then
-. $HOME/.local/share/monorail/monorail.compat.sh
-else
 . $HOME/.local/share/monorail/monorail.sh
+else
+. $HOME/.local/share/monorail/monorail.bash
 fi
 ```
 Open a new terminal for changes to take effect.
