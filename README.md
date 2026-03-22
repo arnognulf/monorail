@@ -217,7 +217,7 @@ Timing statistics will not be collected for interactive commands since the exit 
 Declaring an interactive process:
 
 ```
-interactive_command 📝 vim
+_monorail_cmd_interactive 📝 vim
 ```
 
 Batch commands
@@ -238,7 +238,7 @@ These commands should run with low priority so they don't interfere with interac
 Declaring a batch command:
 
 ```
-batch_command ⚒️  make
+_monorail_cmd_batch ⚒️  make
 ```
 
 Predefined list of commands

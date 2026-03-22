@@ -31,7 +31,7 @@ if [[ "$1" = "000_README.md" ]]; then
 	exit 1
 fi
 
-_PROMPT_LUT() {
+_monorail_gradient() {
 	I=0
 	_PROMPT_LUT=()
 	while [[ $1 ]]; do
@@ -41,7 +41,7 @@ _PROMPT_LUT() {
 	done
 	unset I
 }
-_PROMPT_TEXT_LUT() {
+_monorail_textgradient() {
 	_PROMPT_TEXT_LUT=()
 	I=0
 	while [[ $1 ]]; do
@@ -51,7 +51,7 @@ _PROMPT_TEXT_LUT() {
 	done
 	unset I
 }
-_COLORS() {
+_monorail_colors() {
 	_COLORS=()
 	I=0
 	while [[ "$1" ]]; do
@@ -142,7 +142,7 @@ PREBG="${ESC}[48;2;"
 POST="m"
 [[ -z $COLUMNS ]] && COLUMNS=$(stty size | awk '{ print $2 }')
 [[ -z $LINES ]] && LINES=$(stty size | awk '{ print $1 }')
-_COLORS() {
+_monorail_colors() {
 	local I=0
 	while [[ $1 ]]; do
 		_COLORS[I]=$1

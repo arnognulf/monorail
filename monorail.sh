@@ -238,7 +238,7 @@ unset _MONORAIL_CUSTOM_TITLE
 # zsh cannot have closed fd's here
 } &>/dev/null
 }
-_PROMPT_LUT ()
+_monorail_gradient ()
 {
 unset "_PROMPT_LUT[*]"
 _PROMPT_LUT=()
@@ -247,7 +247,7 @@ _PROMPT_LUT[${#_PROMPT_LUT[@]}]=$1
 shift
 done
 }
-_PROMPT_TEXT_LUT ()
+_monorail_textgradient ()
 {
 unset "_PROMPT_TEXT_LUT[*]"
 _PROMPT_TEXT_LUT=()
@@ -256,7 +256,7 @@ _PROMPT_TEXT_LUT[${#_PROMPT_TEXT_LUT[@]}]=$1
 shift
 done
 }
-_COLORS ()
+_monorail_colors ()
 {
 unset "_COLORS[*]"
 _COLORS=()
@@ -605,26 +605,21 @@ fi >/dev/null 2>&-
 _LOW_PRIO "$@"
 }
 # shellcheck disable=SC2329
-_INTERACTIVE_COMMAND(){
+_monorail_cmd_interactive(){
 # shellcheck disable=SC2139 # variable is intended to be set when defined
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 }
 # shellcheck disable=SC2329
-_BATCH_COMMAND(){
+_monorail_cmd_batch(){
 # shellcheck disable=SC2139
 command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
 }
 _MONORAIL_CMD_IGNORED=()
-_IGNORED_COMMAND (){
+_monorail_cmd_ignored (){
 _MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 }
-alias interactive_command=_INTERACTIVE_COMMAND
-alias batch_command=_BATCH_COMMAND
-alias ignored_command=_IGNORED_COMMAND
 [[ -e $_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf ]]||cat "$_MONORAIL_DIR/commands/default.conf" > "$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
 . "$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
-unalias interactive_command batch_command
-unset -f _INTERACTIVE_COMMAND _BATCH_COMMAND
 __git_ps1(){ :;}
 _MONORAIL_MAGIC_SHELLBALL(){
 local ANSWER SPACES i

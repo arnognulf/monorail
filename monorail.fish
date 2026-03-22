@@ -3,7 +3,7 @@
 #TODO: batch commands / interactive commands / icons
 #TODO: missing caching, thus a bit slow
 
-function _PROMPT_LUT
+function _monorail_gradient
     set -l i 1
     set -g _monorail_prompt_lut[1] ""
     for arg in $argv
@@ -14,11 +14,11 @@ function _PROMPT_LUT
         set i $(math $i + 1)
     end
 end
-function _PROMPT_TEXT_LUT
+function _monorail_textgradient
     set -g _monorail_prompt_text_lut $argv
 end
-function _COLORS
-    set -g _monorail_colors $argv
+function _monorail_colors
+    set -g _monorail_color_list $argv
 end
 
 set -x _MONORAIL_CONFIG $HOME/.config/monorail
@@ -100,6 +100,6 @@ function monorail_color
 end
 
 function _monorail_restore_cursor --on-event fish_preexec
-    printf "\e]12;#$_monorail_colors[22]\a"
+    printf "\e]12;#$_monorail_color_list[22]\a"
 
 end

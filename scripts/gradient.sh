@@ -149,8 +149,8 @@ _GRADIENT() {
 			rm -f "${DEST}"
 			RESET_CALLBACKS
 			# shellcheck disable=SC2329 # callback function
-			_PROMPT_TEXT_LUT() {
-				printf "_PROMPT_TEXT_LUT"
+			_monorail_textgradient() {
+				printf "_monorail_textgradient"
 				for PROMPT_TEXT_LUT in "$@"; do
 					echo " \\"
 					printf "\"%s\"" "$PROMPT_TEXT_LUT"
@@ -163,8 +163,8 @@ _GRADIENT() {
 			RESET_CALLBACKS
 
 			# shellcheck disable=SC2329 # callback function
-			_PROMPT_LUT() {
-				printf "_PROMPT_LUT"
+			_monorail_gradient() {
+				printf "_monorail_gradient"
 				for PROMPT_LUT in "$@"; do
 					echo " \\"
 					printf "\"%s\"" "$PROMPT_LUT"
@@ -189,8 +189,8 @@ _GRADIENT() {
 	if [ "$ARGC" = 1 ]; then
 		if [ -f "${_MONORAIL_DIR}/gradients/${1}.conf" ]; then
 			RESET_CALLBACKS
-			_PROMPT_TEXT_LUT() {
-				printf "_PROMPT_TEXT_LUT"
+			_monorail_textgradient() {
+				printf "_monorail_textgradient"
 				for PROMPT_TEXT_LUT in "$@"; do
 					echo " \\"
 					printf "\"%s\"" "$PROMPT_TEXT_LUT"
@@ -200,8 +200,8 @@ _GRADIENT() {
 			}
 			. "${_MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
 			RESET_CALLBACKS
-			_PROMPT_LUT() {
-				printf "_PROMPT_LUT"
+			_monorail_gradient() {
+				printf "_monorail_gradient"
 				for PROMPT_LUT in "$@"; do
 					echo " \\"
 					printf "\"%s\"" "$PROMPT_LUT"
@@ -260,7 +260,7 @@ or \"None\" to use text color"
 		fi
 	done
 	{
-		printf "_PROMPT_LUT"
+		printf "_monorail_gradient"
 		while [ "${1}" ]; do
 			COLOR=$1
 			STEPS=$2

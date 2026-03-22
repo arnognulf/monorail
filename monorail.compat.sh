@@ -1,7 +1,6 @@
 #!/bin/sh
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
-
 # monorail.compat.sh is the fallback of monorail if using a non-supported terminal or a non-supported shell.
 
 CR=$(printf '\015')
@@ -177,7 +176,7 @@ fi
 _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 if [ ! -f "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf ]; then
 	mkdir -p "$_MONORAIL_CONFIG"
-	cat "$_MONORAIL_DIR"/gradients/Default.conf "$_MONORAIL_DIR"/colors/Default.conf >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf
+	cat "$_MONORAIL_DIR"/gradients/Default.conf "$_MONORAIL_DIR"/colors/Default.conf >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf 2>/dev/null
 fi
 if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
 	# vscode does not support disabling line wrap
@@ -195,7 +194,7 @@ fi
 if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 
 	# shellcheck disable=SC2120 # callback function, arguments passed in separate file
-	_COLORS() {
+	_monorail_colors() {
 		# 0-15   `0`-`f` (hex) = ansi color
 		# 16     `g`           = foreground
 		# 17     `h`           = background
@@ -221,11 +220,11 @@ if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 		done
 	}
 	# shellcheck disable=SC2120 # callback function, arguments passed in separate file
-	_PROMPT_TEXT_LUT() {
+	_monorail_textgradient() {
 		_PROMPT_TEXT_LUT=$1
 	}
 	# shellcheck disable=SC2120 # callback function, arguments passed in separate file
-	_PROMPT_LUT() {
+	_monorail_gradient() {
 		LUT_SIZE=0
 		# shellcheck disable=SC2034 # variable IGNORED is not used, I do not know a better way to count args in posix sh
 		for IGNORED in "$@"; do
@@ -281,14 +280,13 @@ ${_MONORAIL_TEXT_LINE_INIT}$_MONORAIL_TEXT_LINE"
 		_MONORAIL_CURSOR="${ESC}]12;#${HEX_CURSOR_COLOR}${BEL}"
 	}
 else
-	_COLORS() {
+	_monorail_colors() {
 		:
 	}
-	_PROMPT_TEXT_LUT() {
+	_monorail_gradient() {
 		:
 	}
-
-	_PROMPT_LUT() {
+	_monorail_textgradient() {
 		_MONORAIL_LINE=""
 		while [ "$I" -lt "$LINE_WIDTH" ]; do
 			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
@@ -378,16 +376,16 @@ _MONORAIL_UPDATE() {
 		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c | tr -d ' ')
 	fi
 
-	if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME"conf ]; then
+	if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]; then
 		# shellcheck disable=SC1090 # file will be available
-		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf
+		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf 2>/dev/null
 	else
 		# shellcheck disable=SC2119 # called without arguments
-		_PROMPT_TEXT_LUT
+		_monorail_textgradient
 		# shellcheck disable=SC2119 # called without arguments
-		_PROMPT_LUT
+		_monorail_gradient
 		# shellcheck disable=SC2119 # called without arguments
-		_COLORS
+		_monorail_colors
 	fi
 	if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 		_MONORAIL_LINE="$_MONORAIL_LINE$ESC(1"
