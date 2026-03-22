@@ -53,7 +53,7 @@ _MONORAIL_CONTRAST() {
 		return 0
 	fi
 }
-_COLOR() {
+_MAIN() {
 	case "$1" in
 	"")
 		if command -v fzf >/dev/null 2>/dev/null; then
@@ -136,7 +136,7 @@ Examples:
 		;;
 	esac
 	# shellcheck disable=SC2329 # callback function
-	_COLORS() {
+	_monorail_colors() {
 		I=0
 		for ARG in "$@"; do
 			if [ "$I" = 16 ]; then
@@ -206,7 +206,7 @@ HANDLE_COLOR_ARG() {
 			echo "error; $2 is not a valid color"
 			exit 42
 		fi
-		_COLOR_17=$2
+		_COLORS_17=$2
 	fi
 	if [ "$3" ]; then
 		{
@@ -260,8 +260,8 @@ _UPDATE_CONFIG() {
 	if [ "$THEME" ]; then
 		# shellcheck disable=SC1090 # file will exist
 		. ./"$THEME"
-		_COLORS() {
-			printf "_COLORS"
+		_monorail_colors() {
+			printf "_monorail_colors"
 			for COLOR in "$@"; do
 				echo " \\"
 				printf "%s" "$COLOR"
@@ -273,9 +273,9 @@ _UPDATE_CONFIG() {
 		# shellcheck disable=SC1090 # file will exist
 		. ./"${THEME}" >>"${DEST}"
 	else
-		_COLORS() {
+		_monorail_colors() {
 			I=0
-			printf "_COLORS"
+			printf "_monorail_colors"
 			for COLOR in "$@"; do
 				echo " \\"
 				if [ $I = 16 ]; then
@@ -300,4 +300,4 @@ _UPDATE_CONFIG() {
 
 }
 
-_COLOR "$@"
+_MAIN "$@"
