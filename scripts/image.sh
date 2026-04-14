@@ -91,7 +91,7 @@ Examples:
 
 	ADD_WHITE_PROMPT_TEXT_LUT
 	{
-		printf "_PROMPT_LUT"
+		printf "_monorail_gradient"
 
 		for RGB in $(_SANDBOX convert -crop "$WIDTH"x1+0+$((HEIGHT / 2)) -scale 200x "${THEME}" RGB:- | xxd -ps -c3); do
 			echo " \\"

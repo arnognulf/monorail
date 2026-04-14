@@ -692,7 +692,7 @@ esac
 fi
 [[ $_MONORAIL_COMPAT ]]&&if [[ ! $_MONORAIL_DISABLE_COMPAT ]];then
 unalias git >/dev/null 2>/dev/null
-. "$_MONORAIL_DIR/monorail.compat.sh"
+. "$_MONORAIL_DIR/monorail.sh"
 fi
 # shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/color.sh"

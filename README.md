@@ -284,19 +284,26 @@ See https://github.com/termstandard/colors for a comprehensive list of supported
 
 Notably, macOS Terminal prior to macOS 26 Tahoe does not support truecolor.
 
-Color settting with `monorail_color`
+Color setting with `monorail_color`
 ------------------------------------
 Foreground, background, and 16 color theming set with `monorail_color` are less supported than truecolor.
+
+Color setting uses the `OSC 10`, `OSC 11`, and `OSC 12` "Operating System Controls" as specified in https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+
 Known supported terminals:
 
 * gnome-terminal
 * konsole
 * ghostty
+* Windows Terminal
 * alacritty
 * xterm
 * rxvt-unicode
 * foot
 * mlterm
+* wezterm
+* st
+* rio
 
 Contributing themes
 -------------------

@@ -245,6 +245,7 @@ or \"None\" to use text color"
 		if [ -z "$COLOR" ]; then
 			COLOR=$ARG
 			(
+				[ "$(printf %s $COLOR | wc -c)" = 6 ] || exit 42
 				# shellcheck disable=SC2034 # need to assign an unused variable to see if conversion is possible or not
 				UNUSED=$((0x$COLOR))
 			) 2>/dev/null || {
@@ -290,21 +291,23 @@ or \"None\" to use text color"
 			# In order to avoid banding we need to sample down the gradient
 			# We also want a value that is not too big to compute/keep in memory.
 			# Thus, 200 was an easy choice since it's only a multiplier on what custom values the user specifies.
-			TOTAL_STEPS=$((STEPS * 2 - INDEX))
-			DELTA_L=$(echo "($DST_L - $SRC_L)/$TOTAL_STEPS" | bc -l)
-			DELTA_a=$(echo "($DST_a - $SRC_a)/$TOTAL_STEPS" | bc -l)
-			DELTA_b=$(echo "($DST_b - $SRC_b)/$TOTAL_STEPS" | bc -l)
-			{
-				I=0
-				while [ "$I" -lt "$TOTAL_STEPS" ]; do
-					NUM=$I
-					_OKLAB_TO_LINEAR_SRGB
-					echo " \\"
-					printf "\"%s;%s;%s\"" "$R" "$G" "$B"
-					INDEX=$((INDEX + 1))
-					I=$((I + 1))
-				done
-			}
+			if [ "$STEPS" -gt 0 ]; then
+				TOTAL_STEPS=$((STEPS * 2 - INDEX))
+				DELTA_L=$(echo "($DST_L - $SRC_L)/$TOTAL_STEPS" | bc -l)
+				DELTA_a=$(echo "($DST_a - $SRC_a)/$TOTAL_STEPS" | bc -l)
+				DELTA_b=$(echo "($DST_b - $SRC_b)/$TOTAL_STEPS" | bc -l)
+				{
+					I=0
+					while [ "$I" -lt "$TOTAL_STEPS" ]; do
+						NUM=$I
+						_OKLAB_TO_LINEAR_SRGB
+						echo " \\"
+						printf "\"%s;%s;%s\"" "$R" "$G" "$B"
+						INDEX=$((INDEX + 1))
+						I=$((I + 1))
+					done
+				}
+			fi
 			SRC_L=${DST_L}
 			SRC_a=${DST_a}
 			SRC_b=${DST_b}

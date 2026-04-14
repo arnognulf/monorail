@@ -75,7 +75,12 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.conf)
 	case "${PWD}" in
 	${_MONORAIL_DIR}/gradients)
-		:
+		I=0
+		while [[ $I -lt 200 ]]; do
+			unset "_PROMPT_LUT[I]"
+			unset "_PROMPT_TEXT_LUT[I]"
+			I=$((I + 1))
+		done
 		;;
 	${_MONORAIL_DIR}/colors)
 		:
@@ -87,6 +92,13 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 	esac
 	# shellcheck disable=SC1090 # file exists
 	. "./$PREVIEW"
+	if [[ -z "${_PROMPT_LUT[0]}" ]]; then
+		while [[ $I -lt 200 ]]; do
+			_PROMPT_LUT[I]=$((0x$(echo "${_COLORS[16]}" | cut -c1-2)))";"$((0x$(echo "${_COLORS[16]}" | cut -c3-4)))";"$((0x$(echo "${_COLORS[16]}" | cut -c5-6)))
+			_PROMPT_TEXT_LUT[I]=$((0x$(echo "${_COLORS[17]}" | cut -c1-2)))";"$((0x$(echo "${_COLORS[17]}" | cut -c3-4)))";"$((0x$(echo "${_COLORS[17]}" | cut -c5-6)))
+			I=$((I + 1))
+		done
+	fi
 	;;
 *)
 

@@ -16,7 +16,7 @@ Usable on common operating systems
 ----------------------------------
 Monorail shall be usable on a wide range of (UNIX-like) operating systems.
 
-Wide shell and terminal compatibility for `monorail.compat.sh`
+Wide shell and terminal compatibility for `monorail.sh`
 --------------------------------------------------------------
 Support popular shells such as bash and zsh.
 Support common, buggy and vintage terminals.
@@ -25,11 +25,11 @@ On embedded/minimal distributions such as Alpine or OpenWRT, only a posix shell
 is shipped. These should be supported.
 FreeBSD only ships a posix shell in the default install, support this as well.
 
-Prioritize performance over compatibility for `monorail.sh`
+Prioritize performance over compatibility for `monorail.bash / monorail.zsh`
 -----------------------------------------------------------
 Prompt startup and rendering timem is important for user experience.
 Performant shell code requires inlining and minimizing of external executable use, code, variables, and functions.
-Put special compatibility cases in `monorail.compat.sh` so `monorail.sh` can be focused on performance.
+Put special compatibility cases in `monorail.sh` so `monorail.bash / monorail.zsh` can be focused on performance.
 
 Misconfigured terminals should be usable
 ----------------------------------------

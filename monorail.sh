@@ -1,7 +1,7 @@
 #!/bin/sh
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
-# monorail.compat.sh is the fallback of monorail if using a non-supported terminal or a non-supported shell.
+# monorail.sh is the fallback of monorail.bash/zsh if using a non-supported terminal or a non-supported shell.
 
 CR=$(printf '\015')
 ESC=$(printf '\033')
