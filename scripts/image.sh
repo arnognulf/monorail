@@ -103,6 +103,6 @@ Examples:
 	} >>"${DEST}"
 
 	ADD_CURRENT_COLORS
-	killall -s WINCH bash zsh >/dev/null 2>/dev/null
+	"${_MONORAIL_DIR}"/scripts/send_winch.sh
 }
 _MAIN "$@"

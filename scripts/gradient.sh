@@ -28,12 +28,7 @@ if [ "$ZSH_NAME" ]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-if command -v bc >/dev/null 2>/dev/null; then
-	:
-else
-	echo "error: please install bc"
-	exit 42
-fi
+
 # shellcheck disable=SC1091 # path exists
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
 
@@ -132,6 +127,7 @@ _GRADIENT() {
 	esac
 	case "$1" in
 	"")
+
 		for REQUIRED_SHELL in bash zsh ksh; do
 			PREVIEW_SHELL=$(command -v "${REQUIRED_SHELL}")
 			if [ "$PREVIEW_SHELL" ]; then
@@ -177,10 +173,16 @@ _GRADIENT() {
 			. "${_MONORAIL_DIR}/gradients/${THEME}" >>"${DEST}"
 			ADD_CURRENT_COLORS
 		fi
-		killall -s WINCH bash zsh >/dev/null 2>/dev/null
+		"${_MONORAIL_DIR}"/scripts/send_winch.sh
 		exit 0
 		;;
 	esac
+	if command -v bc >/dev/null 2>/dev/null; then
+		:
+	else
+		echo "error: please install bc"
+		exit 42
+	fi
 	ARGC=0
 	# shellcheck disable=SC2034 # variable IGNORED is not used, I do not know a better way to count args in posix sh
 	for IGNORED in "$@"; do
@@ -212,7 +214,7 @@ _GRADIENT() {
 			. "${_MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
 
 			ADD_CURRENT_COLORS
-			killall -s WINCH bash zsh >/dev/null 2>/dev/null
+			"${_MONORAIL_DIR}"/scripts/send_winch.sh
 			return 0
 		else
 			{
@@ -318,6 +320,6 @@ or \"None\" to use text color"
 	} >>"${DEST}"
 	ADD_CURRENT_COLORS
 
-	killall -s WINCH bash zsh >/dev/null 2>/dev/null
+	"${_MONORAIL_DIR}"/scripts/send_winch.sh
 }
 _GRADIENT "$@"

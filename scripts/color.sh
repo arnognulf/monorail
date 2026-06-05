@@ -1,4 +1,6 @@
 #!/bin/sh
+#export PS4='+${BASH_SOURCE}:${LINENO}:${FUNCNAME[0]}: '
+set -x
 if [ "$ZSH_NAME" ]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -13,7 +15,7 @@ cp -f "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf" "${TEMPDIR}"
 DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 
 _MONORAIL_CONTRAST() {
-	if command -v bc 1>/dev/null 2>/dev/null; then
+	if command -v bc >/dev/null 2>/dev/null; then
 		:
 	else
 		echo "error: please install bc"
@@ -47,7 +49,7 @@ _MONORAIL_CONTRAST() {
 	INT_CONTRAST=$(\echo "define int(x){auto s;s=scale=0;x/=1;scale=s;return x};int(${CONTRAST}*100)" | \bc -l)
 	# contrast 1.5 is set sufficiently low to be visible, but high enough to avoid shooting yourself in the foot.
 	if [ "${INT_CONTRAST}" -lt 150 ]; then
-		\echo "ERROR: background and foreground are too similar, try setting either background or foreground to '7f7f7f' and the other to '000000' or 'ffffff'" 1>&2 | tee 1>/dev/null
+		\echo "ERROR: background and foreground are too similar, try setting either background or foreground to '7f7f7f' and the other to '000000' or 'ffffff'" >&2 | tee >/dev/null
 		return 1
 	else
 		return 0
@@ -181,10 +183,12 @@ Examples:
 		# not color
 		[ -z "$FGCOLOR" ] && [ -z "$BGCOLOR" ] && [ -z "$CURSORCOLOR" ] && case "$1" in
 		*/*)
+			echo f1
 			# shellcheck disable=SC1090 # file will exist
 			. "$1"
 			;;
 		*)
+			echo f2
 			cd "${_MONORAIL_DIR}"/colors || {
 				echo "error: missing colors directory"
 				exit 42
@@ -194,9 +198,11 @@ Examples:
 			;;
 		esac
 	fi
+	echo f3
 	_UPDATE_CONFIG "$THEME" "$FGCOLOR" "$BGCOLOR" "$CURSORCOLOR"
 }
 HANDLE_COLOR_ARG() {
+	echo foo
 	_COLORS_16="$1"
 	if [ "$2" ]; then
 		{
@@ -208,6 +214,7 @@ HANDLE_COLOR_ARG() {
 		fi
 		_COLORS_17=$2
 	fi
+	echo bar
 	if [ "$3" ]; then
 		{
 			TMP=$((0x$3))
@@ -218,8 +225,9 @@ HANDLE_COLOR_ARG() {
 		fi
 		_COLORS_21="$3"
 	fi
-
+	echo baz
 	_MONORAIL_CONTRAST "${_COLORS_17}" "$1" || return 1
+	echo quux
 }
 _UPDATE_CONFIG() {
 	THEME=$1
@@ -296,7 +304,7 @@ _UPDATE_CONFIG() {
 		. "${TEMPDIR}/current.conf" >>"${DEST}"
 	fi
 
-	killall -s WINCH bash zsh 1>/dev/null 2>/dev/null
+	"${_MONORAIL_DIR}"/scripts/send_winch.sh
 
 }
 
