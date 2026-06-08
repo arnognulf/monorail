@@ -2,7 +2,6 @@
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
 # monorail.sh is the fallback of monorail.bash/zsh if using a non-supported terminal or a non-supported shell.
-
 CR=$(printf '\015')
 ESC=$(printf '\033')
 BEL=$(printf '\007')
@@ -66,7 +65,47 @@ case "$TERM" in
 "vt"???)
 	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
+	# terminal size detection needs further work on zsh and ksh
+	if [ "$BASH_VERSION" ] || [ -z "$ZSH_NAME" ] && [ -z "$KSH_VERSION" ]; then
+		# ask terminal for its size
+		# on serial terminals there is normally no COLUMNS/LINES set
+		# https://gist.github.com/asmagill/4b792359c7a01da46b2d
+		# https://unix.stackexchange.com/questions/464930/can-i-read-a-single-character-from-stdin-in-posix-shell
+		SAVED_TTY_SETTINGS=$(stty -g)
+		COLUMNS=-1
+		LINES=0
+		CHAR=""
 
+		if [ -z "$BASH_VERSION" ] && [ -z "$ZSH_NAME" ] && [ -z "$KSH_VERSION" ]; then
+			stty -icanon
+		fi
+		printf '\n\e[8m\e7\e[999;999H\e[6n' >/dev/tty
+		while [ "$CHAR" != 'R' ]; do
+			if [ "$BASH_VERSION" ]; then
+				read -n1 CHAR
+			else
+				CHAR=$(dd ibs=1 count=1 2>/dev/null)
+			fi
+			case "$CHAR" in
+			';')
+				COLUMNS=0
+				;;
+			*)
+				if [ "$CHAR" -ge 0 ] 2>/dev/null; then
+					if [ $COLUMNS -ge 0 ]; then
+						COLUMNS=$((COLUMNS * 10 + CHAR))
+					else
+						LINES=$((LINES * 10 + CHAR))
+					fi
+				fi
+				;;
+			esac
+		done
+
+		printf '\e[999;0H\e[K\e8\e[A\e[0m' >/dev/tty
+		stty "$SAVED_TTY_SETTINGS"
+		stty cols $COLUMNS rows $LINES
+	fi
 	# vt100 or vt220 emulators normally do not support DEC alternate graphics
 	# which is used to draw the horizontal line but sets "vt100" or "vt220"
 	# as TERM for compatibility.
@@ -130,6 +169,10 @@ vt?? | "ibm-327"* | "dp33"?? | "adm3a" | "hp2621" | "hz1500" | "wy30" | "vc404" 
 "aaa" | "sun" | "wy370")
 	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
+	;;
+Eterm)
+	_MONORAIL_ANSI_TERMINAL=1
+	_MONORAIL_XTERM_TERMINAL=1
 	;;
 *)
 	_MONORAIL_ANSI_TERMINAL=1
@@ -492,17 +535,17 @@ trap "_MONORAIL_UPDATE" WINCH
 unalias monorail_color 2>/dev/null
 monorail_color() {
 	# shellcheck disable=SC2097,SC2098 # don't export variables only needed for monorail
-	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR "$0" "$_MONORAIL_DIR/scripts/color.sh"
+	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh "$_MONORAIL_DIR/scripts/color.sh"
 }
 unalias monorail_gradient 2>/dev/null
 monorail_gradient() {
 	# shellcheck disable=SC2097,SC2098 # don't export variables only needed for monorail
-	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR "$0" "$_MONORAIL_DIR/scripts/gradient.sh"
+	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh "$_MONORAIL_DIR/scripts/gradient.sh"
 }
 unalias monorail_image 2>/dev/null
 monorail_image() {
 	# shellcheck disable=SC2097,SC2098 # don't export variables only needed for monorail
-	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR "$0" "$_MONORAIL_DIR/scripts/image.sh"
+	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh "$_MONORAIL_DIR/scripts/image.sh"
 }
 unalias rgb 2>/dev/null
 rgb() {

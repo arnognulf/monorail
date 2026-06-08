@@ -1,6 +1,8 @@
 #!/bin/sh
-#export PS4='+${BASH_SOURCE}:${LINENO}:${FUNCNAME[0]}: '
-set -x
+ERROR() {
+	printf "error: %s\n" "$1" >/dev/stderr
+	exit 42
+}
 if [ "$ZSH_NAME" ]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -18,13 +20,11 @@ _MONORAIL_CONTRAST() {
 	if command -v bc >/dev/null 2>/dev/null; then
 		:
 	else
-		echo "error: please install bc"
-		exit 42
+		ERROR "please install bc"
 	fi
 
 	COLOR1=$1
 	COLOR2=$2
-
 	r1=$((0x$(echo "$COLOR1" | cut -c1-2)))
 	g1=$((0x$(echo "$COLOR1" | cut -c3-4)))
 	b1=$((0x$(echo "$COLOR1" | cut -c5-6)))
@@ -46,10 +46,10 @@ _MONORAIL_CONTRAST() {
     define max(x,y){if(x>y)return x;return y}
     define min(x,y){if(x<y)return x;return y}
     if($Y1>$Y2)($Y1 + 0.05)/($Y2 + 0.05) else ($Y2 + 0.05)/($Y1 + 0.05)" | bc -l)
-	INT_CONTRAST=$(\echo "define int(x){auto s;s=scale=0;x/=1;scale=s;return x};int(${CONTRAST}*100)" | \bc -l)
+	INT_CONTRAST=$(echo "define int(x){auto s;s=scale=0;x/=1;scale=s;return x};int(${CONTRAST}*100)" | \bc -l)
 	# contrast 1.5 is set sufficiently low to be visible, but high enough to avoid shooting yourself in the foot.
 	if [ "${INT_CONTRAST}" -lt 150 ]; then
-		\echo "ERROR: background and foreground are too similar, try setting either background or foreground to '7f7f7f' and the other to '000000' or 'ffffff'" >&2 | tee >/dev/null
+		echo "ERROR: background and foreground are too similar, try setting either background or foreground to '7f7f7f' and the other to '000000' or 'ffffff'" >&2 | tee >/dev/null
 		return 1
 	else
 		return 0
@@ -61,8 +61,7 @@ _MAIN() {
 		if command -v fzf >/dev/null 2>/dev/null; then
 			:
 		else
-			echo "error: please install fzf"
-			exit 42
+			ERROR "please install fzf"
 		fi
 		for REQUIRED_SHELL in bash zsh ksh; do
 			PREVIEW_SHELL=$(command -v "${REQUIRED_SHELL}")
@@ -71,8 +70,7 @@ _MAIN() {
 			fi
 		done
 		if [ -z "$PREVIEW_SHELL" ]; then
-			echo "error: preview requires bash, zsh, or ksh to be installed"
-			exit 42
+			ERROR "preview requires bash, zsh, or ksh to be installed"
 		fi
 		# shellcheck disable=SC1090 # file will exist
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
@@ -90,8 +88,7 @@ _MAIN() {
 		;;
 	--list | -l)
 		cd "$_MONORAIL_DIR/colors" || {
-			echo "error: missing colors directory"
-			exit 42
+			ERROR "missing colors directory"
 		}
 		if [ -t 1 ]; then
 			for SCHEME in *.conf; do
@@ -125,9 +122,7 @@ Examples:
 		exit 1
 		;;
 	*)
-		{
-			FGCOLOR=$((0x$1))
-		} 2>/dev/null
+		(_=$((0x$1)) 2>/dev/null) && FGCOLOR=$((0x$1))
 		if [ $FGCOLOR ]; then
 			FGCOLOR=$1
 			BGCOLOR=$2
@@ -152,7 +147,6 @@ Examples:
 	}
 	# shellcheck disable=SC1091 # file will be created
 	. "${TEMPDIR}/current.conf"
-
 	NUM_ARGS=0
 	for ARG in "$@"; do
 		NUM_ARGS=$((NUM_ARGS + 1))
@@ -161,19 +155,18 @@ Examples:
 	if [ "$1" = "000000" ]; then
 		HANDLE_COLOR_ARG "$@" || return 1
 	else
-		{
-			FGCOLOR=$((0x$1))
-			if [ $((0x$1)) ]; then
-				FGCOLOR=$1
-			fi
-			if [ $((0x$2)) ]; then
-				BGCOLOR=$2
-			fi
-			if [ $((0x$3)) ]; then
-				CURSORCOLOR=$3
-			fi
-
-		} 2>/dev/null
+		# dash would silently exit here if variable was empty, do not remove subshell check!
+		if (_=$((0x$1)) 2>/dev/null); then
+			FGCOLOR=$1
+		fi
+		# dash would silently exit here if variable was empty, do not remove subshell check!
+		if (_=$((0x$2)) 2>/dev/null); then
+			BGCOLOR=$2
+		fi
+		# dash would silently exit here if variable was empty, do not remove subshell check!
+		if (_=$((0x$3)) 2>/dev/null); then
+			CURSORCOLOR=$3
+		fi
 
 		if [ "$FGCOLOR" ] && [ "$BGCOLOR" ]; then
 			HANDLE_COLOR_ARG "$FGCOLOR" "$BGCOLOR" || exit 1
@@ -183,51 +176,37 @@ Examples:
 		# not color
 		[ -z "$FGCOLOR" ] && [ -z "$BGCOLOR" ] && [ -z "$CURSORCOLOR" ] && case "$1" in
 		*/*)
-			echo f1
 			# shellcheck disable=SC1090 # file will exist
 			. "$1"
 			;;
 		*)
-			echo f2
 			cd "${_MONORAIL_DIR}"/colors || {
-				echo "error: missing colors directory"
-				exit 42
+				ERROR "missing colors directory"
 			}
 			# shellcheck disable=SC1090 # file exists
 			. ./"$THEME".conf
 			;;
 		esac
 	fi
-	echo f3
 	_UPDATE_CONFIG "$THEME" "$FGCOLOR" "$BGCOLOR" "$CURSORCOLOR"
 }
 HANDLE_COLOR_ARG() {
-	echo foo
 	_COLORS_16="$1"
 	if [ "$2" ]; then
-		{
-			TMP=$((0x$2))
-		} 2>/dev/null
-		if [ -z "$TMP" ]; then
-			echo "error; $2 is not a valid color"
-			exit 42
+		if (_=$((0x$2)) 2>/dev/null); then
+			_COLORS_17=$2
+		else
+			ERROR "$2 is not a valid color"
 		fi
-		_COLORS_17=$2
 	fi
-	echo bar
 	if [ "$3" ]; then
-		{
-			TMP=$((0x$3))
-		} 2>/dev/null
-		if [ -z "$TMP" ]; then
-			echo "error; $3 is not a valid color"
-			exit 42
+		if (_=$((0x$3)) 2>/dev/null); then
+			_COLORS_21="$3"
+		else
+			ERROR "$3 is not a valid color"
 		fi
-		_COLORS_21="$3"
 	fi
-	echo baz
 	_MONORAIL_CONTRAST "${_COLORS_17}" "$1" || return 1
-	echo quux
 }
 _UPDATE_CONFIG() {
 	THEME=$1
@@ -258,8 +237,7 @@ _UPDATE_CONFIG() {
 	rm "${DEST}"
 
 	cd "${_MONORAIL_DIR}"/colors || {
-		echo "error: missing colors directory"
-		exit 42
+		ERROR "missing colors directory"
 	}
 	# set default colors
 	ADD_CURRENT_PROMPT_TEXT_LUT

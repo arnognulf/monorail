@@ -6,9 +6,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # see FAST_SHELL_GUIDELINES.md on coding guidelines for this file.
 {
-if ! [[ $_MONORAIL_DIR ]];then
-_MONORAIL_DIR=${XDG_DATA_HOME-$HOME/.local/share}/monorail
-fi
+[[ $_MONORAIL_DIR ]]||_MONORAIL_DIR=$HOME/.local/share/monorail
 [[ $HOSTNAME ]]||HOSTNAME=$(hostname)
 if [[ $CRAFT_STATE_DIR ]];then
 _MONORAIL_SHORT_HOSTNAME=snapcraft
@@ -43,6 +41,8 @@ setopt prompt_subst
 _MONORAIL_PREHIDE='%{'
 _MONORAIL_POSTHIDE='%}'
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l}
+elif [[ $BRUSH_VERSION ]];then
+_MONORAIL_COMPAT=1
 else
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 _MONORAIL_PREHIDE='\['
@@ -56,13 +56,9 @@ declare -a preexec_functions
 __bp_preexec_interactive_mode=1
 __bp_preexec_invoke_exec(){
 __bp_last_argument_prev_command=${1:-}
-if [[ $__bp_inside_preexec ]];then
-return
-fi
+[[ $__bp_inside_preexec ]]&&return
 local __bp_inside_preexec=1
-if [[ ! -t 1 ]];then
-return
-fi
+[[ ! -t 1 ]]&&return
 if [[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]];then
 return
 fi
@@ -82,21 +78,17 @@ local cmd
 for cmd in "${prompt_command_array[@]:-}";do
 cmd=${cmd#"${cmd%%[![:space:]]*}"}
 cmd=${cmd%"${cmd##*[![:space:]]}"}
-if [[ $cmd = "$arg" ]];then
-return
-fi
+[[ $cmd = "$arg" ]]&&return
 done
 local this_command
 this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
 this_command=${this_command#*[[:digit:]][* ] }
-if [[ -z $this_command ]];then
-return
-fi
+[[ -z $this_command ]]&&return
 local preexec_function
 for preexec_function in "${preexec_functions[@]:-}";do
 if type -t "$preexec_function" >/dev/null;then
 if [[ ${__bp_last_ret_value-0} = 0 ]];then
-true
+:
 else
 (exit "${__bp_last_ret_value-0}")
 fi
@@ -106,9 +98,7 @@ done
 return "${__bp_last_ret_value-0}"
 }
 __bp_install(){
-if [[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]];then
-return 1
-fi
+[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]]&&return 1
 trap '__bp_preexec_invoke_exec "$_"' DEBUG
 eval "local trap_argv=(${__bp_trap_string:-})"
 local prior_trap=${trap_argv[2]:-}
@@ -126,10 +116,6 @@ if [[ $histcontrol = *"ignoreboth"* ]];then
 histcontrol=ignoredups:${histcontrol//ignoreboth/}
 fi
 export HISTCONTROL=$histcontrol
-if [[ ${__bp_enable_subshells:-} ]];then
-set -o functrace >/dev/null 2>&1
-shopt -s extdebug >/dev/null 2>&1
-fi
 local cur_prompt_cmd
 cur_prompt_cmd=${PROMPT_COMMAND:-}
 cur_prompt_cmd=${cur_prompt_cmd//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}
@@ -139,9 +125,7 @@ cur_prompt_cmd=${cur_prompt_cmd#"${cur_prompt_cmd%%[![:space:]]*}"}
 cur_prompt_cmd=${cur_prompt_cmd%"${cur_prompt_cmd##*[![:space:]]}"}
 cur_prompt_cmd=${cur_prompt_cmd%;}
 cur_prompt_cmd=${cur_prompt_cmd#;}
-if [[ ${cur_prompt_cmd:-:} = ":" ]];then
-cur_prompt_cmd=
-fi
+[[ ${cur_prompt_cmd:-:} = ":" ]]&&cur_prompt_cmd=
 PROMPT_COMMAND='precmd'
 PROMPT_COMMAND+=${cur_prompt_cmd:+$'\n'$cur_prompt_cmd}
 PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')
@@ -155,13 +139,12 @@ prompt_cmd=${prompt_cmd%"${prompt_cmd##*[![:space:]]}"}
 prompt_cmd=${prompt_cmd%;}
 prompt_cmd=${prompt_cmd#;}
 
-if [[ $prompt_cmd ]];then
-PROMPT_COMMAND=("$prompt_cmd")
-fi
+[[ $prompt_cmd ]]&&PROMPT_COMMAND=("$prompt_cmd")
 PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install')
 fi
 preexec(){
 {
+[[ $_MONORAIL_LAUNCHED ]]||return
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 [[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]]&&return
 _MONORAIL_PREV_CMD=$(fc -l -1)
@@ -197,9 +180,7 @@ _TIMER_CMD=${C/\\\007/<BEL>}
 local XCMD IGNORED_TITLE=
 for XCMD in "${_MONORAIL_CMD_IGNORED[@]}"
 do
-if [[ $XCMD = "${_TIMER_CMD%% *}" ]]; then
-IGNORED_TITLE=1
-fi
+[[ $XCMD = "${_TIMER_CMD%% *}" ]]&&IGNORED_TITLE=1
 done
 ICON="*️⃣"
 _MONORAIL_TITLE="$ICON  $_TIMER_CMD"
@@ -264,11 +245,7 @@ _TITLE_RAW(){
 [[ $_MONORAIL_NOSTYLING ]]&&return 0
 printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 }
-if [[ $XDG_CONFIG_HOME ]];then
-_MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
-else
-_MONORAIL_CONFIG=$HOME/.config/monorail
-fi
+[[ ! $_MONORAIL_CONFIG ]]&&_MONORAIL_CONFIG=$HOME/.config/monorail
 _MONORAIL_NAME(){
 unset NAME
 [[ $1 ]]&&NAME=$*
@@ -312,7 +289,7 @@ CR_LEVEL=0
 unset _MONORAIL_CTRLC
 elif [[ $_MONORAIL_PENULTIMATE = "$_MONORAIL_HISTCMD_PREV" ]];then
 if [[ -z $_MONORAIL_CR_FIRST ]] &&[[ $CMD_STATUS = 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
-case "$CR_LEVEL" in
+case $CR_LEVEL in
 0)ls
 CR_LEVEL=3
 if \git status >&- 2>&-;then
@@ -468,7 +445,7 @@ unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]];then
 mkdir -p "$_MONORAIL_CONFIG"
 if [[ -f "$_MONORAIL_DIR/gradients/Default.conf" ]];then
-if [[ $(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null) = prefer-dark ]];then
+if [[ $(gsettings get org.gnome.desktop.interface color-scheme 2>&-) = prefer-dark ]];then
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/DefaultDark.conf "$_MONORAIL_DIR"/gradients/Default.conf > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
 else
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.conf "$_MONORAIL_DIR"/gradients/Default.conf > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
@@ -478,7 +455,8 @@ printf "\
 monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                    Do this to make colors and gradients work:
                      1. Move monorail directory to $_MONORAIL_DIR
-                     2. rm -rf $_MONORAIL_CONFIG" >/dev/tty
+                     2. rm -rf $_MONORAIL_CONFIG
+                     3. Restart terminal." >/dev/tty
 fi
 fi
 # shellcheck disable=SC1090,SC1091 # file will be copied
@@ -551,7 +529,7 @@ local ICON="$1"
 shift
 if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} = "_NO_MEASURE" ]];then
 local FIRST_ARG="$1"
-(case "$FIRST_ARG" in
+(case $FIRST_ARG in
 _*)shift
 esac
 FIRST_ARG="$1"
@@ -594,7 +572,8 @@ _LOW_PRIO(){
 # `nice -n19` is the lowest priority on non-Linux systems
 nice -n19 "$@"
 }
-fi >/dev/null 2>&-
+# zsh cannot handle closed stdout here
+fi >&- 2>/dev/null
 _LOW_PRIO "$@"
 }
 # shellcheck disable=SC2329
@@ -618,8 +597,8 @@ _MONORAIL_MAGIC_SHELLBALL(){
 local A PAD i
 PAD=
 i=0
-case "$RANDOM" in
-*[0-4])case "$RANDOM" in
+case $RANDOM in
+*[0-4])case $RANDOM in
 *0)A="IT IS CERTAIN.";;
 *1)A="IT IS DECIDEDLY SO.";;
 *2)A="WITHOUT A DOUBT.";;
@@ -685,24 +664,13 @@ esac
 fi
 [[ $_MONORAIL_COMPAT ]]&&if [[ ! $_MONORAIL_DISABLE_COMPAT ]];then
 unalias git >/dev/null 2>/dev/null
+unset -f precmd preexec 2>/dev/null
 . "$_MONORAIL_DIR/monorail.sh"
 fi
-# TODO: sh parsing of monorail_color is broken, need ksh/zsh/bash instead
-_MONORAIL_GET_KSH () {
-(
-local shell
-for shell in bash zsh ksh
-do
-unalias $shell 2>/dev/null
-unset -f $shell 2>/dev/null
-command -v $shell 2>/dev/null
-exit 0
-done
-echo true
-)
-}
 # shellcheck disable=SC2139
-alias monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR $(_MONORAIL_GET_KSH) $_MONORAIL_DIR/scripts/color.sh"
+alias monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/color.sh"
+#shellcheck disable=SC2139
+alias sh_monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/color.sh"
 # shellcheck disable=SC2139
 alias monorail_gradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/gradient.sh"
 # shellcheck disable=SC2139

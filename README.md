@@ -53,8 +53,6 @@ For zsh, add the following line to ~/.bashrc
 ```
 Open a new terminal for changes to take effect.
 
-
-
 Fish
 ----
 Create the ~/.config/fish/conf.d directory:
@@ -81,34 +79,11 @@ Add the following to ~/.shrc
 
 Log out and log in for changes to take effect.
 
-Oils OSH
---------
-Add the following to ~/.config/oils/oshrc
-```
-. ~/.local/share/monorail/monorail.sh
-```
-
-Open a new terminal for changes to take effect.
-
 Yash
 ----
 Add the following to ~/.yashrc
 ```
 . ~/.local/share/monorail/monorail.sh
-```
-Open a new terminal for changes to take effect.
-
-Brush
------
-Remove any previous calls to `$HOME/.local/share/monorail/monorail.bash` from `~/.bashrc`.
-
-Add the following lines to `~/.bashrc`:
-```
-if [[ $BRUSH_VERSION ]];then
-. $HOME/.local/share/monorail/monorail.sh
-else
-. $HOME/.local/share/monorail/monorail.bash
-fi
 ```
 Open a new terminal for changes to take effect.
 
@@ -262,15 +237,16 @@ Tested on
 * [yash](https://magicant.github.io/yash/) 2.60
 * [busybox ash](https://busybox.net/)
 * [busybox hush](https://busybox.net/)
-* [brush](https://github.com/reubeno/brush)
 * [Oils osh](https://oils.pub/) Oils osh 0.37.0
 * [Debian dash](https://manpages.debian.org/main/dash/dash.1.en.html) 0.5.12
 * [MirBSD ksh](https://github.com/MirBSD/mksh) `@(#)MIRBSD KSH R59 2025/12/23 +Debian`
 * [NetBSD ksh](https://man.netbsd.org/ksh.1)
 * [NetBSD sh](https://man.netbsd.org/sh.1)
 * [OpenBSD ksh](https://man.openbsd.org/ksh)
+* [brush](https://github.com/reubeno/brush) - works with posix sh fallback as of `brush 0.4.0 (cargo:0.4.0)`.
 * [ksh93](https://github.com/ksh93/ksh) u+m 1.0.10 - gradients not fully supported due to shell bugs
 * [FreeBSD 15 sh](https://man.freebsd.org/cgi/man.cgi?sh(1)) - gradients disabled due to shell bugs
+* [Guile As Shell](https://codeberg.org/guix/gash/) - does not work yet. 
 
 Supported terminals
 ===================
