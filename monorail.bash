@@ -144,7 +144,7 @@ PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_insta
 fi
 preexec(){
 {
-[[ $_MONORAIL_LAUNCHED ]]||return
+[[ $_MONORAIL_CACHE ]]||return
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 [[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]]&&return
 _MONORAIL_PREV_CMD=$(fc -l -1)
