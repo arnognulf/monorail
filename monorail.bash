@@ -55,6 +55,7 @@ declare -a preexec_functions
 
 __bp_preexec_interactive_mode=1
 __bp_preexec_invoke_exec(){
+[[ $_MONORAIL_CACHE ]]||return
 __bp_last_argument_prev_command=${1:-}
 [[ $__bp_inside_preexec ]]&&return
 local __bp_inside_preexec=1
@@ -316,18 +317,17 @@ _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
 trap "_MONORAIL_CTRLC=1;echo -n" INT
 trap "_MONORAIL_CTRLC=1;echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
-
-else
-alias for='_MONORAIL_NOSTYLING=1;for'
-alias while='_MONORAIL_NOSTYLING=1;while'
-alias until='_MONORAIL_NOSTYLING=1;until'
-_MONORAIL_LAUNCHED=1
-fi
 if [[ $_MONORAIL_LONGRUNNING ]] ;then
 _MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 unset _MONORAIL_LONGRUNNING
 return 0
+fi
+else
+alias for='_MONORAIL_NOSTYLING=1;for'
+alias while='_MONORAIL_NOSTYLING=1;while'
+alias until='_MONORAIL_NOSTYLING=1;until'
+_MONORAIL_LAUNCHED=1
 fi
 local _MONORAIL_REALPWD
 _MONORAIL_REALPWD=$PWD
@@ -501,11 +501,11 @@ HEX_CURSOR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B"
 _MONORAIL_CACHE=$COLUMNS$_MONORAIL_TEXT
 fi
 # shellcheck disable=SC2059 # keep printf compact
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#$HEX_CURSOR_COLOR\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r" >/dev/tty
 
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e[0m'"${_MONORAIL_POSTHIDE}"
+$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"${_MONORAIL_POSTHIDE}"
 unset _MONORAIL_NOSTYLING
 }
 _TITLE(){
