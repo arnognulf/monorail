@@ -145,10 +145,10 @@ PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_insta
 fi
 preexec(){
 {
-[[ $_MONORAIL_CACHE ]]||return
+local FC=$(fc -l -1)
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
-[[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]]&&return
-_MONORAIL_PREV_CMD=$(fc -l -1)
+[[ $FC = "$_MONORAIL_PREV_CMD" ]]&&return
+_MONORAIL_PREV_CMD=$FC
 local C ICON CMD
 C=${1/\\\a/\\\\\a}
 C=${C/\\\b/\\\\\b}
