@@ -505,7 +505,7 @@ unset _MONORAIL_NOSTYLING
 PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"${_MONORAIL_POSTHIDE}"
 
-} >&- 2>&-
+} &>/dev/null
 printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r" >/dev/tty
 
 }
