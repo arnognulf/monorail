@@ -253,11 +253,11 @@ unset NAME
 }
 alias name=_MONORAIL_NAME
 precmd(){
-if [[ $_MONORAIL_LAUNCHED ]];then
 {
+if [[ $_MONORAIL_LAUNCHED ]];then
 # bash line editor (ble.sh) do not like others messing with the tty
 # enable stty echo in case some command has disabled it up
-[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo 2>&-
+[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo >/dev/tty
 local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 CURRENT_SECONDS=$SECONDS
 DIFF=$((CURRENT_SECONDS-_START_SECONDS))
@@ -277,7 +277,6 @@ echo "$DURATION"
 _MONORAIL_LONGRUNNING=1
 fi
 unset _MEASURE
-} 2>&-
 local CMD_STATUS
 CMD_STATUS=$?
 printf "%$((COLUMNS-1))s\\r"
@@ -293,10 +292,10 @@ if [[ -z $_MONORAIL_CR_FIRST ]] &&[[ $CMD_STATUS = 0 ]]&&[[ -z $_MONORAIL_CTRLC 
 case $CR_LEVEL in
 0)ls
 CR_LEVEL=3
-if \git status >&- 2>&-;then
+if \git status;then
 CR_LEVEL=1
 else
-printf "\e[J\n\n"
+printf "\e[J\n\n" >/dev/tty
 fi
 ;;
 2)CR_LEVEL=3
@@ -316,7 +315,7 @@ unset _MONORAIL_CTRLC
 _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
 trap "_MONORAIL_CTRLC=1;echo -n" INT
 trap "_MONORAIL_CTRLC=1;echo -n" ERR
-[[ $BASH_VERSION ]]&&history -a >&- 2>&-
+[[ $BASH_VERSION ]]&&history -a
 if [[ $_MONORAIL_LONGRUNNING ]] ;then
 _MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
@@ -445,7 +444,7 @@ unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]];then
 mkdir -p "$_MONORAIL_CONFIG"
 if [[ -f "$_MONORAIL_DIR/gradients/Default.conf" ]];then
-if [[ $(gsettings get org.gnome.desktop.interface color-scheme 2>&-) = prefer-dark ]];then
+if [[ $(gsettings get org.gnome.desktop.interface color-scheme) = prefer-dark ]];then
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/DefaultDark.conf "$_MONORAIL_DIR"/gradients/Default.conf > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
 else
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.conf "$_MONORAIL_DIR"/gradients/Default.conf > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
@@ -496,17 +495,19 @@ RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
-HEX_CURSOR_COLOR=$(\printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
+HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
 [[ ${_PROMPT_LUT[0]} ]]||HEX_CURSOR_COLOR=${_COLORS[21]}
 _MONORAIL_CACHE=$COLUMNS$_MONORAIL_TEXT
 fi
 # shellcheck disable=SC2059 # keep printf compact
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r" >/dev/tty
-
+unset _MONORAIL_NOSTYLING
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"${_MONORAIL_POSTHIDE}"
-unset _MONORAIL_NOSTYLING
+
+} >&- 2>&-
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r" >/dev/tty
+
 }
 _TITLE(){
 local _MONORAIL_TITLE=$*

@@ -170,7 +170,7 @@ vt?? | "ibm-327"* | "dp33"?? | "adm3a" | "hp2621" | "hz1500" | "wy30" | "vc404" 
 	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
 	;;
-Eterm)
+Eterm|screen.*)
 	_MONORAIL_ANSI_TERMINAL=1
 	_MONORAIL_XTERM_TERMINAL=1
 	;;
