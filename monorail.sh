@@ -11,18 +11,10 @@ US=$(printf '\037')
 unset _MONORAIL_UPDATING
 
 if [ -z "$_MONORAIL_DIR" ]; then
-	if [ "$XDG_DATA_HOME" ]; then
-		_MONORAIL_DIR="$XDG_DATA_HOME/monorail"
-	else
-		_MONORAIL_DIR="$HOME/.local/share/data/monorail"
-	fi
+	_MONORAIL_DIR="$HOME/.local/share/data/monorail"
 fi
 if [ -z "$_MONORAIL_CONFIG" ]; then
-	if [ "$XDG_CONFIG_HOME" ]; then
-		_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
-	else
-		_MONORAIL_CONFIG="$HOME/.config/monorail"
-	fi
+	_MONORAIL_CONFIG="$HOME/.config/monorail"
 fi
 # netbsd sets LC_CTYPE, Linux sets LANG
 if [ "$XTERM_LOCALE" ]; then
@@ -71,7 +63,7 @@ case "$TERM" in
 		# on serial terminals there is normally no COLUMNS/LINES set
 		# https://gist.github.com/asmagill/4b792359c7a01da46b2d
 		# https://unix.stackexchange.com/questions/464930/can-i-read-a-single-character-from-stdin-in-posix-shell
-		SAVED_TTY_SETTINGS=$(stty -g)
+		_MONORAIL_TTY_SETTINGS=$(stty -g)
 		COLUMNS=-1
 		LINES=0
 		CHAR=""
@@ -103,7 +95,7 @@ case "$TERM" in
 		done
 
 		printf '\e[999;0H\e[K\e8\e[A\e[0m' >/dev/tty
-		stty "$SAVED_TTY_SETTINGS"
+		stty "$_MONORAIL_TTY_SETTINGS"
 		stty cols $COLUMNS rows $LINES
 	fi
 	# vt100 or vt220 emulators normally do not support DEC alternate graphics

@@ -41,55 +41,72 @@ setopt prompt_subst
 _MONORAIL_PREHIDE='%{'
 _MONORAIL_POSTHIDE='%}'
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l}
-elif [[ $BRUSH_VERSION ]];then
-_MONORAIL_COMPAT=1
 else
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 _MONORAIL_PREHIDE='\['
 _MONORAIL_POSTHIDE='\]'
 
-__bp_last_argument_prev_command=$_
+__bp_last_argument_prev_command="$_"
 unset __bp_inside_preexec
 __bp_preexec_interactive_mode=
 declare -a preexec_functions
 
-__bp_preexec_interactive_mode=1
-__bp_preexec_invoke_exec(){
-[[ $_MONORAIL_CACHE ]]||return
-__bp_last_argument_prev_command=${1:-}
-[[ $__bp_inside_preexec ]]&&return
-local __bp_inside_preexec=1
-[[ ! -t 1 ]]&&return
-if [[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]];then
-return
-fi
-if [[ ${__bp_preexec_interactive_mode:-} ]];then
-if [[ 0 -eq ${BASH_SUBSHELL:-} ]];then
-__bp_preexec_interactive_mode=
-else
-return
-fi
-fi
+__bp_preexec_interactive_mode=on
+__bp_in_prompt_command(){
 local prompt_command_array IFS=$'\n;'
 read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
-local arg=${BASH_COMMAND:-}
-arg=${arg#"${arg%%[![:space:]]*}"}
-arg=${arg%"${arg##*[![:space:]]}"}
-local cmd
-for cmd in "${prompt_command_array[@]:-}";do
-cmd=${cmd#"${cmd%%[![:space:]]*}"}
-cmd=${cmd%"${cmd##*[![:space:]]}"}
-[[ $cmd = "$arg" ]]&&return
+local trimmed_arg
+local text=${1:-}
+text="${text#"${text%%[![:space:]]*}"}"
+text="${text%"${text##*[![:space:]]}"}"
+trimmed_arg=$text
+
+local command trimmed_command
+for command in "${prompt_command_array[@]:-}";do
+text=${command}
+text="${text#"${text%%[![:space:]]*}"}"
+text="${text%"${text##*[![:space:]]}"}"
+trimmed_command="$text"
+if [[ $trimmed_command = "$trimmed_arg" ]];then
+return 0
+fi
 done
+return 1
+}
+__bp_preexec_invoke_exec(){
+__bp_last_argument_prev_command="${1:-}"
+if [[ $__bp_inside_preexec ]];then
+return
+fi
+local __bp_inside_preexec=1
+if [[ ! -t 1 ]];then
+return
+fi
+if [[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]];then
+return
+fi
+if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
+return
+else
+if [[ 0 -eq ${BASH_SUBSHELL:-} ]];then
+__bp_preexec_interactive_mode=""
+fi
+fi
+if __bp_in_prompt_command "${BASH_COMMAND:-}";then
+__bp_preexec_interactive_mode=""
+return
+fi
 local this_command
 this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
-this_command=${this_command#*[[:digit:]][* ] }
-[[ -z $this_command ]]&&return
+this_command="${this_command#*[[:digit:]][* ] }"
+if [[ -z $this_command ]];then
+return
+fi
 local preexec_function
 for preexec_function in "${preexec_functions[@]:-}";do
 if type -t "$preexec_function" >/dev/null;then
 if [[ ${__bp_last_ret_value-0} = 0 ]];then
-:
+true
 else
 (exit "${__bp_last_ret_value-0}")
 fi
@@ -99,56 +116,68 @@ done
 return "${__bp_last_ret_value-0}"
 }
 __bp_install(){
-[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]]&&return 1
+if [[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]];then
+return 1
+fi
 trap '__bp_preexec_invoke_exec "$_"' DEBUG
 eval "local trap_argv=(${__bp_trap_string:-})"
 local prior_trap=${trap_argv[2]:-}
 unset __bp_trap_string
-if [[ $prior_trap ]];then
+if [[ -n $prior_trap ]];then
 eval '__bp_original_debug_trap() {
             '"$prior_trap"'
         }'
 preexec_functions+=(__bp_original_debug_trap)
 fi
 local histcontrol
-histcontrol=${HISTCONTROL:-}
-histcontrol=${histcontrol//ignorespace/}
+histcontrol="${HISTCONTROL:-}"
+histcontrol="${histcontrol//ignorespace/}"
 if [[ $histcontrol = *"ignoreboth"* ]];then
-histcontrol=ignoredups:${histcontrol//ignoreboth/}
+histcontrol="ignoredups:${histcontrol//ignoreboth/}"
 fi
-export HISTCONTROL=$histcontrol
-local cur_prompt_cmd
-cur_prompt_cmd=${PROMPT_COMMAND:-}
-cur_prompt_cmd=${cur_prompt_cmd//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}
-cur_prompt_cmd=${cur_prompt_cmd//$'\n':$'\n'/$'\n'}
-cur_prompt_cmd=${cur_prompt_cmd//$'\n':;/$'\n'}
-cur_prompt_cmd=${cur_prompt_cmd#"${cur_prompt_cmd%%[![:space:]]*}"}
-cur_prompt_cmd=${cur_prompt_cmd%"${cur_prompt_cmd##*[![:space:]]}"}
-cur_prompt_cmd=${cur_prompt_cmd%;}
-cur_prompt_cmd=${cur_prompt_cmd#;}
-[[ ${cur_prompt_cmd:-:} = ":" ]]&&cur_prompt_cmd=
+export HISTCONTROL="$histcontrol"
+if [[ -n ${__bp_enable_subshells:-} ]];then
+set -o functrace >/dev/null 2>&1
+shopt -s extdebug >/dev/null 2>&1
+fi
+local existing_prompt_command
+existing_prompt_command="${PROMPT_COMMAND:-}"
+existing_prompt_command="${existing_prompt_command//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}"
+existing_prompt_command="${existing_prompt_command//$'\n':$'\n'/$'\n'}"
+existing_prompt_command="${existing_prompt_command//$'\n':;/$'\n'}"
+
+local text="$existing_prompt_command"
+text="${text#"${text%%[![:space:]]*}"}"
+existing_prompt_command="${text%"${text##*[![:space:]]}"}"
+existing_prompt_command=${existing_prompt_command%;}
+existing_prompt_command=${existing_prompt_command#;}
+if [[ ${existing_prompt_command:-:} = ":" ]];then
+existing_prompt_command=
+fi
 PROMPT_COMMAND='precmd'
-PROMPT_COMMAND+=${cur_prompt_cmd:+$'\n'$cur_prompt_cmd}
-PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')
+PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
+PROMPT_COMMAND+=('__bp_preexec_interactive_mode="on"')
 preexec_functions+=(preexec)
 __bp_inside_precmd=1 precmd
-__bp_preexec_interactive_mode=1
+__bp_preexec_interactive_mode="on"
 }
-prompt_cmd=${PROMPT_COMMAND:-}
-prompt_cmd=${prompt_cmd#"${prompt_cmd%%[![:space:]]*}"}
-prompt_cmd=${prompt_cmd%"${prompt_cmd##*[![:space:]]}"}
-prompt_cmd=${prompt_cmd%;}
-prompt_cmd=${prompt_cmd#;}
+text="${PROMPT_COMMAND:-}"
+text="${text#"${text%%[![:space:]]*}"}"
+sanitized="${text%"${text##*[![:space:]]}"}"
+sanitized=${sanitized%;}
+sanitized=${sanitized#;}
+sanitized_prompt_command="$sanitized"
 
-[[ $prompt_cmd ]]&&PROMPT_COMMAND=("$prompt_cmd")
+if [[ -n $sanitized_prompt_command ]];then
+PROMPT_COMMAND=("$sanitized_prompt_command")
+fi
 PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install')
 fi
 preexec(){
 {
-local FC=$(fc -l -1)
 # TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
-[[ $FC = "$_MONORAIL_PREV_CMD" ]]&&return
-_MONORAIL_PREV_CMD=$FC
+[[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]]&&return
+_MONORAIL_PREV_CMD=$(fc -l -1)
 local C ICON CMD
 C=${1/\\\a/\\\\\a}
 C=${C/\\\b/\\\\\b}
@@ -234,30 +263,34 @@ done
 }
 _MONORAIL_SET_TITLE(){
 unset _MONORAIL_TITLE_OVERRIDE
-[[ $1 ]]&&_MONORAIL_TITLE_OVERRIDE=$*
+[[ $1 ]]&&_MONORAIL_TITLE_OVERRIDE="$*"
 }
 alias title=_MONORAIL_SET_TITLE
 _MONORAIL_SET_ICON(){
 unset _MONORAIL_ICON_OVERRIDE
-[[ $1 ]]&&_MONORAIL_ICON_OVERRIDE=$*
+[[ $1 ]]&&_MONORAIL_ICON_OVERRIDE="$*"
 }
 alias icon=_MONORAIL_SET_ICON
 _TITLE_RAW(){
 [[ $_MONORAIL_NOSTYLING ]]&&return 0
 printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 }
-[[ ! $_MONORAIL_CONFIG ]]&&_MONORAIL_CONFIG=$HOME/.config/monorail
+if [[ $XDG_CONFIG_HOME ]];then
+_MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
+else
+_MONORAIL_CONFIG=$HOME/.config/monorail
+fi
 _MONORAIL_NAME(){
 unset NAME
-[[ $1 ]]&&NAME=$*
+[[ $1 ]]&&NAME="$*"
 }
 alias name=_MONORAIL_NAME
 precmd(){
-{
 if [[ $_MONORAIL_LAUNCHED ]];then
 # bash line editor (ble.sh) do not like others messing with the tty
 # enable stty echo in case some command has disabled it up
-[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo >/dev/tty
+[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo 2>&-
+{
 local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
 CURRENT_SECONDS=$SECONDS
 DIFF=$((CURRENT_SECONDS-_START_SECONDS))
@@ -277,6 +310,7 @@ echo "$DURATION"
 _MONORAIL_LONGRUNNING=1
 fi
 unset _MEASURE
+} 2>&-
 local CMD_STATUS
 CMD_STATUS=$?
 printf "%$((COLUMNS-1))s\\r"
@@ -289,13 +323,13 @@ CR_LEVEL=0
 unset _MONORAIL_CTRLC
 elif [[ $_MONORAIL_PENULTIMATE = "$_MONORAIL_HISTCMD_PREV" ]];then
 if [[ -z $_MONORAIL_CR_FIRST ]] &&[[ $CMD_STATUS = 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
-case $CR_LEVEL in
+case "$CR_LEVEL" in
 0)ls
 CR_LEVEL=3
-if \git status;then
+if \git status >&- 2>&-;then
 CR_LEVEL=1
 else
-printf "\e[J\n\n" >/dev/tty
+printf "\e[J\n\n"
 fi
 ;;
 2)CR_LEVEL=3
@@ -315,18 +349,19 @@ unset _MONORAIL_CTRLC
 _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
 trap "_MONORAIL_CTRLC=1;echo -n" INT
 trap "_MONORAIL_CTRLC=1;echo -n" ERR
-[[ $BASH_VERSION ]]&&history -a
-if [[ $_MONORAIL_LONGRUNNING ]] ;then
-_MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
-[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-unset _MONORAIL_LONGRUNNING
-return 0
-fi
+[[ $BASH_VERSION ]]&&history -a >&- 2>&-
+
 else
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
 alias until='_MONORAIL_NOSTYLING=1;until'
 _MONORAIL_LAUNCHED=1
+fi
+if [[ $_MONORAIL_LONGRUNNING ]] ;then
+_MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
+[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
+unset _MONORAIL_LONGRUNNING
+return 0
 fi
 local _MONORAIL_REALPWD
 _MONORAIL_REALPWD=$PWD
@@ -340,7 +375,7 @@ if [[ -d "$PROMPT_PWD/.repo" ]];then
 MONORAIL_REPO=1
 break
 fi
-PROMPT_PWD=${PROMPT_PWD%/*}
+PROMPT_PWD="${PROMPT_PWD%/*}"
 done
 if [[ -z $_MONORAIL_GIT_LOADED ]];then
 local DIR
@@ -354,7 +389,7 @@ DIR=${DIR%/*}
 done
 fi
 # shellcheck disable=SC2329 # _TITLE function is invoked by __git_ps1 which is assigned later
-_MONORAIL_GIT_PS1=$(_TITLE () { shift;"$@";};TERM=dumb GIT_CONFIG_GLOBAL= LC_MESSAGES=C LC_ALL=C __git_ps1 "")
+_MONORAIL_GIT_PS1=$(_TITLE () { shift;"$@";};TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 local ICON TITLE_BASE
 TITLE_BASE=${PWD##*/}
@@ -411,11 +446,11 @@ esac
 fi
 _MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${ICON}}  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
 [[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-local PWD_BASENAME=${PWD##*/}
+local PWD_BASENAME="${PWD##*/}"
 [[ $PWD_BASENAME ]]||PWD_BASENAME=/
 case $PWD in
-"$HOME")_MONORAIL_PWD_BASENAME=\~;;
-*)_MONORAIL_PWD_BASENAME=${NAME-$PWD_BASENAME}
+"$HOME")_MONORAIL_PWD_BASENAME="~";;
+*)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
 esac
 _MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
@@ -495,22 +530,19 @@ RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
-HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
+HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
 [[ ${_PROMPT_LUT[0]} ]]||HEX_CURSOR_COLOR=${_COLORS[21]}
-_MONORAIL_CACHE=$COLUMNS$_MONORAIL_TEXT
+_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
-# shellcheck disable=SC2059 # keep printf compact
 unset _MONORAIL_NOSTYLING
 # shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
 $_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"${_MONORAIL_POSTHIDE}"
-
-} &>/dev/null
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r" >/dev/tty
-
+# shellcheck disable=SC2059 # keep printf compact
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 }
 _TITLE(){
-local _MONORAIL_TITLE=$*
+local _MONORAIL_TITLE="$*"
 if [[ $_MEASURE ]];then
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 elif [[ $PWD = "$HOME" ]];then
@@ -530,7 +562,7 @@ local ICON="$1"
 shift
 if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} = "_NO_MEASURE" ]];then
 local FIRST_ARG="$1"
-(case $FIRST_ARG in
+(case "$FIRST_ARG" in
 _*)shift
 esac
 FIRST_ARG="$1"
@@ -573,8 +605,7 @@ _LOW_PRIO(){
 # `nice -n19` is the lowest priority on non-Linux systems
 nice -n19 "$@"
 }
-# zsh cannot handle closed stdout here
-fi >&- 2>/dev/null
+fi >/dev/null 2>&-
 _LOW_PRIO "$@"
 }
 # shellcheck disable=SC2329
@@ -595,41 +626,41 @@ _MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 . "$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
 __git_ps1(){ :;}
 _MONORAIL_MAGIC_SHELLBALL(){
-local A PAD i
-PAD=
+local ANSWER SPACES i
+SPACES=
 i=0
-case $RANDOM in
-*[0-4])case $RANDOM in
-*0)A="IT IS CERTAIN.";;
-*1)A="IT IS DECIDEDLY SO.";;
-*2)A="WITHOUT A DOUBT.";;
-*3)A="YES – DEFINITELY.";;
-*4)A="YOU MAY RELY ON IT.";;
-*5)A="AS I SEE IT, YES.";;
-*6)A=MOST\ LIKELY.;;
-*7)A=OUTLOOK\ GOOD.;;
-*8)A=YES.;;
-*)A="SIGNS POINT TO YES."
+case "$RANDOM" in
+*[0-4])case "$RANDOM" in
+*0)ANSWER="IT IS CERTAIN.";;
+*1)ANSWER="IT IS DECIDEDLY SO.";;
+*2)ANSWER="WITHOUT A DOUBT.";;
+*3)ANSWER="YES – DEFINITELY.";;
+*4)ANSWER="YOU MAY RELY ON IT.";;
+*5)ANSWER="AS I SEE IT, YES.";;
+*6)ANSWER="MOST LIKELY.";;
+*7)ANSWER="OUTLOOK GOOD.";;
+*8)ANSWER="YES.";;
+*)ANSWER="SIGNS POINT TO YES."
 esac
 ;;
-*)case $RANDOM in
-*0)A="REPLY HAZY, TRY AGAIN.";;
-*1)A="ASK AGAIN LATER.";;
-*2)A="BETTER NOT TELL YOU NOW.";;
-*3)A="CANNOT PREDICT NOW.";;
-*4)A="CONCENTRATE AND ASK AGAIN.";;
-*5)A="DON'T COUNT ON IT.";;
-*6)A="MY REPLY IS NO.";;
-*7)A="MY SOURCES SAY NO.";;
-*8)A="OUTLOOK NOT SO GOOD.";;
-*)A=VERY\ DOUBTFUL.
+*)case "$RANDOM" in
+*0)ANSWER="REPLY HAZY, TRY AGAIN.";;
+*1)ANSWER="ASK AGAIN LATER.";;
+*2)ANSWER="BETTER NOT TELL YOU NOW.";;
+*3)ANSWER="CANNOT PREDICT NOW.";;
+*4)ANSWER="CONCENTRATE AND ASK AGAIN.";;
+*5)ANSWER="DON'T COUNT ON IT.";;
+*6)ANSWER="MY REPLY IS NO.";;
+*7)ANSWER="MY SOURCES SAY NO.";;
+*8)ANSWER="OUTLOOK NOT SO GOOD.";;
+*)ANSWER="VERY DOUBTFUL."
 esac
 esac
-while [[ $i -lt $((COLUMNS/2-${#A}/2)) ]];do
-PAD="$PAD "
+while [[ $i -lt $((COLUMNS/2-${#ANSWER}/2)) ]];do
+SPACES="$SPACES "
 i=$((i+1))
 done
-echo -e "\e[?25l\e[3A\r\e[K$PAD$A"
+echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 }
 if [[ $TERM = xterm-256color ]];then
 # zutty (vterm) doesn't handle background color, nor hidden text.
@@ -665,13 +696,10 @@ esac
 fi
 [[ $_MONORAIL_COMPAT ]]&&if [[ ! $_MONORAIL_DISABLE_COMPAT ]];then
 unalias git >/dev/null 2>/dev/null
-unset -f precmd preexec 2>/dev/null
 . "$_MONORAIL_DIR/monorail.sh"
 fi
 # shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/color.sh"
-#shellcheck disable=SC2139
-alias sh_monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/color.sh"
 # shellcheck disable=SC2139
 alias monorail_gradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/gradient.sh"
 # shellcheck disable=SC2139
