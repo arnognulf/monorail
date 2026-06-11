@@ -51,7 +51,7 @@ unset __bp_inside_preexec
 __bp_preexec_interactive_mode=
 declare -a preexec_functions
 
-__bp_preexec_interactive_mode=on
+__bp_preexec_interactive_mode=1
 __bp_preexec_invoke_exec(){
 __bp_last_argument_prev_command="${1:-}"
 if [[ $__bp_inside_preexec ]];then
@@ -73,18 +73,15 @@ fi
 fi
 local prompt_command_array IFS=$'\n;'
 read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
-local trimmed_arg
-local text="${BASH_COMMAND:-}"
-text="${text#"${text%%[![:space:]]*}"}"
-text="${text%"${text##*[![:space:]]}"}"
-trimmed_arg=$text
+local trimmed_arg="${BASH_COMMAND:-}"
+trimmed_arg="${trimmed_arg#"${trimmed_arg%%[![:space:]]*}"}"
+trimmed_arg="${trimmed_arg%"${trimmed_arg##*[![:space:]]}"}"
 
 local command trimmed_command
 for command in "${prompt_command_array[@]:-}";do
-text=${command}
-text="${text#"${text%%[![:space:]]*}"}"
-text="${text%"${text##*[![:space:]]}"}"
-trimmed_command="$text"
+trimmed_command=${command}
+trimmed_command="${trimmed_command#"${trimmed_command%%[![:space:]]*}"}"
+trimmed_command="${trimmed_command%"${trimmed_command##*[![:space:]]}"}"
 if [[ $trimmed_command = "$trimmed_arg" ]];then
 return
 fi
@@ -92,14 +89,12 @@ done
 local this_command
 this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
 this_command="${this_command#*[[:digit:]][* ] }"
-if [[ -z $this_command ]];then
-return
-fi
+[[ $this_command ]]||return
 local preexec_function
 for preexec_function in "${preexec_functions[@]:-}";do
 if type -t "$preexec_function" >/dev/null;then
 if [[ ${__bp_last_ret_value-0} = 0 ]];then
-true
+:
 else
 (exit "${__bp_last_ret_value-0}")
 fi
@@ -139,9 +134,8 @@ existing_prompt_command="${existing_prompt_command//$'__bp_trap_string="$(trap -
 existing_prompt_command="${existing_prompt_command//$'\n':$'\n'/$'\n'}"
 existing_prompt_command="${existing_prompt_command//$'\n':;/$'\n'}"
 
-local text="$existing_prompt_command"
-text="${text#"${text%%[![:space:]]*}"}"
-existing_prompt_command="${text%"${text##*[![:space:]]}"}"
+existing_prompt_command="${existing_prompt_command#"${existing_prompt_command%%[![:space:]]*}"}"
+existing_prompt_command="${existing_prompt_command%"${existing_prompt_command##*[![:space:]]}"}"
 existing_prompt_command=${existing_prompt_command%;}
 existing_prompt_command=${existing_prompt_command#;}
 if [[ ${existing_prompt_command:-:} = ":" ]];then
@@ -154,16 +148,13 @@ preexec_functions+=(preexec)
 __bp_inside_precmd=1 precmd
 __bp_preexec_interactive_mode="on"
 }
-text="${PROMPT_COMMAND:-}"
-text="${text#"${text%%[![:space:]]*}"}"
-sanitized="${text%"${text##*[![:space:]]}"}"
+sanitized="${PROMPT_COMMAND:-}"
+sanitized="${sanitized#"${sanitized%%[![:space:]]*}"}"
+sanitized="${sanitized%"${sanitized##*[![:space:]]}"}"
 sanitized=${sanitized%;}
 sanitized=${sanitized#;}
-sanitized_prompt_command="$sanitized"
 
-if [[ -n $sanitized_prompt_command ]];then
-PROMPT_COMMAND=("$sanitized_prompt_command")
-fi
+[[ $sanitized ]]&&PROMPT_COMMAND=("$sanitized")
 PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install')
 fi
 preexec(){
