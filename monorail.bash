@@ -53,6 +53,7 @@ declare -a preexec_functions
 
 __bp_preexec_interactive_mode=1
 __bp_preexec_invoke_exec(){
+{
 __bp_last_argument_prev_command="${1:-}"
 if [[ $__bp_inside_preexec ]];then
 return
@@ -91,6 +92,7 @@ this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
 this_command="${this_command#*[[:digit:]][* ] }"
 [[ $this_command ]]||return
 local preexec_function
+} >&- 2>&-
 for preexec_function in "${preexec_functions[@]:-}";do
 if type -t "$preexec_function" >/dev/null;then
 if [[ ${__bp_last_ret_value-0} = 0 ]];then
