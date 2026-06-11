@@ -154,7 +154,7 @@ _GRADIENT() {
 				echo ""
 				echo ""
 			}
-			# shellcheck disable=SC1090 # file exists
+			# shellcheck source=scripts/dummy.conf
 			. "${_MONORAIL_DIR}/gradients/${THEME}" >"${DEST}"
 			RESET_CALLBACKS
 
@@ -169,7 +169,7 @@ _GRADIENT() {
 				echo ""
 			} >>"${DEST}"
 
-			# shellcheck disable=SC1090 # path exists
+			# shellcheck source=scripts/dummy.conf
 			. "${_MONORAIL_DIR}/gradients/${THEME}" >>"${DEST}"
 			ADD_CURRENT_COLORS
 		fi
@@ -200,6 +200,7 @@ _GRADIENT() {
 				echo ""
 				echo ""
 			}
+			# shellcheck source=scripts/dummy.conf
 			. "${_MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
 			RESET_CALLBACKS
 			_monorail_gradient() {
@@ -211,6 +212,7 @@ _GRADIENT() {
 				echo ""
 				echo ""
 			}
+			# shellcheck source=scripts/dummy.conf
 			. "${_MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
 
 			ADD_CURRENT_COLORS
@@ -233,6 +235,7 @@ or \"None\" to use text color"
 			} | less
 			return 1
 		fi
+		# shellcheck source=scripts/dummy.conf
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 		return 0
 	fi
@@ -247,9 +250,10 @@ or \"None\" to use text color"
 		if [ -z "$COLOR" ]; then
 			COLOR=$ARG
 			(
-				[ "$(printf %s $COLOR | wc -c)" = 6 ] || exit 42
+				# shellcheck disable=SC2086 # shellcheck cannot parse nested quotes in subshells
+				[ "$(printf %s \"$COLOR\" | wc -c)" = 6 ] || exit 42
 				# shellcheck disable=SC2034 # need to assign an unused variable to see if conversion is possible or not
-				UNUSED=$((0x$COLOR))
+				_=$((0x$COLOR))
 			) 2>/dev/null || {
 				echo "error: $COLOR is not a valid color"
 				exit 42

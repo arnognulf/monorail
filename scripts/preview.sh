@@ -69,7 +69,7 @@ if [[ $XDG_CONFIG_HOME ]]; then
 else
 	_MONORAIL_CONFIG="$HOME/.config/monorail"
 fi
-# shellcheck disable=SC1090 # file exists
+# shellcheck source=scripts/dummy.conf
 . "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.conf)
@@ -90,7 +90,7 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 		exit 42
 		;;
 	esac
-	# shellcheck disable=SC1090 # file exists
+	# shellcheck source=scripts/dummy.conf
 	. "./$PREVIEW"
 	if [[ -z "${_PROMPT_LUT[0]}" ]]; then
 		while [[ $I -lt 200 ]]; do

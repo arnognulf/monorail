@@ -72,7 +72,7 @@ _MAIN() {
 		if [ -z "$PREVIEW_SHELL" ]; then
 			ERROR "preview requires bash, zsh, or ksh to be installed"
 		fi
-		# shellcheck disable=SC1090 # file will exist
+		# shellcheck source=scripts/dummy.conf
 		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
 		[ "${_DEFAULT_FGCOLOR}" ] || _DEFAULT_FGCOLOR=444444
 		[ "${_DEFAULT_BGCOLOR}" ] || _DEFAULT_BGCOLOR=ffffff
@@ -123,7 +123,7 @@ Examples:
 		;;
 	*)
 		(_=$((0x$1)) 2>/dev/null) && FGCOLOR=$((0x$1))
-		if [ $FGCOLOR ]; then
+		if [ "$FGCOLOR" ]; then
 			FGCOLOR=$1
 			BGCOLOR=$2
 			CURSORCOLOR=$3

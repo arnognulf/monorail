@@ -74,7 +74,7 @@ case "$TERM" in
 		printf '\n\e[8m\e7\e[999;999H\e[6n' >/dev/tty
 		while [ "$CHAR" != 'R' ]; do
 			if [ "$BASH_VERSION" ]; then
-				read -n1 CHAR
+				read -r -n1 CHAR
 			else
 				CHAR=$(dd ibs=1 count=1 2>/dev/null)
 			fi
@@ -98,16 +98,28 @@ case "$TERM" in
 		stty "$_MONORAIL_TTY_SETTINGS"
 		stty cols $COLUMNS rows $LINES
 	fi
-	# vt100 or vt220 emulators normally do not support DEC alternate graphics
-	# which is used to draw the horizontal line but sets "vt100" or "vt220"
-	# as TERM for compatibility.
-	# detect these terminals by checking if they have supported sizes
-	if [ "$COLUMNS" = 80 ] || [ "$COLUMNS" = 132 ]; then
-		if [ "$LINES" = 24 ] || [ "$LINES" = 14 ]; then
-			_MONORAIL_LINE_SEGMENT=s
-			_MONORAIL_VTXXX_TERMINAL=1
+	case $TERM in
+	vt1??)
+		# VT100 emulators normally do not support DEC alternate graphics
+		# which is used to draw the horizontal line but sets "vt100"
+		# as TERM for compatibility.
+		# Detect these terminals by checking if they have supported sizes.
+		# For instance, VGA text console (Linux/NetBSD/FreeBSD) is normally 80x25.
+		if [ "$COLUMNS" = 80 ] || [ "$COLUMNS" = 132 ]; then
+			if [ "$LINES" = 24 ] || [ "$LINES" = 14 ]; then
+				_MONORAIL_LINE_SEGMENT=s
+				_MONORAIL_VT1XX_TERMINAL=1
+				_MONORAIL_OFFSET=$((COLUMNS / 2))
+			fi
 		fi
-	fi
+		;;
+	*)
+		# On vt220, we can use underline which is widely supported.
+		# For instance, systemd (Linux) sets serial terminals to "vt220" for compatibility.
+		_MONORAIL_LINE_SEGMENT=" "
+		;;
+
+	esac
 	;;
 "wyse60" | "wy60" | "wy50" | "wy160")
 	_MONORAIL_OFFSET=1
@@ -162,7 +174,7 @@ vt?? | "ibm-327"* | "dp33"?? | "adm3a" | "hp2621" | "hz1500" | "wy30" | "vc404" 
 	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
 	;;
-Eterm|screen.*)
+Eterm | screen.*)
 	_MONORAIL_ANSI_TERMINAL=1
 	_MONORAIL_XTERM_TERMINAL=1
 	;;
@@ -327,10 +339,11 @@ else
 			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
 			I=$((I + 1))
 		done
-		if [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
-			_MONORAIL_LINE="$ESC(0$_MONORAIL_LINE${ESC}(B$_MONORAIL_REVERSE$_MONORAIL_TEXT"
+		if [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
+			_MONORAIL_LINE="$ESC(0${ESC}#5$_MONORAIL_LINE${ESC}(B${ESC}#6
+$_MONORAIL_REVERSE$_MONORAIL_TEXT"
 		elif [ "$_MONORAIL_ANSI_TERMINAL" ]; then
-			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_REVERSE$_MONORAIL_TEXT"
+			_MONORAIL_LINE="${ESC}[4m$_MONORAIL_LINE${ESC}[0m$_MONORAIL_REVERSE$_MONORAIL_TEXT"
 		else
 			_MONORAIL_LINE="$_MONORAIL_LINE
 $_MONORAIL_TEXT"
@@ -389,7 +402,7 @@ _MONORAIL_UPDATE() {
 	_MONORAIL_LINE=
 	if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 		_MONORAIL_LINE="$CR${ESC}[0m"
-	elif [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
+	elif [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
 		_MONORAIL_LINE="${ESC}[0m${ESC}(0$CR"
 	fi
 
@@ -424,7 +437,7 @@ _MONORAIL_UPDATE() {
 	fi
 	if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 		_MONORAIL_LINE="$_MONORAIL_LINE$ESC(1"
-	elif [ "$_MONORAIL_VTXXX_TERMINAL" ]; then
+	elif [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
 		_MONORAIL_LINE="$_MONORAIL_LINE$ESC(B$_MONORAIL_REVERSE"
 	fi
 	if [ "$_MONORAIL_KSH93" ]; then
