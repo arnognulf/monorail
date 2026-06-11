@@ -52,27 +52,6 @@ __bp_preexec_interactive_mode=
 declare -a preexec_functions
 
 __bp_preexec_interactive_mode=on
-__bp_in_prompt_command(){
-local prompt_command_array IFS=$'\n;'
-read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
-local trimmed_arg
-local text=${1:-}
-text="${text#"${text%%[![:space:]]*}"}"
-text="${text%"${text##*[![:space:]]}"}"
-trimmed_arg=$text
-
-local command trimmed_command
-for command in "${prompt_command_array[@]:-}";do
-text=${command}
-text="${text#"${text%%[![:space:]]*}"}"
-text="${text%"${text##*[![:space:]]}"}"
-trimmed_command="$text"
-if [[ $trimmed_command = "$trimmed_arg" ]];then
-return 0
-fi
-done
-return 1
-}
 __bp_preexec_invoke_exec(){
 __bp_last_argument_prev_command="${1:-}"
 if [[ $__bp_inside_preexec ]];then
@@ -92,10 +71,24 @@ if [[ 0 -eq ${BASH_SUBSHELL:-} ]];then
 __bp_preexec_interactive_mode=""
 fi
 fi
-if __bp_in_prompt_command "${BASH_COMMAND:-}";then
-__bp_preexec_interactive_mode=""
+local prompt_command_array IFS=$'\n;'
+read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
+local trimmed_arg
+local text="${BASH_COMMAND:-}"
+text="${text#"${text%%[![:space:]]*}"}"
+text="${text%"${text##*[![:space:]]}"}"
+trimmed_arg=$text
+
+local command trimmed_command
+for command in "${prompt_command_array[@]:-}";do
+text=${command}
+text="${text#"${text%%[![:space:]]*}"}"
+text="${text%"${text##*[![:space:]]}"}"
+trimmed_command="$text"
+if [[ $trimmed_command = "$trimmed_arg" ]];then
 return
 fi
+done
 local this_command
 this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
 this_command="${this_command#*[[:digit:]][* ] }"
