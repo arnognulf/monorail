@@ -222,12 +222,39 @@ unset _MONORAIL_CUSTOM_TITLE
 }
 _monorail_gradient ()
 {
-unset "_PROMPT_LUT[*]"
-_PROMPT_LUT=()
-while [[ $1 ]];do
-_PROMPT_LUT[${#_PROMPT_LUT[@]}]=$1
-shift
-done
+local POS SHIFT OLDPOS I
+	LUT_SIZE="${#@}"
+echo ====$LUT_SIZE
+	if [ -z "$_PROMPT_TEXT_LUT" ]; then
+		_PROMPT_TEXT_LUT="255;255;255"
+	fi
+	_MONORAIL_TEXT_LINE=""
+	_MONORAIL_LINE=""
+	POS=0
+	OLDPOS=0
+	I=0
+	while [ "$I" -le "$COLUMNS" ]; do
+		POS=$((LUT_SIZE * I / $((COLUMNS + 1))))
+		SHIFT=$((POS - OLDPOS))
+		if [ $SHIFT -gt 0 ]; then
+			shift $SHIFT
+		fi
+		if [ "$I" = "$_MONORAIL_TEXT_LEN" ]; then
+			RGB_CUR_COLOR="$1"
+		fi
+		OLDPOS=$POS
+		_MONORAIL_LINE+=$'\e[38;2;'"${1}"$'m\xe2\x96\x81'
+I=$((I+1))
+	done
+	_MONORAIL_LINE+=$'\e[38;2;'"${_PROMPT_TEXT_LUT}m"
+	RGB_CUR_R=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f1)
+	RGB_CUR_G=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f2)
+	RGB_CUR_B=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f3)
+	HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
+	_MONORAIL_CURSOR=$'\e]12;#'${HEX_CURSOR_COLOR}$'\a'
+	# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
+	PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
+$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"${_MONORAIL_POSTHIDE}"
 }
 _monorail_textgradient ()
 {
@@ -482,14 +509,6 @@ fi
 # shellcheck source=scripts/dummy.conf
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 local I=0
-_MONORAIL_LINE=
-_MONORAIL_UNDERLINE=
-while [[ $I -le $COLUMNS ]]
-do
-_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
-I=$((I+1))
-done
-local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
 _MONORAIL_TEXT_FORMATTED=$_MONORAIL_PREHIDE$'\e'"[0;7m${_MONORAIL_POSTHIDE}"
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
@@ -520,9 +539,7 @@ HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 unset _MONORAIL_NOSTYLING
-# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"${_MONORAIL_POSTHIDE}"
+
 # shellcheck disable=SC2059 # keep printf compact
 printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 }
@@ -694,4 +711,5 @@ alias monorail_image="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORA
 alias monorail_textgradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/gradient.sh --text"
 # shellcheck disable=SC2139
 alias rgb="sh $_MONORAIL_DIR/scripts/rgb.sh"
-} >&- 2>&-
+}
+# >&- 2>&-
