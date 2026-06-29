@@ -1,3 +1,4 @@
+#!/bin/bash
 IFS="
 "
 for license in $(cat licenses.csv | sed 's/.itermcolors//g'); do

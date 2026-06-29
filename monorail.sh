@@ -425,7 +425,7 @@ _MONORAIL_UPDATE() {
 	fi
 
 	if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]; then
-		# shellcheck disable=SC1090 # file will be available
+		# shellcheck source=scripts/dummy.conf
 		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf 2>/dev/null
 	else
 		# shellcheck disable=SC2119 # called without arguments

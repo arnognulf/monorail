@@ -8,8 +8,9 @@ if [ "$ZSH_NAME" ]; then
 	setopt prompt_subst
 fi
 
-# shellcheck disable=SC1091 # path exists
+# shellcheck source=scripts/callbacks.inc.sh
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
+# shellcheck source=scripts/sandbox.inc.sh
 . "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 TEMPDIR=$(mktemp -d)
@@ -80,7 +81,7 @@ _MAIN() {
 		[ "${_COLORS_17}" ] || _COLORS_17=$_DEFAULT_BGCOLOR
 		THEME=$(\cd "${_MONORAIL_DIR}"/colors && fzf --preview "$PREVIEW_SHELL \"${_MONORAIL_DIR}/scripts/preview.sh\" {}")
 		if [ "${THEME}" ]; then
-			# shellcheck disable=SC1090 # non-constant source will exist
+			# shellcheck source=scripts/dummy.conf
 			. "${_MONORAIL_DIR}/colors/${THEME}"
 			_UPDATE_CONFIG "$THEME" "$FGCOLOR" "$BGCOLOR" "$CURSORCOLOR"
 		fi
@@ -145,7 +146,7 @@ Examples:
 			I=$((I + 1))
 		done
 	}
-	# shellcheck disable=SC1091 # file will be created
+	# shellcheck source=scripts/dummy.conf
 	. "${TEMPDIR}/current.conf"
 	NUM_ARGS=0
 	for ARG in "$@"; do
@@ -176,14 +177,15 @@ Examples:
 		# not color
 		[ -z "$FGCOLOR" ] && [ -z "$BGCOLOR" ] && [ -z "$CURSORCOLOR" ] && case "$1" in
 		*/*)
-			# shellcheck disable=SC1090 # file will exist
+
+			# shellcheck source=scripts/dummy.conf
 			. "$1"
 			;;
 		*)
 			cd "${_MONORAIL_DIR}"/colors || {
 				ERROR "missing colors directory"
 			}
-			# shellcheck disable=SC1090 # file exists
+			# shellcheck source=scripts/dummy.conf
 			. ./"$THEME".conf
 			;;
 		esac
@@ -244,7 +246,7 @@ _UPDATE_CONFIG() {
 	ADD_CURRENT_PROMPT_LUT
 	RESET_CALLBACKS
 	if [ "$THEME" ]; then
-		# shellcheck disable=SC1090 # file will exist
+		# shellcheck source=scripts/dummy.conf
 		. ./"$THEME"
 		_monorail_colors() {
 			printf "_monorail_colors"
@@ -256,7 +258,7 @@ _UPDATE_CONFIG() {
 			echo ""
 		}
 
-		# shellcheck disable=SC1090 # file will exist
+		# shellcheck source=scripts/dummy.conf
 		. ./"${THEME}" >>"${DEST}"
 	else
 		_monorail_colors() {
@@ -278,7 +280,7 @@ _UPDATE_CONFIG() {
 			echo ""
 			echo ""
 		}
-		# shellcheck disable=SC1091 # file will exist
+		# shellcheck source=scripts/dummy.conf
 		. "${TEMPDIR}/current.conf" >>"${DEST}"
 	fi
 

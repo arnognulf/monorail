@@ -4,8 +4,9 @@
 TEMPDIR=$(mktemp -d)
 cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
 touch "${TEMPDIR}"/current.conf
-# shellcheck disable=SC1091 # path exists
+# shellcheck source=scripts/callbacks.inc.sh
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
+# shellcheck source=scripts/sandbox.inc.sh
 . "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 _MAIN() {

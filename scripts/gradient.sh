@@ -29,7 +29,7 @@ if [ "$ZSH_NAME" ]; then
 	setopt prompt_subst
 fi
 
-# shellcheck disable=SC1091 # path exists
+# shellcheck source=scripts/callbacks.inc.sh
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
 
 # OKLab: https://bottosson.github.io/posts/oklab/

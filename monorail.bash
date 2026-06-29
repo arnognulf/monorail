@@ -479,17 +479,16 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                      3. Restart terminal." >/dev/tty
 fi
 fi
-# shellcheck disable=SC1090,SC1091 # file will be copied
+# shellcheck source=scripts/dummy.conf
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 local I=0
 _MONORAIL_LINE=
 _MONORAIL_UNDERLINE=
-while [[ $I -lt $COLUMNS ]]
+while [[ $I -le $COLUMNS ]]
 do
 _MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
 I=$((I+1))
 done
-_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
 local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
 _MONORAIL_TEXT_FORMATTED=$_MONORAIL_PREHIDE$'\e'"[0;7m${_MONORAIL_POSTHIDE}"
