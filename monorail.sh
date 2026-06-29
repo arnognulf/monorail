@@ -74,6 +74,7 @@ case "$TERM" in
 		printf '\n\e[8m\e7\e[999;999H\e[6n' >/dev/tty
 		while [ "$CHAR" != 'R' ]; do
 			if [ "$BASH_VERSION" ]; then
+				# shellcheck disable=SC3045 # will only be interpreted in bash
 				read -r -n1 CHAR
 			else
 				CHAR=$(dd ibs=1 count=1 2>/dev/null)
@@ -273,8 +274,7 @@ if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 	# shellcheck disable=SC2120 # callback function, arguments passed in separate file
 	_monorail_gradient() {
 		LUT_SIZE=0
-		# shellcheck disable=SC2034 # variable IGNORED is not used, I do not know a better way to count args in posix sh
-		for IGNORED in "$@"; do
+		for _ in "$@"; do
 			LUT_SIZE=$((LUT_SIZE + 1))
 		done
 		if [ -z "$_PROMPT_TEXT_LUT" ]; then

@@ -9,9 +9,9 @@ for license in $(cat licenses.csv | sed 's/.itermcolors//g'); do
 		rm -f "colors/$FILE".conf
 	else
 		echo $LICENSE
-		echo "# License: $LICENSE" >new/${FILE}.conf
+		echo "# License: $LICENSE" >"new/${FILE}.conf"
 		OTHER=$(echo $license | cut -d, -f3-1024 | sed 's/,//g' | sed 's/"//g')
-		echo "# $OTHER" >>new/${FILE}.conf
-		cat colors/${FILE}.conf >>new/${FILE}.conf
+		echo "# $OTHER" >>"new/${FILE}.conf"
+		cat colors/${FILE}.conf >>"new/${FILE}.conf"
 	fi
 done

@@ -74,7 +74,7 @@ fi
 case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.conf)
 	case "${PWD}" in
-	${_MONORAIL_DIR}/gradients)
+	"${_MONORAIL_DIR}/gradients")
 		I=0
 		while [[ $I -lt 200 ]]; do
 			unset "_PROMPT_LUT[I]"
@@ -82,7 +82,7 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 			I=$((I + 1))
 		done
 		;;
-	${_MONORAIL_DIR}/colors)
+	"${_MONORAIL_DIR}/colors")
 		:
 		;;
 	*)

@@ -47,6 +47,7 @@ while [[ $I -lt $FIELDS ]]; do
 	_COLORS() {
 		:
 	}
+	# shellcheck source=scripts/dummy.conf
 	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	{
 		# _PROMPT_TEXT_LUT needs to be defined before _PROMPT_LUT as _PROMPT_LUT is dependent on it in monorail.compat
