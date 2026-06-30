@@ -574,7 +574,9 @@ if [ "$ZSH_NAME" ]; then
 		_MONORAIL_UPDATE
 	}
 elif [ "$BASH_VERSION" ]; then
-	unset -f precmd preexec
+	# these are compat fixes for brush
+	precmd() { :; }
+	preexec() { :; }
 	PROMPT_COMMAND="_MONORAIL_UPDATE"
 else
 	_MONORAIL_UPDATE

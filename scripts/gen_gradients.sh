@@ -56,6 +56,7 @@ while [[ $I -lt $FIELDS ]]; do
 		J=0
 		while [[ "$J" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
 			echo " \\"
+			# shellcheck disable=SC2059 # keep printf compact
 			printf "\"${_PROMPT_TEXT_LUT[$J]}\""
 			J=$((J + 1))
 		done
@@ -66,6 +67,7 @@ while [[ $I -lt $FIELDS ]]; do
 		J=0
 		while [[ "$J" -lt "${#_PROMPT_LUT[*]}" ]]; do
 			echo " \\"
+			# shellcheck disable=SC2059 # keep printf compact
 			printf "\"${_PROMPT_LUT[$J]}\""
 			J=$((J + 1))
 		done

@@ -42,6 +42,8 @@ _MONORAIL_PREHIDE='%{'
 _MONORAIL_POSTHIDE='%}'
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l}
 else
+# brush 0.4.0 needs to run posix version
+[[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 _MONORAIL_PREHIDE='\['
 _MONORAIL_POSTHIDE='\]'
@@ -471,6 +473,7 @@ else
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.conf "$_MONORAIL_DIR"/gradients/Default.conf > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
 fi
 else
+# shellcheck disable=SC2059 # keep printf compact
 printf "\
 monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                    Do this to make colors and gradients work:
