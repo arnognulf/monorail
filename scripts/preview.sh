@@ -74,7 +74,7 @@ fi
 case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.conf)
 	case "${PWD}" in
-	${_MONORAIL_DIR}/gradients)
+	"${_MONORAIL_DIR}/gradients")
 		I=0
 		while [[ $I -lt 200 ]]; do
 			unset "_PROMPT_LUT[I]"
@@ -82,7 +82,7 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 			I=$((I + 1))
 		done
 		;;
-	${_MONORAIL_DIR}/colors)
+	"${_MONORAIL_DIR}/colors")
 		:
 		;;
 	*)
@@ -178,6 +178,7 @@ while [[ $I -lt 17 ]]; do
 		BGCOLOR=${_COLORS[21]}
 		FGCOLOR_RGB=$((0x$(echo "$FGCOLOR" | cut -c1-2)))";"$((0x$(echo "$FGCOLOR" | cut -c3-4)))";"$((0x$(echo "$FGCOLOR" | cut -c5-6)))
 		BGCOLOR_RGB=$((0x$(echo "$BGCOLOR" | cut -c1-2)))";"$((0x$(echo "$BGCOLOR" | cut -c3-4)))";"$((0x$(echo "$BGCOLOR" | cut -c5-6)))
+		# shellcheck disable=SC2059 # keep printf compact
 		printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST$TEXT1"
 		TEXT1=${TEXT[I]}
 		TEXT1=${TEXT1:1}
@@ -188,10 +189,12 @@ while [[ $I -lt 17 ]]; do
 	BGCOLOR=${_COLORS[17]}
 	FGCOLOR_RGB="$((0x${FGCOLOR:0:2}));$((0x${FGCOLOR:2:2}));$((0x${FGCOLOR:4:2}))"
 	BGCOLOR_RGB="$((0x${BGCOLOR:0:2}));$((0x${BGCOLOR:2:2}));$((0x${BGCOLOR:4:2}))"
+	# shellcheck disable=SC2059 # keep printf compact
 	printf "${PREBG}${BGCOLOR_RGB}$POST${PREFG}${FGCOLOR_RGB}$POST${TEXT1}"
 
 	J=0
 	while [[ $J -lt $((COLUMNS + 1)) ]]; do
+		# shellcheck disable=SC2059 # keep printf compact
 		printf "${PREBG}${BGCOLOR_RGB}$POST "
 		J=$((J + 1))
 	done
@@ -203,11 +206,13 @@ done
 INDEX=0
 if [[ ${_PROMPT_LUT[0]} ]]; then
 	while [[ $INDEX -lt $COLUMNS ]]; do
+		# shellcheck disable=SC2059 # keep printf compact
 		printf "${PREBG}${BGCOLOR_RGB}${POST}${PREFG}${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))]}${POST}${CHAR}"
 		INDEX=$((INDEX + 1))
 	done
 else
 	while [[ $INDEX -lt $COLUMNS ]]; do
+		# shellcheck disable=SC2059 # keep printf compact
 		printf "${PREBG}${BGCOLOR_RGB}${POST}${PREFG}${FGCOLOR_RGB}${POST}${CHAR}"
 		INDEX=$((INDEX + 1))
 	done
@@ -216,6 +221,7 @@ echo ""
 TEXT1=${TEXT[17]}
 TEXT1=" ${TEXT1} "
 INDEX=0
+# shellcheck disable=SC2059 # keep printf compact
 printf "\033[${COLUMNS}D"
 while [[ $INDEX -lt $COLUMNS ]]; do
 	LUT=$((${#_PROMPT_LUT[*]} * INDEX / $((COLUMNS + 1))))
@@ -224,14 +230,17 @@ while [[ $INDEX -lt $COLUMNS ]]; do
 	fi
 	TEXT_LUT=$(((${#_PROMPT_TEXT_LUT[*]} * INDEX) / $((COLUMNS + 1))))
 	if [[ ${#_PROMPT_LUT[@]} = 0 ]]; then
-		# sic!
+		# shellcheck disable=SC2059 # keep printf compact
 		printf "${PREBG}${FGCOLOR_RGB}${POST}${PREFG}${BGCOLOR_RGB}${POST}${TEXT1:${INDEX}:1}"
 	else
+		# shellcheck disable=SC2059 # keep printf compact
 		printf "${PREBG}${_PROMPT_LUT[${LUT}]}${POST}${PREFG}${_PROMPT_TEXT_LUT[${TEXT_LUT}]}${POST}${TEXT1:${INDEX}:1}"
 	fi
 	INDEX=$((INDEX + 1))
 done
+# shellcheck disable=SC2059 # keep printf compact
 printf "\033[0m${PREBG}${BGCOLOR_RGB}$POST "
+# shellcheck disable=SC2059 # keep printf compact
 printf "${PREFG}${FGCOLOR_RGB}${POST}${PREBG}${BGCOLOR_RGB}${POST}${TEXT[18]}"
 I=$((${#TEXT[17]} + ${#TEXT[18]}))
 while [[ $I -lt $COLUMNS ]]; do

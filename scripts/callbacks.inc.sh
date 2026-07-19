@@ -24,7 +24,7 @@ ADD_CURRENT_COLORS() {
 		echo ""
 		_monorail_colors() { :; }
 	}
-	# shellcheck disable=SC1091 # file will be created
+	# shellcheck source=scripts/dummy.conf
 	. "${TEMPDIR}/current.conf" >>"${DEST}"
 }
 ADD_CURRENT_PROMPT_LUT() {
@@ -45,7 +45,7 @@ ADD_CURRENT_PROMPT_LUT() {
 		_monorail_gradient() { :; }
 	}
 
-	# shellcheck disable=SC1091 # file will be created
+	# shellcheck source=scripts/dummy.conf
 	. "${TEMPDIR}/current.conf" >>"${DEST}"
 }
 ADD_CURRENT_PROMPT_TEXT_LUT() {
@@ -65,7 +65,7 @@ ADD_CURRENT_PROMPT_TEXT_LUT() {
 		echo ""
 		_monorail_textgradient() { :; }
 	}
-	# shellcheck disable=SC1091 # file will be created
+	# shellcheck source=scripts/dummy.conf
 	. "${TEMPDIR}/current.conf" >>"${DEST}"
 }
 ADD_WHITE_PROMPT_TEXT_LUT() {

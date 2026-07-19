@@ -46,7 +46,7 @@ Open a new terminal for changes to take effect.
 
 Zsh
 ----
-For zsh, add the following line to ~/.bashrc
+For zsh, add the following line to ~/.zshrc
 
 ```
 . ~/.local/share/monorail/monorail.zsh

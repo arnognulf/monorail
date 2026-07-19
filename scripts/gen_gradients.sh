@@ -47,6 +47,7 @@ while [[ $I -lt $FIELDS ]]; do
 	_COLORS() {
 		:
 	}
+	# shellcheck source=scripts/dummy.conf
 	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
 	{
 		# _PROMPT_TEXT_LUT needs to be defined before _PROMPT_LUT as _PROMPT_LUT is dependent on it in monorail.compat
@@ -55,6 +56,7 @@ while [[ $I -lt $FIELDS ]]; do
 		J=0
 		while [[ "$J" -lt "${#_PROMPT_TEXT_LUT[*]}" ]]; do
 			echo " \\"
+			# shellcheck disable=SC2059 # keep printf compact
 			printf "\"${_PROMPT_TEXT_LUT[$J]}\""
 			J=$((J + 1))
 		done
@@ -65,6 +67,7 @@ while [[ $I -lt $FIELDS ]]; do
 		J=0
 		while [[ "$J" -lt "${#_PROMPT_LUT[*]}" ]]; do
 			echo " \\"
+			# shellcheck disable=SC2059 # keep printf compact
 			printf "\"${_PROMPT_LUT[$J]}\""
 			J=$((J + 1))
 		done

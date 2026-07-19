@@ -59,9 +59,12 @@ _COLORS() {
 	:
 }
 for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
+	# shellcheck disable=SC1090 # file will be available
 	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	# shellcheck disable=SC2046 # word splitting is expected here
 	eval $(
 		printf "_COLORS=( "
+		# shellcheck disable=SC2013,SC2059 # one off script, not worth fixing, keep printf compact
 		for color in $(cat "${file}" | sort | grep printf | cut -c16-21); do printf "$color "; done
 		printf ")"
 	)
@@ -76,6 +79,7 @@ for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 		I=0
 		while [ "$I" -lt "${#_COLORS[*]}" ]; do
 			echo " \\"
+			# shellcheck disable=SC2059 # keep printf compact
 			printf "\"${_COLORS[I]}\""
 			I=$((I + 1))
 		done

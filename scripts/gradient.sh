@@ -29,7 +29,7 @@ if [ "$ZSH_NAME" ]; then
 	setopt prompt_subst
 fi
 
-# shellcheck disable=SC1091 # path exists
+# shellcheck source=scripts/callbacks.inc.sh
 . "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
 
 # OKLab: https://bottosson.github.io/posts/oklab/
@@ -102,7 +102,7 @@ _GRADIENT() {
 		exit 42
 		#HELP_PREFIX=text
 		#PREFIX=TEXT_
-		shift
+		#shift
 		;;
 	--help | -h)
 		cat "${_MONORAIL_DIR}"/gradients/000_README.md
@@ -184,8 +184,7 @@ _GRADIENT() {
 		exit 42
 	fi
 	ARGC=0
-	# shellcheck disable=SC2034 # variable IGNORED is not used, I do not know a better way to count args in posix sh
-	for IGNORED in "$@"; do
+	for _ in "$@"; do
 		ARGC=$((ARGC + 1))
 	done
 	if [ "$ARGC" = 1 ]; then
@@ -235,9 +234,6 @@ or \"None\" to use text color"
 			} | less
 			return 1
 		fi
-		# shellcheck source=scripts/dummy.conf
-		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
-		return 0
 	fi
 	SRC_L=""
 	SRC_a=""

@@ -27,7 +27,7 @@ FreeBSD only ships a posix shell in the default install, support this as well.
 
 Prioritize performance over compatibility for `monorail.bash / monorail.zsh`
 -----------------------------------------------------------
-Prompt startup and rendering timem is important for user experience.
+Prompt startup and rendering time is important for user experience.
 Performant shell code requires inlining and minimizing of external executable use, code, variables, and functions.
 Put special compatibility cases in `monorail.sh` so `monorail.bash / monorail.zsh` can be focused on performance.
 
