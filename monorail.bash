@@ -42,6 +42,8 @@ _MONORAIL_PREHIDE='%{'
 _MONORAIL_POSTHIDE='%}'
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l}
 else
+# brush 0.4.0 needs to run posix version
+[[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 _MONORAIL_PREHIDE='\['
 _MONORAIL_POSTHIDE='\]'
@@ -469,6 +471,7 @@ else
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.conf "$_MONORAIL_DIR"/gradients/Default.conf > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
 fi
 else
+# shellcheck disable=SC2059 # keep printf compact
 printf "\
 monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                    Do this to make colors and gradients work:
@@ -477,17 +480,16 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                      3. Restart terminal." >/dev/tty
 fi
 fi
-# shellcheck disable=SC1090,SC1091 # file will be copied
+# shellcheck source=scripts/dummy.conf
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 local I=0
 _MONORAIL_LINE=
 _MONORAIL_UNDERLINE=
-while [[ $I -lt $COLUMNS ]]
+while [[ $I -le $COLUMNS ]]
 do
 _MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
 I=$((I+1))
 done
-_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
 local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
 _MONORAIL_TEXT_FORMATTED=$_MONORAIL_PREHIDE$'\e'"[0;7m${_MONORAIL_POSTHIDE}"
