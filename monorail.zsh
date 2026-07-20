@@ -28,121 +28,14 @@ _MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
 else
 _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 fi
-if [[ $ZSH_NAME ]];then
 setopt KSH_ARRAYS
 setopt prompt_subst
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l}
-else
-[[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1
-_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 
-__bp_last_argument_prev_command="$_"
-unset __bp_inside_preexec
-__bp_preexec_interactive_mode=
-declare -a preexec_functions
 
-__bp_preexec_interactive_mode=1
-__bp_preexec_invoke_exec(){
-__bp_last_argument_prev_command="${1:-}"
-if [[ $__bp_inside_preexec ]];then
-return
-fi
-local __bp_inside_preexec=1
-if [[ ! -t 1 ]];then
-return
-fi
-if [[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]];then
-return
-fi
-if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
-return
-else
-if [[ 0 -eq ${BASH_SUBSHELL:-} ]];then
-__bp_preexec_interactive_mode=""
-fi
-fi
-local prompt_command_array IFS=$'\n;'
-read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
-local trimmed_arg="${BASH_COMMAND:-}"
-trimmed_arg="${trimmed_arg#"${trimmed_arg%%[![:space:]]*}"}"
-trimmed_arg="${trimmed_arg%"${trimmed_arg##*[![:space:]]}"}"
 
-local command trimmed_command
-for command in "${prompt_command_array[@]:-}";do
-trimmed_command=${command}
-trimmed_command="${trimmed_command#"${trimmed_command%%[![:space:]]*}"}"
-trimmed_command="${trimmed_command%"${trimmed_command##*[![:space:]]}"}"
-if [[ $trimmed_command = "$trimmed_arg" ]];then
-return
-fi
-done
-local this_command
-this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
-this_command="${this_command#*[[:digit:]][* ] }"
-[[ $this_command ]]||return
-local preexec_function
-for preexec_function in "${preexec_functions[@]:-}";do
-if type -t "$preexec_function" >/dev/null;then
-if [[ ${__bp_last_ret_value-0} = 0 ]];then
-:
-else
-(exit "${__bp_last_ret_value-0}")
-fi
-"$preexec_function" "$this_command"
-fi
-done
-return "${__bp_last_ret_value-0}"
-}
-__bp_install(){
-if [[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]];then
-return 1
-fi
-trap '__bp_preexec_invoke_exec "$_"' DEBUG
-eval "local trap_argv=(${__bp_trap_string:-})"
-local prior_trap=${trap_argv[2]:-}
-unset __bp_trap_string
-if [[ -n $prior_trap ]];then
-eval '__bp_original_debug_trap() {
-            '"$prior_trap"'
-        }'
-preexec_functions+=(__bp_original_debug_trap)
-fi
-local histcontrol
-histcontrol="${HISTCONTROL:-}"
-histcontrol="${histcontrol//ignorespace/}"
-if [[ $histcontrol = *"ignoreboth"* ]];then
-histcontrol="ignoredups:${histcontrol//ignoreboth/}"
-fi
-export HISTCONTROL="$histcontrol"
-local existing_prompt_command
-existing_prompt_command="${PROMPT_COMMAND:-}"
-existing_prompt_command="${existing_prompt_command//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}"
-existing_prompt_command="${existing_prompt_command//$'\n':$'\n'/$'\n'}"
-existing_prompt_command="${existing_prompt_command//$'\n':;/$'\n'}"
 
-existing_prompt_command="${existing_prompt_command#"${existing_prompt_command%%[![:space:]]*}"}"
-existing_prompt_command="${existing_prompt_command%"${existing_prompt_command##*[![:space:]]}"}"
-existing_prompt_command=${existing_prompt_command%;}
-existing_prompt_command=${existing_prompt_command#;}
-if [[ ${existing_prompt_command:-:} = ":" ]];then
-existing_prompt_command=
-fi
-PROMPT_COMMAND='precmd'
-PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
-PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')
-preexec_functions+=(preexec)
-__bp_inside_precmd=1 precmd
-__bp_preexec_interactive_mode=1
-}
-sanitized="${PROMPT_COMMAND:-}"
-sanitized="${sanitized#"${sanitized%%[![:space:]]*}"}"
-sanitized="${sanitized%"${sanitized##*[![:space:]]}"}"
-sanitized=${sanitized%;}
-sanitized=${sanitized#;}
 
-[[ $sanitized ]]&&PROMPT_COMMAND=("$sanitized")
-PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install')
-fi
 preexec(){
 {
 [[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]]&&return
@@ -423,18 +316,11 @@ if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 _MONORAIL_TEXT=" ${_MONORAIL_ELIPSIS}${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
 fi
 _MONORAIL_TEXT_ARRAY=()
-if [[ $ZSH_NAME ]]
 then
 for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
 do
 _MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT[I]}
 done
-else
-for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
-do
-_MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT:I:1}
-done
-fi
 _MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
 local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then

@@ -1,16 +1,23 @@
 #!/bin/sh
+export LC_ALL=C
 . scripts/sandbox.inc.sh
 set -x
 rm -f monorail.bash
 cat monorail.common.in.sh |
+	grep -v "#discard_for_all" |
+	grep -v "#keep_for_zsh" |
 	grep -v "^#" |
+	sed 's/ #keep_for_bash//g' |
 	sed 's/@PROMPT_PREHIDE@/\\[/g' |
 	sed 's/@PROMPT_POSTHIDE@/\\]/g' \
 		>monorail.bash
 
 rm -f monorail.zsh
 cat monorail.common.in.sh |
+	grep -v "#discard_for_all" |
+	grep -v "#keep_for_bash" |
 	grep -v "^#" |
+	sed 's/ #keep_for_zsh//g' |
 	sed 's/@PROMPT_PREHIDE@/%{/g' |
 	sed 's/@PROMPT_POSTHIDE@/%}/g' \
 		>monorail.zsh

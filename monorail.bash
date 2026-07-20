@@ -28,12 +28,9 @@ _MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
 else
 _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 fi
-if [[ $ZSH_NAME ]];then
-setopt KSH_ARRAYS
-setopt prompt_subst
-_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l}
+if [[ $BRUSH_VERSION ]];then
+_MONORAIL_COMPAT=1
 else
-[[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
 
 __bp_last_argument_prev_command="$_"
@@ -48,18 +45,13 @@ if [[ $__bp_inside_preexec ]];then
 return
 fi
 local __bp_inside_preexec=1
-if [[ ! -t 1 ]];then
-return
-fi
-if [[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]];then
-return
-fi
-if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
-return
+[[ -t 1 ]]||return
+{
+[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]]&&return
+if [[ ${__bp_preexec_interactive_mode:-} ]];then
+[[ 0 -eq ${BASH_SUBSHELL:-} ]]&&__bp_preexec_interactive_mode=""
 else
-if [[ 0 -eq ${BASH_SUBSHELL:-} ]];then
-__bp_preexec_interactive_mode=""
-fi
+return
 fi
 local prompt_command_array IFS=$'\n;'
 read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
@@ -72,9 +64,7 @@ for command in "${prompt_command_array[@]:-}";do
 trimmed_command=${command}
 trimmed_command="${trimmed_command#"${trimmed_command%%[![:space:]]*}"}"
 trimmed_command="${trimmed_command%"${trimmed_command##*[![:space:]]}"}"
-if [[ $trimmed_command = "$trimmed_arg" ]];then
-return
-fi
+[[ $trimmed_command = "$trimmed_arg" ]]&&return
 done
 local this_command
 this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
@@ -92,6 +82,7 @@ fi
 fi
 done
 return "${__bp_last_ret_value-0}"
+} >&- 2>&-
 }
 __bp_install(){
 if [[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]];then
@@ -199,7 +190,7 @@ local _MONORAIL_TITLE_FORMATTED=
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
 unset _MONORAIL_CUSTOM_TITLE
-} &>/dev/null
+} >&- 2>&-
 }
 _monorail_gradient ()
 {
@@ -423,18 +414,10 @@ if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 _MONORAIL_TEXT=" ${_MONORAIL_ELIPSIS}${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
 fi
 _MONORAIL_TEXT_ARRAY=()
-if [[ $ZSH_NAME ]]
-then
-for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
-do
-_MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT[I]}
-done
-else
 for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
 do
 _MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT:I:1}
 done
-fi
 _MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
 local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
