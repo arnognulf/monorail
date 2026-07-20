@@ -32,18 +32,14 @@ if [[ $BRUSH_VERSION ]];then
 _MONORAIL_COMPAT=1
 else
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-
 __bp_last_argument_prev_command="$_"
 unset __bp_inside_preexec
 __bp_preexec_interactive_mode=
 declare -a preexec_functions
-
 __bp_preexec_interactive_mode=1
 __bp_preexec_invoke_exec(){
 __bp_last_argument_prev_command="${1:-}"
-if [[ $__bp_inside_preexec ]];then
-return
-fi
+[[ $__bp_inside_preexec ]]&&return
 local __bp_inside_preexec=1
 [[ -t 1 ]]||return
 {
@@ -58,7 +54,6 @@ read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
 local trimmed_arg="${BASH_COMMAND:-}"
 trimmed_arg="${trimmed_arg#"${trimmed_arg%%[![:space:]]*}"}"
 trimmed_arg="${trimmed_arg%"${trimmed_arg##*[![:space:]]}"}"
-
 local command trimmed_command
 for command in "${prompt_command_array[@]:-}";do
 trimmed_command=${command}
@@ -85,14 +80,12 @@ return "${__bp_last_ret_value-0}"
 } >&- 2>&-
 }
 __bp_install(){
-if [[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]];then
-return 1
-fi
+[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]]&&return 1
 trap '__bp_preexec_invoke_exec "$_"' DEBUG
 eval "local trap_argv=(${__bp_trap_string:-})"
 local prior_trap=${trap_argv[2]:-}
 unset __bp_trap_string
-if [[ -n $prior_trap ]];then
+if [[ $prior_trap ]];then
 eval '__bp_original_debug_trap() {
             '"$prior_trap"'
         }'
@@ -101,16 +94,13 @@ fi
 local histcontrol
 histcontrol="${HISTCONTROL:-}"
 histcontrol="${histcontrol//ignorespace/}"
-if [[ $histcontrol = *"ignoreboth"* ]];then
-histcontrol="ignoredups:${histcontrol//ignoreboth/}"
-fi
+[[ $histcontrol = *"ignoreboth"* ]]&&histcontrol="ignoredups:${histcontrol//ignoreboth/}"
 export HISTCONTROL="$histcontrol"
 local existing_prompt_command
 existing_prompt_command="${PROMPT_COMMAND:-}"
 existing_prompt_command="${existing_prompt_command//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}"
 existing_prompt_command="${existing_prompt_command//$'\n':$'\n'/$'\n'}"
 existing_prompt_command="${existing_prompt_command//$'\n':;/$'\n'}"
-
 existing_prompt_command="${existing_prompt_command#"${existing_prompt_command%%[![:space:]]*}"}"
 existing_prompt_command="${existing_prompt_command%"${existing_prompt_command##*[![:space:]]}"}"
 existing_prompt_command=${existing_prompt_command%;}
@@ -130,7 +120,6 @@ sanitized="${sanitized#"${sanitized%%[![:space:]]*}"}"
 sanitized="${sanitized%"${sanitized##*[![:space:]]}"}"
 sanitized=${sanitized%;}
 sanitized=${sanitized#;}
-
 [[ $sanitized ]]&&PROMPT_COMMAND=("$sanitized")
 PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install')
 fi
@@ -306,7 +295,6 @@ _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
 trap "_MONORAIL_CTRLC=1;echo -n" INT
 trap "_MONORAIL_CTRLC=1;echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
-
 else
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'

@@ -52,9 +52,7 @@ declare -a preexec_functions #keep_for_bash
 __bp_preexec_interactive_mode=1 #keep_for_bash
 __bp_preexec_invoke_exec(){ #keep_for_bash
 __bp_last_argument_prev_command="${1:-}" #keep_for_bash
-if [[ $__bp_inside_preexec ]];then #keep_for_bash
-return #keep_for_bash
-fi #keep_for_bash
+[[ $__bp_inside_preexec ]]&&return #keep_for_bash
 local __bp_inside_preexec=1 #keep_for_bash
 [[ -t 1 ]]||return #keep_for_bash
 { #keep_for_bash
@@ -96,14 +94,12 @@ return "${__bp_last_ret_value-0}" #keep_for_bash
 } >&- 2>&- #keep_for_bash
 } #keep_for_bash
 __bp_install(){ #keep_for_bash
-if [[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]];then #keep_for_bash
-return 1 #keep_for_bash
-fi #keep_for_bash
+[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]]&&return 1 #keep_for_bash
 trap '__bp_preexec_invoke_exec "$_"' DEBUG #keep_for_bash
 eval "local trap_argv=(${__bp_trap_string:-})" #keep_for_bash
 local prior_trap=${trap_argv[2]:-} #keep_for_bash
 unset __bp_trap_string #keep_for_bash
-if [[ -n $prior_trap ]];then #keep_for_bash
+if [[ $prior_trap ]];then #keep_for_bash
 eval '__bp_original_debug_trap() { #keep_for_bash
             '"$prior_trap"' #keep_for_bash
         }' #keep_for_bash
@@ -112,9 +108,7 @@ fi #keep_for_bash
 local histcontrol #keep_for_bash
 histcontrol="${HISTCONTROL:-}" #keep_for_bash
 histcontrol="${histcontrol//ignorespace/}" #keep_for_bash
-if [[ $histcontrol = *"ignoreboth"* ]];then #keep_for_bash
-histcontrol="ignoredups:${histcontrol//ignoreboth/}" #keep_for_bash
-fi #keep_for_bash
+[[ $histcontrol = *"ignoreboth"* ]]&&histcontrol="ignoredups:${histcontrol//ignoreboth/}" #keep_for_bash
 export HISTCONTROL="$histcontrol" #keep_for_bash
 local existing_prompt_command #keep_for_bash
 existing_prompt_command="${PROMPT_COMMAND:-}" #keep_for_bash
@@ -203,10 +197,10 @@ local _MONORAIL_TITLE_FORMATTED=
 # shellcheck disable=SC2059 # keep printf compact
 printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
 unset _MONORAIL_CUSTOM_TITLE
-} &>/dev/null #keep_for_zsh
 # write a dummy syntax statement so this file is parseable for shellcheck
 # and syntax hightlighting
 { : #discard_for_all
+} &>/dev/null #keep_for_zsh
 } >&- 2>&- #keep_for_bash
 }
 _monorail_gradient ()
@@ -435,7 +429,6 @@ if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 _MONORAIL_TEXT=" ${_MONORAIL_ELIPSIS}${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
 fi
 _MONORAIL_TEXT_ARRAY=()
-then #keep_for_zsh
 for ((I=0; I < ${#_MONORAIL_TEXT}; I++)) #keep_for_zsh
 do #keep_for_zsh
 _MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT[I]} #keep_for_zsh

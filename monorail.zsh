@@ -31,11 +31,6 @@ fi
 setopt KSH_ARRAYS
 setopt prompt_subst
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l}
-
-
-
-
-
 preexec(){
 {
 [[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]]&&return
@@ -208,7 +203,6 @@ _MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
 trap "_MONORAIL_CTRLC=1;echo -n" INT
 trap "_MONORAIL_CTRLC=1;echo -n" ERR
 [[ $BASH_VERSION ]]&&history -a >&- 2>&-
-
 else
 alias for='_MONORAIL_NOSTYLING=1;for'
 alias while='_MONORAIL_NOSTYLING=1;while'
@@ -316,7 +310,6 @@ if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
 _MONORAIL_TEXT=" ${_MONORAIL_ELIPSIS}${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
 fi
 _MONORAIL_TEXT_ARRAY=()
-then
 for ((I=0; I < ${#_MONORAIL_TEXT}; I++))
 do
 _MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT[I]}
