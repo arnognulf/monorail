@@ -126,10 +126,6 @@ if [[ $histcontrol = *"ignoreboth"* ]];then
 histcontrol="ignoredups:${histcontrol//ignoreboth/}"
 fi
 export HISTCONTROL="$histcontrol"
-if [[ -n ${__bp_enable_subshells:-} ]];then
-set -o functrace >/dev/null 2>&1
-shopt -s extdebug >/dev/null 2>&1
-fi
 local existing_prompt_command
 existing_prompt_command="${PROMPT_COMMAND:-}"
 existing_prompt_command="${existing_prompt_command//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}"
@@ -145,10 +141,10 @@ existing_prompt_command=
 fi
 PROMPT_COMMAND='precmd'
 PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
-PROMPT_COMMAND+=('__bp_preexec_interactive_mode="on"')
+PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')
 preexec_functions+=(preexec)
 __bp_inside_precmd=1 precmd
-__bp_preexec_interactive_mode="on"
+__bp_preexec_interactive_mode=1
 }
 sanitized="${PROMPT_COMMAND:-}"
 sanitized="${sanitized#"${sanitized%%[![:space:]]*}"}"
