@@ -3,12 +3,14 @@
 set -x
 rm -f monorail.bash
 cat monorail.common.in.sh |
+	grep -v "^#" |
 	sed 's/@PROMPT_PREHIDE@/\\[/g' |
 	sed 's/@PROMPT_POSTHIDE@/\\]/g' \
 		>monorail.bash
 
 rm -f monorail.zsh
 cat monorail.common.in.sh |
+	grep -v "^#" |
 	sed 's/@PROMPT_PREHIDE@/%{/g' |
 	sed 's/@PROMPT_POSTHIDE@/%}/g' \
 		>monorail.zsh

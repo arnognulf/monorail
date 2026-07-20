@@ -1,10 +1,3 @@
-#!/bin/bash
-# Copyright (c) 2025 Thomas Eriksson
-#
-# Contains code from bash-preexec
-# Copyright (c) 2017 Ryan Caloras and contributors (see https://github.com/rcaloras/bash-preexec)
-# SPDX-License-Identifier: BSD-3-Clause
-# see FAST_SHELL_GUIDELINES.md on coding guidelines for this file.
 {
 [[ $_MONORAIL_DIR ]]||_MONORAIL_DIR=$HOME/.local/share/monorail
 [[ $HOSTNAME ]]||HOSTNAME=$(hostname)
@@ -38,15 +31,10 @@ fi
 if [[ $ZSH_NAME ]];then
 setopt KSH_ARRAYS
 setopt prompt_subst
-_MONORAIL_PREHIDE='%{'
-_MONORAIL_POSTHIDE='%}'
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l}
 else
-# brush 0.4.0 needs to run posix version
 [[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-_MONORAIL_PREHIDE='\['
-_MONORAIL_POSTHIDE='\]'
 
 __bp_last_argument_prev_command="$_"
 unset __bp_inside_preexec
@@ -157,7 +145,6 @@ PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_insta
 fi
 preexec(){
 {
-# TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 [[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]]&&return
 _MONORAIL_PREV_CMD=$(fc -l -1)
 local C ICON CMD
@@ -210,10 +197,8 @@ _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 local _MONORAIL_TITLE_FORMATTED=
 [[ $IGNORED_TITLE ]]||_MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-# shellcheck disable=SC2059 # keep printf compact
 printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
 unset _MONORAIL_CUSTOM_TITLE
-# zsh cannot have closed fd's here
 } &>/dev/null
 }
 _monorail_gradient ()
@@ -269,8 +254,6 @@ unset NAME
 alias name=_MONORAIL_NAME
 precmd(){
 if [[ $_MONORAIL_LAUNCHED ]];then
-# bash line editor (ble.sh) do not like others messing with the tty
-# enable stty echo in case some command has disabled it up
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 {
 local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
@@ -370,7 +353,6 @@ fi
 DIR=${DIR%/*}
 done
 fi
-# shellcheck disable=SC2329 # _TITLE function is invoked by __git_ps1 which is assigned later
 _MONORAIL_GIT_PS1=$(_TITLE () { shift;"$@";};TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 local ICON TITLE_BASE
@@ -438,7 +420,6 @@ _MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
 _MONORAIL_TEXT=${_MONORAIL_TEXT//\.\.\./${_MONORAIL_ELIPSIS}}
 if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]];then
-# frequently, the last of the text is the most relevant, cut beginning if too long path
 _MONORAIL_TEXT=" ${_MONORAIL_ELIPSIS}${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} -  $((COLUMNS / 3))))}"
 fi
 _MONORAIL_TEXT_ARRAY=()
@@ -467,7 +448,6 @@ else
 LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.conf "$_MONORAIL_DIR"/gradients/Default.conf > "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
 fi
 else
-# shellcheck disable=SC2059 # keep printf compact
 printf "\
 monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                    Do this to make colors and gradients work:
@@ -476,7 +456,6 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                      3. Restart terminal." >/dev/tty
 fi
 fi
-# shellcheck source=scripts/dummy.conf
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 local I=0
 _MONORAIL_LINE=
@@ -488,24 +467,20 @@ I=$((I+1))
 done
 local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
-_MONORAIL_TEXT_FORMATTED=$_MONORAIL_PREHIDE$'\e'"[0;7m${_MONORAIL_POSTHIDE}"
+_MONORAIL_TEXT_FORMATTED=%{$'\e'"[0;7m%}"
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
 _MONORAIL_TEXT_FORMATTED+=${_MONORAIL_TEXT_ARRAY[I]}
 I=$((I+1))
 done
-_MONORAIL_TEXT_FORMATTED+=$_MONORAIL_PREHIDE$'\e[0;8m'"${_MONORAIL_POSTHIDE}|"
+_MONORAIL_TEXT_FORMATTED+=%{$'\e[0;8m'"%}|"
 else
 _MONORAIL_TEXT_FORMATTED=
 [[ -z ${_PROMPT_TEXT_LUT[*]} ]]&&_PROMPT_TEXT_LUT[0]="255;255;255"
 while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]];do
-_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e['"$((_MONORAIL_TEXT_ARRAY_LEN + 1))C"$'\e'["$((_MONORAIL_TEXT_ARRAY_LEN + 1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m$_MONORAIL_POSTHIDE${_MONORAIL_TEXT_ARRAY[I]}"
+_MONORAIL_TEXT_FORMATTED+="%{"$'\e['"$((_MONORAIL_TEXT_ARRAY_LEN + 1))C"$'\e'["$((_MONORAIL_TEXT_ARRAY_LEN + 1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m%}${_MONORAIL_TEXT_ARRAY[I]}"
 I=$((I+1))
 done
-# The invisible vertical bar is added to make the prompt more readable when copied to a chat or text doc.
-# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
-# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
-# In this case the horizontal bar is colored with background color.
-_MONORAIL_TEXT_FORMATTED+="$_MONORAIL_PREHIDE"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m$_MONORAIL_POSTHIDE|"
+_MONORAIL_TEXT_FORMATTED+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m%}|"
 fi
 RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*$((_MONORAIL_TEXT_ARRAY_LEN+1))/$((COLUMNS+1))))]}
 RGB_CUR_R=${RGB_CUR_COLOR%%;*}
@@ -517,10 +492,8 @@ HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 
 _MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
 fi
 unset _MONORAIL_NOSTYLING
-# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED$_MONORAIL_PREHIDE"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"${_MONORAIL_POSTHIDE}"
-# shellcheck disable=SC2059 # keep printf compact
+$_MONORAIL_TEXT_FORMATTED%{"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"%}"
 printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 }
 _TITLE(){
@@ -570,34 +543,19 @@ trap "unset _MONORAIL_CACHE" WINCH
 _LOW_PRIO(){
 if type -P chrt&&type -P ionice&&type -P ionice;then
 _LOW_PRIO(){
-# As an ordinary user, you cannot raise the priority and mark the importance
-# of a process.
-# However, you can mark which processes are less important than low-prio tasks
-# such as video calls or music.
-# The idea is to mark batch processes as less important to get better 
-# interactivity.
-#
-# `choom -n +1000` will make the OOM killer kill this process first
-# `ionice -c idle` will deprioritize IO from this process
-# `chrt --idle 0`  will set the cpu priority to the lowest possible
 choom -n +1000 -- ionice -c idle -- chrt --idle 0 "$@"
 }
 else
 _LOW_PRIO(){
-# `nice -n19` is the lowest priority on non-Linux systems
 nice -n19 "$@"
 }
 fi >/dev/null 2>&-
 _LOW_PRIO "$@"
 }
-# shellcheck disable=SC2329
 _monorail_cmd_interactive(){
-# shellcheck disable=SC2139 # variable is intended to be set when defined
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 }
-# shellcheck disable=SC2329
 _monorail_cmd_batch(){
-# shellcheck disable=SC2139
 command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
 }
 _MONORAIL_CMD_IGNORED=()
@@ -605,7 +563,6 @@ _monorail_cmd_ignored (){
 _MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 }
 [[ -e $_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf ]]||cat "$_MONORAIL_DIR/commands/default.conf" > "$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
-# shellcheck source=scripts/dummy.conf
 . "$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
 __git_ps1(){ :;}
 _MONORAIL_MAGIC_SHELLBALL(){
@@ -646,11 +603,7 @@ done
 echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
 }
 if [[ $TERM = xterm-256color ]];then
-# zutty (vterm) doesn't handle background color, nor hidden text.
-# thus the horizontal bar  "|" gets visible
 [[ $ZUTTY_VERSION ]]&&_MONORAIL_COMPAT=1
-# vscode does not support disabling line wrapping
-# 
 [[ $TERM_PROGRAM = vscode ]]&&_MONORAIL_COMPAT=1
 elif [[ $MC_TMPDIR ]];then
 _MONORAIL_COMPAT=1
@@ -661,13 +614,9 @@ _MONORAIL_COMPAT=1
 ;;
 xterm*|alacritty|rio|rxvt-unicode-256color|mlterm|st-256color|foot)
 printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "${COLUMNS}" >/dev/tty 2>&-
-# ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
 [[ $TERM = xterm-ghostty ]]&&unalias ssh 2>/dev/null
-# FreeBSD console lacks UTF-8 and truecolor
 [[ $(tty) =~ "/dev/ttyv"* ]]&&_MONORAIL_COMPAT=1
-# cool-retro-term does not support invisible SGR8
 [[ $WINDOWID = 0 ]]&&_MONORAIL_COMPAT=1
-# if not using UTF-8 locale in xterm or not using xterm use compat
 case $XTERM_LOCALE in
 ""|*.UTF-8):;;
 *)_MONORAIL_COMPAT=1
@@ -681,14 +630,9 @@ fi
 unalias git >/dev/null 2>/dev/null
 . "$_MONORAIL_DIR/monorail.sh"
 fi
-# shellcheck disable=SC2139
 alias monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/color.sh"
-# shellcheck disable=SC2139
 alias monorail_gradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/gradient.sh"
-# shellcheck disable=SC2139
 alias monorail_image="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/image.sh"
-# shellcheck disable=SC2139
 alias monorail_textgradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/gradient.sh --text"
-# shellcheck disable=SC2139
 alias rgb="sh $_MONORAIL_DIR/scripts/rgb.sh"
 } >&- 2>&-
