@@ -44,9 +44,7 @@ local __bp_inside_preexec=1
 if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
 return
 else
-if [[ 0 -eq ${BASH_SUBSHELL:-} ]];then
-__bp_preexec_interactive_mode=""
-fi
+[[ 0 -eq ${BASH_SUBSHELL:-} ]]&&__bp_preexec_interactive_mode=""
 fi
 local prompt_command_array IFS=$'\n;'
 read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
@@ -58,9 +56,7 @@ for command in "${prompt_command_array[@]:-}";do
 trimmed_command=$command
 trimmed_command="${trimmed_command#"${trimmed_command%%[![:space:]]*}"}"
 trimmed_command="${trimmed_command%"${trimmed_command##*[![:space:]]}"}"
-if [[ $trimmed_command == "$trimmed_arg" ]];then
-return
-fi
+[[ $trimmed_command == "$trimmed_arg" ]]&&return
 done
 local this_command
 this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
@@ -69,11 +65,7 @@ this_command="${this_command#*[[:digit:]][* ] }"
 local preexec_function
 for preexec_function in "${preexec_functions[@]:-}";do
 if type -t "$preexec_function" >/dev/null;then
-if [[ ${__bp_last_ret_value-0} == 0 ]];then
-:
-else
-(exit "${__bp_last_ret_value-0}")
-fi
+[[ ${__bp_last_ret_value-0} == 0 ]]||(exit "${__bp_last_ret_value-0}")
 "$preexec_function" "$this_command"
 fi
 done
@@ -96,9 +88,7 @@ fi
 local histcontrol
 histcontrol="${HISTCONTROL:-}"
 histcontrol="${histcontrol//ignorespace/}"
-if [[ $histcontrol == *"ignoreboth"* ]];then
-histcontrol="ignoredups:${histcontrol//ignoreboth/}"
-fi
+[[ $histcontrol == *"ignoreboth"* ]]&&histcontrol="ignoredups:${histcontrol//ignoreboth/}"
 export HISTCONTROL="$histcontrol"
 local existing_prompt_command
 existing_prompt_command="${PROMPT_COMMAND:-}"
@@ -109,9 +99,7 @@ existing_prompt_command="${existing_prompt_command#"${existing_prompt_command%%[
 existing_prompt_command="${existing_prompt_command%"${existing_prompt_command##*[![:space:]]}"}"
 existing_prompt_command=${existing_prompt_command%;}
 existing_prompt_command=${existing_prompt_command#;}
-if [[ ${existing_prompt_command:-:} == ":" ]];then
-existing_prompt_command=
-fi
+[[ ${existing_prompt_command:-:} == ":" ]]&&existing_prompt_command=
 PROMPT_COMMAND='precmd'
 PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
 PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')

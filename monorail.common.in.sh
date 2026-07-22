@@ -47,34 +47,30 @@
 	__bp_preexec_interactive_mode=       #keep_for_bash
 	declare -a preexec_functions         #keep_for_bash
 
-	__bp_preexec_interactive_mode=1                                  #keep_for_bash
-	__bp_preexec_invoke_exec() {                                     #keep_for_bash
-		__bp_last_argument_prev_command="${1:-}"                        #keep_for_bash
-		[[ $__bp_inside_preexec ]] && return                            #keep_for_bash
-		local __bp_inside_preexec=1                                     #keep_for_bash
-		[[ ! -t 1 ]] && return                                          #keep_for_bash
-		[[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]] && return    #keep_for_bash
-		if [[ -z ${__bp_preexec_interactive_mode:-} ]]; then            #keep_for_bash
-			return                                                         #keep_for_bash
-		else                                                            #keep_for_bash
-			if [[ 0 -eq ${BASH_SUBSHELL:-} ]]; then                        #keep_for_bash
-				__bp_preexec_interactive_mode=""                              #keep_for_bash
-			fi                                                             #keep_for_bash
-		fi                                                              #keep_for_bash
-		local prompt_command_array IFS=$'\n;'                           #keep_for_bash
-		read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}" #keep_for_bash
-		local trimmed_arg="${BASH_COMMAND:-}"                           #keep_for_bash
-		trimmed_arg="${trimmed_arg#"${trimmed_arg%%[![:space:]]*}"}"    #keep_for_bash
-		trimmed_arg="${trimmed_arg%"${trimmed_arg##*[![:space:]]}"}"    #keep_for_bash
+	__bp_preexec_interactive_mode=1                                      #keep_for_bash
+	__bp_preexec_invoke_exec() {                                         #keep_for_bash
+		__bp_last_argument_prev_command="${1:-}"                            #keep_for_bash
+		[[ $__bp_inside_preexec ]] && return                                #keep_for_bash
+		local __bp_inside_preexec=1                                         #keep_for_bash
+		[[ ! -t 1 ]] && return                                              #keep_for_bash
+		[[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]] && return        #keep_for_bash
+		if [[ -z ${__bp_preexec_interactive_mode:-} ]]; then                #keep_for_bash
+			return                                                             #keep_for_bash
+		else                                                                #keep_for_bash
+			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && __bp_preexec_interactive_mode="" #keep_for_bash
+		fi                                                                  #keep_for_bash
+		local prompt_command_array IFS=$'\n;'                               #keep_for_bash
+		read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"     #keep_for_bash
+		local trimmed_arg="${BASH_COMMAND:-}"                               #keep_for_bash
+		trimmed_arg="${trimmed_arg#"${trimmed_arg%%[![:space:]]*}"}"        #keep_for_bash
+		trimmed_arg="${trimmed_arg%"${trimmed_arg##*[![:space:]]}"}"        #keep_for_bash
 
 		local command trimmed_command                                             #keep_for_bash
 		for command in "${prompt_command_array[@]:-}"; do                         #keep_for_bash
 			trimmed_command=${command}                                               #keep_for_bash
 			trimmed_command="${trimmed_command#"${trimmed_command%%[![:space:]]*}"}" #keep_for_bash
 			trimmed_command="${trimmed_command%"${trimmed_command##*[![:space:]]}"}" #keep_for_bash
-			if [[ $trimmed_command = "$trimmed_arg" ]]; then                         #keep_for_bash
-				return                                                                  #keep_for_bash
-			fi                                                                       #keep_for_bash
+			[[ $trimmed_command = "$trimmed_arg" ]] && return                        #keep_for_bash
 		done                                                                      #keep_for_bash
 		local this_command                                                        #keep_for_bash
 		this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)              #keep_for_bash
@@ -83,11 +79,7 @@
 		local preexec_function                                                    #keep_for_bash
 		for preexec_function in "${preexec_functions[@]:-}"; do                   #keep_for_bash
 			if type -t "$preexec_function" >/dev/null; then                          #keep_for_bash
-				if [[ ${__bp_last_ret_value-0} = 0 ]]; then                             #keep_for_bash
-					:                                                                      #keep_for_bash
-				else                                                                    #keep_for_bash
-					(exit "${__bp_last_ret_value-0}")                                      #keep_for_bash
-				fi                                                                      #keep_for_bash
+				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}") #keep_for_bash
 				"$preexec_function" "$this_command"                                     #keep_for_bash
 			fi                                                                       #keep_for_bash
 		done                                                                      #keep_for_bash
@@ -110,9 +102,7 @@
 		local histcontrol                                                                                                          #keep_for_bash
 		histcontrol="${HISTCONTROL:-}"                                                                                             #keep_for_bash
 		histcontrol="${histcontrol//ignorespace/}"                                                                                 #keep_for_bash
-		if [[ $histcontrol = *"ignoreboth"* ]]; then                                                                               #keep_for_bash
-			histcontrol="ignoredups:${histcontrol//ignoreboth/}"                                                                      #keep_for_bash
-		fi                                                                                                                         #keep_for_bash
+		[[ $histcontrol = *"ignoreboth"* ]] && histcontrol="ignoredups:${histcontrol//ignoreboth/}"                                #keep_for_bash
 		export HISTCONTROL="$histcontrol"                                                                                          #keep_for_bash
 		local existing_prompt_command                                                                                              #keep_for_bash
 		existing_prompt_command="${PROMPT_COMMAND:-}"                                                                              #keep_for_bash
@@ -124,9 +114,7 @@
 		existing_prompt_command="${existing_prompt_command%"${existing_prompt_command##*[![:space:]]}"}" #keep_for_bash
 		existing_prompt_command=${existing_prompt_command%;}                                             #keep_for_bash
 		existing_prompt_command=${existing_prompt_command#;}                                             #keep_for_bash
-		if [[ ${existing_prompt_command:-:} = ":" ]]; then                                               #keep_for_bash
-			existing_prompt_command=                                                                        #keep_for_bash
-		fi                                                                                               #keep_for_bash
+		[[ ${existing_prompt_command:-:} = ":" ]] && existing_prompt_command=                            #keep_for_bash
 		PROMPT_COMMAND='precmd'                                                                          #keep_for_bash
 		PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}                        #keep_for_bash
 		PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')                                              #keep_for_bash
