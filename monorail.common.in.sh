@@ -422,10 +422,8 @@
 		_MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
 		_MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
 		_MONORAIL_TEXT=${_MONORAIL_TEXT//\.\.\./${_MONORAIL_ELIPSIS}}
-		if [[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]]; then
-			# frequently, the last of the text is the most relevant, cut beginning if too long path
-			_MONORAIL_TEXT=" ${_MONORAIL_ELIPSIS}${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} - $((COLUMNS / 3))))}"
-		fi
+		# frequently, the last of the text is the most relevant, cut beginning if too long path
+		[[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]] && _MONORAIL_TEXT=" ${_MONORAIL_ELIPSIS}${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} - $((COLUMNS / 3))))}"
 		_MONORAIL_TEXT_ARRAY=()
 		for ((I = 0; I < ${#_MONORAIL_TEXT}; I++)); do #keep_for_zsh
 			#keep_for_zsh
