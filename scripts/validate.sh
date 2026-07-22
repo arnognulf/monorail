@@ -3,8 +3,9 @@ export LC_ALL=C
 . scripts/sandbox.inc.sh
 rm -f monorail.bash
 TEMP_BASH=$(mktemp)
-shfmt -w monorail.common.in.sh || exit 42
-cat monorail.common.in.sh |
+SRC=src-zsh-bash.sh
+shfmt -w "$SRC" || exit 42
+cat "$SRC" |
 	grep -v "#discard_for_all" |
 	grep -v "#keep_for_zsh" |
 	grep -v "^$" |
@@ -17,7 +18,7 @@ shfmt -mn "${TEMP_BASH}" >monorail.bash || exit 42
 
 rm -f monorail.zsh
 TEMP_ZSH=$(mktemp)
-cat monorail.common.in.sh |
+cat "$SRC" |
 	grep -v "#discard_for_all" |
 	grep -v "#keep_for_bash" |
 	grep -v "^$" |
@@ -29,7 +30,7 @@ cat monorail.common.in.sh |
 shfmt -mn "${TEMP_ZSH}" >monorail.zsh || exit 42
 
 # do not format monorail.bash
-_SANDBOX shellcheck -x monorail.common.in.sh
+_SANDBOX shellcheck -x "$SRC"
 _SANDBOX shellcheck -x monorail.sh
 _SANDBOX_RWCWD shfmt -w monorail.sh
 for file in scripts/*.sh; do
