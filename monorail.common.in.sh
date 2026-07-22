@@ -568,6 +568,14 @@ $_MONORAIL_TEXT_FORMATTED@PROMPT_PREHIDE@"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'
 		_LOW_PRIO "$@"
 	}
 	# shellcheck disable=SC2329
+	_monorail_icon() {
+		case "$2" in
+		/*) _MONORAIL_ICON[$2]=$1 ;;
+		*/*) _MONORAIL_ICON[${HOME//\//_}$2]= ;;
+		*) _MONORAIL_ICON[$2]=$1 ;;
+		esac
+	}
+	# shellcheck disable=SC2329
 	_monorail_cmd_interactive() {
 		# shellcheck disable=SC2139 # variable is intended to be set when defined
 		command -v "$2" && alias "$2=_NO_MEASURE _ICON $1 $2"

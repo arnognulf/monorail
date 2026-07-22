@@ -508,6 +508,13 @@ nice -n19 "$@"
 fi >/dev/null 2>&-
 _LOW_PRIO "$@"
 }
+_monorail_icon(){
+case "$2" in
+/*)_MONORAIL_ICON[$2]=$1;;
+*/*)_MONORAIL_ICON[${HOME//\//_}$2]=;;
+*)_MONORAIL_ICON[$2]=$1
+esac
+}
 _monorail_cmd_interactive(){
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 }
