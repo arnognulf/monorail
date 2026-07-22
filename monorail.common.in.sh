@@ -322,8 +322,6 @@
 			unset _MONORAIL_LONGRUNNING
 			return 0
 		fi
-		local _MONORAIL_REALPWD
-		_MONORAIL_REALPWD=$PWD
 		case $PWD in
 		/run/user/*/gvfs/*) _MONORAIL_GIT_PS1= ;;
 		*)
@@ -389,7 +387,7 @@
 			*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) ICON=📦 ;;
 			*) ICON=📂 ;;
 			esac
-			case $_MONORAIL_REALPWD in
+			case $PWD in
 			"$HOME")
 				if [[ $CRAFT_STATE_DIR ]]; then
 					TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
@@ -583,9 +581,9 @@ $_MONORAIL_TEXT_FORMATTED@PROMPT_PREHIDE@"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'
 	_monorail_cmd_ignored() {
 		_MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 	}
-	[[ -e $_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf ]] || cat "$_MONORAIL_DIR/commands/default.conf" >"$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
+	[[ -e $_MONORAIL_CONFIG/settings-${_MONORAIL_SHORT_HOSTNAME}.conf ]] || cat "$_MONORAIL_DIR/default_settings.conf" >"$_MONORAIL_CONFIG/settings-${_MONORAIL_SHORT_HOSTNAME}.conf"
 	# shellcheck source=scripts/dummy.conf
-	. "$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
+	. "$_MONORAIL_CONFIG/settings-${_MONORAIL_SHORT_HOSTNAME}.conf"
 	__git_ps1() { :; }
 	_MONORAIL_MAGIC_SHELLBALL() {
 		local ANSWER SPACES i
