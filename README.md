@@ -157,7 +157,7 @@ Use an emoji in the title as a favicon so the context of the terminal tab can be
 Different folders have their own icons, being in a git folder shows the construction icon for instance.
 
 
-Favicons are not enabled for monorail compat (ksh) since emoji fonts and clor rendering on emojis are not very common on simpler window managers.
+Favicons are not enabled for monorail posix version since emoji fonts and color rendering on emojis are not very common on simpler window managers.
 
 Timing statistics
 =================
