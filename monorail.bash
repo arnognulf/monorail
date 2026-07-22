@@ -37,16 +37,10 @@ declare -a preexec_functions
 __bp_preexec_interactive_mode=1
 __bp_preexec_invoke_exec(){
 __bp_last_argument_prev_command="${1:-}"
-if [[ $__bp_inside_preexec ]];then
-return
-fi
+[[ $__bp_inside_preexec ]]&&return
 local __bp_inside_preexec=1
-if [[ ! -t 1 ]];then
-return
-fi
-if [[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]];then
-return
-fi
+[[ ! -t 1 ]]&&return
+[[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]]&&return
 if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
 return
 else
