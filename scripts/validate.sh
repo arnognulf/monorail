@@ -3,6 +3,7 @@ export LC_ALL=C
 . scripts/sandbox.inc.sh
 rm -f monorail.bash
 TEMP_BASH=$(mktemp)
+shfmt -w monorail.common.in.sh || exit 42
 cat monorail.common.in.sh |
 	grep -v "#discard_for_all" |
 	grep -v "#keep_for_zsh" |

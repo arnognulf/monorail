@@ -521,6 +521,9 @@ nice -n19 "$@"
 fi >/dev/null 2>&-
 _LOW_PRIO "$@"
 }
+_monorail_folder(){
+:
+}
 _monorail_cmd_interactive(){
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 }
@@ -531,7 +534,7 @@ _MONORAIL_CMD_IGNORED=()
 _monorail_cmd_ignored(){
 _MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 }
-[[ -e $_MONORAIL_CONFIG/commands-$_MONORAIL_SHORT_HOSTNAME.conf ]]||cat "$_MONORAIL_DIR/commands/default.conf" >"$_MONORAIL_CONFIG/commands-$_MONORAIL_SHORT_HOSTNAME.conf"
+[[ -e $_MONORAIL_CONFIG/commands-$_MONORAIL_SHORT_HOSTNAME.conf ]]||cat "$_MONORAIL_DIR/defaults.conf" >"$_MONORAIL_CONFIG/icons-$_MONORAIL_SHORT_HOSTNAME.conf"
 . "$_MONORAIL_CONFIG/commands-$_MONORAIL_SHORT_HOSTNAME.conf"
 __git_ps1(){ :;}
 _MONORAIL_MAGIC_SHELLBALL(){

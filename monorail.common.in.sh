@@ -198,7 +198,7 @@
 			unset _MONORAIL_CUSTOM_TITLE
 			# write a dummy syntax statement so this file is parseable for shellcheck
 			# and syntax hightlighting
-			{ #discard_for_all
+			{             #discard_for_all
 				:            #discard_for_all
 			} &>/dev/null #keep_for_zsh
 		} >&- 2>&-     #keep_for_bash
@@ -581,6 +581,27 @@ $_MONORAIL_TEXT_FORMATTED@PROMPT_PREHIDE@"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'
 		_LOW_PRIO "$@"
 	}
 	# shellcheck disable=SC2329
+	_monorail_folder() {
+		#case "$2" in
+		#🏠
+		#home)
+		#🌐 ssh
+		#🐋 docker
+		#🦭 podman
+		#🚧 git
+		#🏗️ repo
+		#🗑️ trash
+		#📑 documents
+		#💾 media
+		#🎵 music
+		#🎬 videos
+		#📦 downloads
+		#⚙️  settings
+		#📂 fallback
+		:
+	}
+
+	# shellcheck disable=SC2329
 	_monorail_cmd_interactive() {
 		# shellcheck disable=SC2139 # variable is intended to be set when defined
 		command -v "$2" && alias "$2=_NO_MEASURE _ICON $1 $2"
@@ -594,7 +615,7 @@ $_MONORAIL_TEXT_FORMATTED@PROMPT_PREHIDE@"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'
 	_monorail_cmd_ignored() {
 		_MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 	}
-	[[ -e $_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf ]] || cat "$_MONORAIL_DIR/commands/default.conf" >"$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
+	[[ -e $_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf ]] || cat "$_MONORAIL_DIR/defaults.conf" >"$_MONORAIL_CONFIG/icons-${_MONORAIL_SHORT_HOSTNAME}.conf"
 	# shellcheck source=scripts/dummy.conf
 	. "$_MONORAIL_CONFIG/commands-${_MONORAIL_SHORT_HOSTNAME}.conf"
 	__git_ps1() { :; }
