@@ -206,13 +206,12 @@ alias until='_MONORAIL_NOSTYLING=1;until'
 _MONORAIL_LAUNCHED=1
 fi
 if [[ $_MONORAIL_LONGRUNNING ]];then
-_MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
+local ICON="${_MONORAIL_ICON[completed]}  "
+_MONORAIL_TITLE="${ICON}Completed $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 unset _MONORAIL_LONGRUNNING
 return 0
 fi
-local _MONORAIL_REALPWD
-_MONORAIL_REALPWD=$PWD
 case $PWD in
 /run/user/*/gvfs/*)_MONORAIL_GIT_PS1=;;
 *)local PROMPT_PWD MONORAIL_REPO
@@ -245,56 +244,30 @@ esac
 local ICON TITLE_BASE
 TITLE_BASE=${PWD##*/}
 if [[ $MONORAIL_REPO ]];then
-ICON=🏗️
+ICON=${_MONORAIL_ICON[repo]}
 elif [[ $_MONORAIL_GIT_PS1 ]];then
-ICON=🚧
+ICON=${_MONORAIL_ICON[git]}
 else
+ICON=${_MONORAIL_ICON[${PWD//\//_}]}
+fi
 case $PWD in
-*/etc|*/etc/*)ICON=🗂️;;
-*/bin|*/sbin)ICON=⚙️;;
-*/lib|*/lib64|*/lib32)ICON=🔩;;
-*/tmp|*/tmp/*|*/.cache|*/.cache/*)ICON=🚽;;
-"$HOME/Trash"*)ICON=🗑️;;
-"$HOME/.local/share/Trash/files"*)ICON=♻️;;
-/boot|/boot/*)ICON=🥾;;
-/)ICON=💻
-TITLE_BASE=/
-;;
-*/.*)ICON=📌;;
-/media/*)ICON=💾;;
-/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)ICON=🤖;;
-*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)ICON=📑;;
-*/out|*/out/*)ICON="🚀  ${PWD##*/}";;
-*/src|*/src/*|*/sources|*/sources/*)ICON=🚧;;
-"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON=🎵;;
-"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON=🖼️;;
-"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON=🎬;;
-*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=📦;;
-*)ICON=📂
-esac
-case $_MONORAIL_REALPWD in
-"$HOME")if
-[[ $CRAFT_STATE_DIR ]]
-then
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-ICON=🛠️
+"$HOME")TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+if [[ $CRAFT_STATE_DIR ]];then
+ICON=${_MONORAIL_ICON[snapcraft]}
 elif [[ $SSH_CLIENT ]];then
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-ICON=🌐
+ICON=${_MONORAIL_ICON[ssh]}
 elif [[ -e /.dockerenv ]];then
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-ICON=🐋
+ICON=${_MONORAIL_ICON[docker]}
 elif [[ -e /run/containerenv ]];then
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-ICON=🦭
+ICON=${_MONORAIL_ICON[podman]}
 else
-ICON=🏠
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+ICON=${_MONORAIL_ICON[home]}
 fi
 ;;
 *)
 esac
-fi
+[[ $ICON ]]||ICON=${_MONORAIL_ICON[folder]}
+[[ $ICON ]]&&ICON="$ICON  "
 _MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-$ICON}  ${_MONORAIL_TITLE_OVERRIDE-$TITLE_BASE}"
 [[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 local PWD_BASENAME="${PWD##*/}"
@@ -429,8 +402,12 @@ nice -n19 "$@"
 fi >/dev/null 2>&-
 _LOW_PRIO "$@"
 }
-_monorail_folder(){
-:
+_monorail_icon(){
+case "$2" in
+/*)_MONORAIL_ICON[$2]=$1;;
+*/*)_MONORAIL_ICON[${HOME//\//_}$2]=;;
+*)_MONORAIL_ICON[$2]=$1
+esac
 }
 _monorail_cmd_interactive(){
 command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
@@ -442,8 +419,8 @@ _MONORAIL_CMD_IGNORED=()
 _monorail_cmd_ignored(){
 _MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 }
-[[ -e $_MONORAIL_CONFIG/commands-$_MONORAIL_SHORT_HOSTNAME.conf ]]||cat "$_MONORAIL_DIR/defaults.conf" >"$_MONORAIL_CONFIG/icons-$_MONORAIL_SHORT_HOSTNAME.conf"
-. "$_MONORAIL_CONFIG/commands-$_MONORAIL_SHORT_HOSTNAME.conf"
+[[ -e $_MONORAIL_CONFIG/settings-$_MONORAIL_SHORT_HOSTNAME.conf ]]||cat "$_MONORAIL_DIR/defaults.conf" >"$_MONORAIL_CONFIG/settings-$_MONORAIL_SHORT_HOSTNAME.conf"
+. "$_MONORAIL_CONFIG/settings-$_MONORAIL_SHORT_HOSTNAME.conf"
 __git_ps1(){ :;}
 _MONORAIL_MAGIC_SHELLBALL(){
 local ANSWER SPACES i
