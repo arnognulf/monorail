@@ -165,7 +165,7 @@ _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 local p=
 [[ $IGNORED_TITLE ]]||p=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-printf "$p\e]11;#${m[17]}\a\e]10;#${m[16]}\a\e]12;#${m[21]}\a\r\e[K" >/dev/tty 2>&-
+printf "$p\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
 unset _MONORAIL_CUSTOM_TITLE
 } >&- 2>&-
 }
@@ -174,6 +174,35 @@ while [[ $1 ]];do
 o[${#o[@]}]=$1
 shift
 done
+I=0
+while [[ $I -le $COLUMNS ]];do
+v+=$'\e'"[38;2;${o[$((${#o[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
+I=$((I+1))
+done
+I=0
+if [[ -z ${o[0]} ]];then
+c=\[$'\e'"[0;7m\]"
+while [[ $I -lt $e ]];do
+c+=${d[I]}
+I=$((I+1))
+done
+c+=\[$'\e[0;8m'"\]|"
+else
+c=
+[[ -z ${t[*]} ]]&&t[0]="255;255;255"
+while [[ $I -lt $e ]];do
+c+="\["$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${o[$((${#o[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${t[$((${#t[*]}*I/$((COLUMNS+1))))]}m\]${d[I]}"
+I=$((I+1))
+done
+c+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m\]|"
+fi
+w=${o[$((${#o[*]}*$((e+1))/$((COLUMNS+1))))]}
+RGB_CUR_R=${w%%;*}
+RGB_CUR_GB=${w#*;}
+RGB_CUR_G=${RGB_CUR_GB%%;*}
+RGB_CUR_B=${RGB_CUR_GB##*;}
+r=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
+[[ ${o[0]} ]]||r=${_COLORS[21]}
 }
 _monorail_textgradient(){
 while [[ $1 ]];do
@@ -183,7 +212,7 @@ done
 }
 _monorail_colors(){
 while [[ "$1" ]];do
-m[${#m[@]}]=$1
+_COLORS[${#_COLORS[@]}]=$1
 shift
 done
 }
@@ -211,12 +240,11 @@ precmd(){
 if [[ $_MONORAIL_LAUNCHED ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 {
-local SECONDS_M DURATION_H DURATION_M DURATION_S CURRENT_SECONDS DURATION DIFF
-CURRENT_SECONDS=$SECONDS
-DIFF=$((CURRENT_SECONDS-_START_SECONDS))
-if [[ $_MEASURE ]]&&[[ $DIFF -gt ${_MONORAIL_TIMEOUT-29} ]];then
-SECONDS_M=$((DIFF%3600))
-DURATION_H=$((DIFF/3600))
+local SECONDS_M DURATION_H DURATION_M DURATION_S DURATION m
+m=$((SECONDS-_START_SECONDS))
+if [[ $_MEASURE ]]&&[[ $m -gt ${_MONORAIL_TIMEOUT-29} ]];then
+SECONDS_M=$((m%3600))
+DURATION_H=$((m/3600))
 DURATION_M=$((SECONDS_M/60))
 DURATION_S=$((SECONDS_M%60))
 printf "\n\aCommand took "
@@ -329,7 +357,7 @@ TITLE_BASE=/
 "$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON=${_MONORAIL_ICON[9]};;
 "$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON=${_MONORAIL_ICON[$const_pictures]};;
 "$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON=${_MONORAIL_ICON[10]};;
-*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=ICON=_MONORAIL_ICON[11];;
+*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=_MONORAIL_ICON[11];;
 *)ICON=_MONORAIL_ICON[13]
 esac
 case $PWD in
@@ -386,46 +414,18 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                      3. Restart terminal." >/dev/tty
 fi
 fi
-local m=()
+_COLORS=()
 local n=()
 local o=()
-. "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 local I=0
 local v=
-while [[ $I -le $COLUMNS ]];do
-v+=$'\e'"[38;2;${o[$((${#o[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
-I=$((I+1))
-done
-local I=0
-if [[ -z ${o[0]} ]];then
-c=\[$'\e'"[0;7m\]"
-while [[ $I -lt $e ]];do
-c+=${d[I]}
-I=$((I+1))
-done
-c+=\[$'\e[0;8m'"\]|"
-else
-c=
-[[ -z ${t[*]} ]]&&t[0]="255;255;255"
-while [[ $I -lt $e ]];do
-c+="\["$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${o[$((${#o[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${t[$((${#t[*]}*I/$((COLUMNS+1))))]}m\]${d[I]}"
-I=$((I+1))
-done
-c+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${m[17]:0:2}));$((0x${m[17]:2:2}));$((0x${m[17]:4:2}))m\]|"
-fi
-w=${o[$((${#o[*]}*$((e+1))/$((COLUMNS+1))))]}
-RGB_CUR_R=${w%%;*}
-RGB_CUR_GB=${w#*;}
-RGB_CUR_G=${RGB_CUR_GB%%;*}
-RGB_CUR_B=${RGB_CUR_GB##*;}
-r=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
-[[ ${o[0]} ]]||r=${m[21]}
+. "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 _MONORAIL_CACHE="$COLUMNS$b"
 PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$v
 $c\["$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$r\a\e[0m'"\]"
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${m[17]}\a\e]10;#${m[16]}\a\e]4;0;#${m[0]}\a\e]4;1;#${m[1]}\a\e]4;2;#${m[2]}\a\e]4;3;#${m[3]}\a\e]4;4;#${m[4]}\a\e]4;5;#${m[5]}\a\e]4;6;#${m[6]}\a\e]4;7;#${m[7]}\a\e]4;8;#${m[8]}\a\e]4;9;#${m[9]}\a\e]4;10;#${m[10]}\a\e]4;11;#${m[11]}\a\e]4;12;#${m[12]}\a\e]4;13;#${m[13]}\a\e]4;14;#${m[14]}\a\e]4;15;#${m[15]}\a\r"
 fi
 unset _MONORAIL_NOSTYLING
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 }
 _TITLE(){
 local _MONORAIL_TITLE="$*"

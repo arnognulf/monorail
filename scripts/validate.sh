@@ -42,7 +42,7 @@ cat "$SRC" |
 		-e 's/var__sanitized/k/g' \
 		-e 's/var__histcontrol/k/g' \
 		-e 's/var__command/l/g' \
-		-e 's/var__colors/m/g' \
+		-e 's/var__diff/m/g' \
 		-e 's/var__text_lut/n/g' \
 		-e 's/var__prompt_lut/o/g' \
 		-e 's/var__monorail_title_formatted/p/g' \
