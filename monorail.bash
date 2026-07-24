@@ -284,15 +284,15 @@ return 0
 fi
 case $PWD in
 /run/user/*/gvfs/*)_MONORAIL_GIT_PS1=;;
-*)local PROMPT_PWD MONORAIL_REPO
-PROMPT_PWD=$PWD
-MONORAIL_REPO=
-while [[ "$PROMPT_PWD" ]];do
-if [[ -d "$PROMPT_PWD/.repo" ]];then
-MONORAIL_REPO=1
+*)local x y
+x=$PWD
+y=
+while [[ "$x" ]];do
+if [[ -d "$x/.repo" ]];then
+y=1
 break
 fi
-PROMPT_PWD="${PROMPT_PWD%/*}"
+x="${x%/*}"
 done
 if [[ -z $_MONORAIL_GIT_LOADED ]];then
 local u
@@ -313,7 +313,7 @@ TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 local ICON TITLE_BASE
 TITLE_BASE=${PWD##*/}
-if [[ $MONORAIL_REPO ]];then
+if [[ $y ]];then
 ICON=${_MONORAIL_ICON[5]}
 elif [[ $_MONORAIL_GIT_PS1 ]];then
 ICON=${_MONORAIL_ICON[4]}

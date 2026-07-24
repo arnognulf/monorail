@@ -79,19 +79,20 @@
 		local preexec_function                                                                   #keep_for_bash
 		for preexec_function in "${preexec_functions[@]:-}"; do                                  #keep_for_bash
 			if type -t "$preexec_function" >/dev/null; then                                         #keep_for_bash
-				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}")                #keep_for_bash
-				"$preexec_function" "$var__this_command"                                               #keep_for_bash
-			fi                                                                                      #keep_for_bash
-		done                                                                                     #keep_for_bash
-		return "${__bp_last_ret_value-0}"                                                        #keep_for_bash
-	}                                                                                         #keep_for_bash
-	__bp_install() {                                                                          #keep_for_bash
-		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                                    #keep_for_bash
-		trap '__bp_preexec_invoke_exec "$_"' DEBUG                                               #keep_for_bash
-		eval "local trap_argv=(${__bp_trap_string:-})"                                           #keep_for_bash
-		local prior_trap=${trap_argv[2]:-}                                                       #keep_for_bash
-		unset __bp_trap_string                                                                   #keep_for_bash
-		if [[ $prior_trap ]]; then                                                               #keep_for_bash
+				# TODO: __bp_last_ret_value is never set! accidently removed?
+				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}") #keep_for_bash
+				"$preexec_function" "$var__this_command"                                #keep_for_bash
+			fi                                                                       #keep_for_bash
+		done                                                                      #keep_for_bash
+		return "${__bp_last_ret_value-0}"                                         #keep_for_bash
+	}                                                                          #keep_for_bash
+	__bp_install() {                                                           #keep_for_bash
+		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                     #keep_for_bash
+		trap '__bp_preexec_invoke_exec "$_"' DEBUG                                #keep_for_bash
+		eval "local trap_argv=(${__bp_trap_string:-})"                            #keep_for_bash
+		local prior_trap=${trap_argv[2]:-}                                        #keep_for_bash
+		unset __bp_trap_string                                                    #keep_for_bash
+		if [[ $prior_trap ]]; then                                                #keep_for_bash
 			eval '__bp_original_debug_trap() { #keep_for_bash
             '"$prior_trap"' #keep_for_bash
         }'                                                                                                                             #keep_for_bash
@@ -313,15 +314,15 @@
 		case $PWD in
 		/run/user/*/gvfs/*) _MONORAIL_GIT_PS1= ;;
 		*)
-			local PROMPT_PWD MONORAIL_REPO
-			PROMPT_PWD=$PWD
-			MONORAIL_REPO=
-			while [[ "$PROMPT_PWD" ]]; do
-				if [[ -d "$PROMPT_PWD/.repo" ]]; then
-					MONORAIL_REPO=1
+			local var__prompt_pwd var__monorail_repo
+			var__prompt_pwd=$PWD
+			var__monorail_repo=
+			while [[ "$var__prompt_pwd" ]]; do
+				if [[ -d "$var__prompt_pwd/.repo" ]]; then
+					var__monorail_repo=1
 					break
 				fi
-				PROMPT_PWD="${PROMPT_PWD%/*}"
+				var__prompt_pwd="${var__prompt_pwd%/*}"
 			done
 			if [[ -z $_MONORAIL_GIT_LOADED ]]; then
 				local var__dir
@@ -346,7 +347,7 @@
 		esac
 		local ICON TITLE_BASE
 		TITLE_BASE=${PWD##*/}
-		if [[ $MONORAIL_REPO ]]; then
+		if [[ $var__monorail_repo ]]; then
 			ICON=${_MONORAIL_ICON[$const_repo]}
 		elif [[ $_MONORAIL_GIT_PS1 ]]; then
 			ICON=${_MONORAIL_ICON[$const_git]}
