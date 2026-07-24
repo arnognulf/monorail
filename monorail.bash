@@ -170,39 +170,39 @@ unset _MONORAIL_CUSTOM_TITLE
 } >&- 2>&-
 }
 _monorail_gradient(){
-while [[ $1 ]];do
-o[${#o[@]}]=$1
-shift
+local i=0
+local j
+while [[ $i -le $COLUMNS ]];do
+j=$((1+$#*i/$((COLUMNS+1))))
+v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
+i=$((i+1))
 done
-I=0
-while [[ $I -le $COLUMNS ]];do
-v+=$'\e'"[38;2;${o[$((${#o[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
-I=$((I+1))
-done
-I=0
-if [[ -z ${o[0]} ]];then
+i=0
+if [[ -z $1 ]];then
 c=\[$'\e'"[0;7m\]"
-while [[ $I -lt $e ]];do
-c+=${d[I]}
-I=$((I+1))
+while [[ $i -lt $e ]];do
+c+=${d[i]}
+i=$((i+1))
 done
 c+=\[$'\e[0;8m'"\]|"
 else
 c=
 [[ -z ${t[*]} ]]&&t[0]="255;255;255"
-while [[ $I -lt $e ]];do
-c+="\["$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${o[$((${#o[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${t[$((${#t[*]}*I/$((COLUMNS+1))))]}m\]${d[I]}"
-I=$((I+1))
+while [[ $i -lt $e ]];do
+j=$((1+$#*i/$((COLUMNS+1))))
+c+="\["$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m\]${d[i]}"
+i=$((i+1))
 done
 c+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m\]|"
 fi
-w=${o[$((${#o[*]}*$((e+1))/$((COLUMNS+1))))]}
+j=$(($#*$((e+1))/$((COLUMNS+1))))
+w=${!j}
 RGB_CUR_R=${w%%;*}
 RGB_CUR_GB=${w#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
 r=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
-[[ ${o[0]} ]]||r=${_COLORS[21]}
+[[ $1 ]]||r=${_COLORS[21]}
 }
 _monorail_textgradient(){
 while [[ $1 ]];do
@@ -386,9 +386,8 @@ case $PWD in
 *)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
 esac
 local b=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
-local _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
-b=${b//\.\.\./$_MONORAIL_ELIPSIS}
-[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $_MONORAIL_ELIPSIS${b:$((${#b}-$((COLUMNS/3))))}"
+b=${b//\.\.\./$'\xe2\x80\xa6'}
+[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $'\xe2\x80\xa6'${b:$((${#b}-$((COLUMNS/3))))}"
 local d=()
 for ((I=0; I<${#b}; I++));do
 d[I]=${b:I:1}
@@ -416,7 +415,6 @@ fi
 fi
 _COLORS=()
 local n=()
-local o=()
 local I=0
 local v=
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
@@ -586,4 +584,5 @@ alias monorail_gradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MON
 alias monorail_image="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/image.sh"
 alias monorail_textgradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/gradient.sh --text"
 alias rgb="sh $_MONORAIL_DIR/scripts/rgb.sh"
-} >&- 2>&-
+}
+# >&- 2>&-

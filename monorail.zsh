@@ -89,39 +89,39 @@ unset _MONORAIL_CUSTOM_TITLE
 } &>/dev/null
 }
 _monorail_gradient(){
-while [[ $1 ]];do
-var__prompt_lut[${#var__prompt_lut[@]}]=$1
-shift
+local i=0
+local j
+while [[ $i -le $COLUMNS ]];do
+j=$((1+$#*i/$((COLUMNS+1))))
+h+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
+i=$((i+1))
 done
-I=0
-while [[ $I -le $COLUMNS ]];do
-h+=$'\e'"[38;2;${var__prompt_lut[$((${#var__prompt_lut[*]}*I/$((COLUMNS+1))))]}m"$'\xe2\x96\x81'
-I=$((I+1))
-done
-I=0
-if [[ -z ${var__prompt_lut[0]} ]];then
+i=0
+if [[ -z $1 ]];then
 b_formatted=%{$'\e'"[0;7m%}"
-while [[ $I -lt $b_array_len ]];do
-b_formatted+=${b_array[I]}
-I=$((I+1))
+while [[ $i -lt $b_array_len ]];do
+b_formatted+=${b_array[i]}
+i=$((i+1))
 done
 b_formatted+=%{$'\e[0;8m'"%}|"
 else
 b_formatted=
 [[ -z ${var__prompt_text_lut[*]} ]]&&var__prompt_text_lut[0]="255;255;255"
-while [[ $I -lt $b_array_len ]];do
-b_formatted+="%{"$'\e['"$((b_array_len+1))C"$'\e'["$((b_array_len+1))"D$'\e'"[48;2;${var__prompt_lut[$((${#var__prompt_lut[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]}*I/$((COLUMNS+1))))]}m%}${b_array[I]}"
-I=$((I+1))
+while [[ $i -lt $b_array_len ]];do
+j=$((1+$#*i/$((COLUMNS+1))))
+b_formatted+="%{"$'\e['"$((b_array_len+1))C"$'\e'["$((b_array_len+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]}*i/$((COLUMNS+1))))]}m%}${b_array[i]}"
+i=$((i+1))
 done
 b_formatted+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m%}|"
 fi
-var__rgb_cur_color=${var__prompt_lut[$((${#var__prompt_lut[*]}*$((b_array_len+1))/$((COLUMNS+1))))]}
+j=$(($#*$((b_array_len+1))/$((COLUMNS+1))))
+var__rgb_cur_color=${!j}
 RGB_CUR_R=${var__rgb_cur_color%%;*}
 RGB_CUR_GB=${var__rgb_cur_color#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
 var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
-[[ ${var__prompt_lut[0]} ]]||var__hex_cursor_color=${_COLORS[21]}
+[[ $1 ]]||var__hex_cursor_color=${_COLORS[21]}
 }
 _monorail_textgradient(){
 while [[ $1 ]];do
@@ -305,9 +305,8 @@ case $PWD in
 *)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
 esac
 local b=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
-local _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
-b=${b//\.\.\./$_MONORAIL_ELIPSIS}
-[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $_MONORAIL_ELIPSIS${b:$((${#b}-$((COLUMNS/3))))}"
+b=${b//\.\.\./$'\xe2\x80\xa6'}
+[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $'\xe2\x80\xa6'${b:$((${#b}-$((COLUMNS/3))))}"
 local b_array=()
 for ((I=0; I<${#b}; I++));do
 b_array[I]=${b[I]}
@@ -335,7 +334,6 @@ fi
 fi
 _COLORS=()
 local var__text_lut=()
-local var__prompt_lut=()
 local I=0
 local h=
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf

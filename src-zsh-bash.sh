@@ -194,30 +194,28 @@
 		} >&- 2>&-     #keep_for_bash
 	}
 	_monorail_gradient() {
-		while [[ $1 ]]; do
-			var__prompt_lut[${#var__prompt_lut[@]}]=$1
-			shift
+		local i=0
+		local j
+		while [[ $i -le $COLUMNS ]]; do
+			j=$((1 + $# * i / $((COLUMNS + 1))))
+			var__monorail_line+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
+			i=$((i + 1))
 		done
-		I=0
-		while [[ $I -le $COLUMNS ]]; do
-			var__monorail_line+=$'\e'"[38;2;${var__prompt_lut[$((${#var__prompt_lut[*]} * I / $((COLUMNS + 1))))]}m"$'\xe2\x96\x81'
-			I=$((I + 1))
-		done
-
-		I=0
-		if [[ -z ${var__prompt_lut[0]} ]]; then
+		i=0
+		if [[ -z $1 ]]; then
 			var__monorail_text_formatted=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
-			while [[ $I -lt ${var__monorail_text_array_len} ]]; do
-				var__monorail_text_formatted+=${var__monorail_text_array[I]}
-				I=$((I + 1))
+			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
+				var__monorail_text_formatted+=${var__monorail_text_array[i]}
+				i=$((i + 1))
 			done
 			var__monorail_text_formatted+=@PROMPT_PREHIDE@$'\e[0;8m'"@PROMPT_POSTHIDE@|"
 		else
 			var__monorail_text_formatted=
 			[[ -z ${var__prompt_text_lut[*]} ]] && var__prompt_text_lut[0]="255;255;255"
-			while [[ $I -lt ${var__monorail_text_array_len} ]]; do
-				var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e['"$((var__monorail_text_array_len + 1))C"$'\e'["$((var__monorail_text_array_len + 1))"D$'\e'"[48;2;${var__prompt_lut[$((${#var__prompt_lut[*]} * I / $((COLUMNS + 1))))]}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * I / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[I]}"
-				I=$((I + 1))
+			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
+				j=$((1 + $# * i / $((COLUMNS + 1))))
+				var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e['"$((var__monorail_text_array_len + 1))C"$'\e'["$((var__monorail_text_array_len + 1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * i / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[i]}"
+				i=$((i + 1))
 			done
 			# The invisible vertical bar is added to make the prompt more readable when copied to a chat or text doc.
 			# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
@@ -225,13 +223,14 @@
 			# In this case the horizontal bar is colored with background color.
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m@PROMPT_POSTHIDE@|"
 		fi
-		var__rgb_cur_color=${var__prompt_lut[$((${#var__prompt_lut[*]} * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))]}
+		j=$(($# * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))
+		var__rgb_cur_color=${!j}
 		RGB_CUR_R=${var__rgb_cur_color%%;*}
 		RGB_CUR_GB=${var__rgb_cur_color#*;}
 		RGB_CUR_G=${RGB_CUR_GB%%;*}
 		RGB_CUR_B=${RGB_CUR_GB##*;}
 		var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
-		[[ ${var__prompt_lut[0]} ]] || var__hex_cursor_color=${_COLORS[21]}
+		[[ $1 ]] || var__hex_cursor_color=${_COLORS[21]}
 	}
 	_monorail_textgradient() {
 		while [[ $1 ]]; do
@@ -427,10 +426,9 @@
 		*) _MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}" ;;
 		esac
 		local var__monorail_text=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
-		local _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
-		var__monorail_text=${var__monorail_text//\.\.\./${_MONORAIL_ELIPSIS}}
+		var__monorail_text=${var__monorail_text//\.\.\./$'\xe2\x80\xa6'}
 		# frequently, the last of the text is the most relevant, cut beginning if too long path
-		[[ ${#var__monorail_text} -gt $((COLUMNS / 3)) ]] && var__monorail_text=" ${_MONORAIL_ELIPSIS}${var__monorail_text:$((${#var__monorail_text} - $((COLUMNS / 3))))}"
+		[[ ${#var__monorail_text} -gt $((COLUMNS / 3)) ]] && var__monorail_text=" $'\xe2\x80\xa6'${var__monorail_text:$((${#var__monorail_text} - $((COLUMNS / 3))))}"
 		local var__monorail_text_array=()
 		for ((I = 0; I < ${#var__monorail_text}; I++)); do #keep_for_zsh
 			#keep_for_zsh
@@ -464,7 +462,6 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 			fi
 			_COLORS=()
 			local var__text_lut=()
-			local var__prompt_lut=()
 			local I=0
 			local var__monorail_line=
 			# here _monorail_gradient _monorail_textgradient _monorail_colors are called
@@ -479,7 +476,6 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		unset _MONORAIL_NOSTYLING
 		# shellcheck disable=SC2059 # keep printf compact
 		printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
-
 	}
 	_TITLE() {
 		local _MONORAIL_TITLE="$*"
