@@ -120,11 +120,7 @@ _TITLE_RAW(){
 [[ $_MONORAIL_NOSTYLING ]]&&return 0
 printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 }
-if [[ $XDG_CONFIG_HOME ]];then
-_MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
-else
-_MONORAIL_CONFIG=$HOME/.config/monorail
-fi
+[[ $_MONORAIL_CONFIG ]]||_MONORAIL_CONFIG=$HOME/.config/monorail
 _MONORAIL_NAME(){
 unset NAME
 [[ $1 ]]&&NAME="$*"
@@ -218,14 +214,14 @@ fi
 PROMPT_PWD="${PROMPT_PWD%/*}"
 done
 if [[ -z $_MONORAIL_GIT_LOADED ]];then
-local DIR
-DIR=$PWD
-while [[ $DIR ]];do
-if [[ -e "$DIR/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
+local var__dir
+var__dir=$PWD
+while [[ $var__dir ]];do
+if [[ -e "$var__dir/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
 _MONORAIL_GIT_LOADED=1
 fi
-DIR=${DIR%/*}
+var__dir=${var__dir%/*}
 done
 fi
 _MONORAIL_GIT_PS1=$(_TITLE(){
@@ -289,7 +285,7 @@ for ((I=0; I<${#b}; I++));do
 b_array[I]=${b[I]}
 done
 b_array_len=${#b_array[@]}
-local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
+local var__rgb_cur_color RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 if [[ $_MONORAIL_CACHE != "$COLUMNS$b" ]];then
 unset _MONORAIL_CACHE _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]];then
@@ -336,9 +332,9 @@ I=$((I+1))
 done
 b_formatted+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${var__colors[17]:0:2}));$((0x${var__colors[17]:2:2}));$((0x${var__colors[17]:4:2}))m%}|"
 fi
-RGB_CUR_COLOR=${var__prompt_lut[$((${#var__prompt_lut[*]}*$((b_array_len+1))/$((COLUMNS+1))))]}
-RGB_CUR_R=${RGB_CUR_COLOR%%;*}
-RGB_CUR_GB=${RGB_CUR_COLOR#*;}
+var__rgb_cur_color=${var__prompt_lut[$((${#var__prompt_lut[*]}*$((b_array_len+1))/$((COLUMNS+1))))]}
+RGB_CUR_R=${var__rgb_cur_color%%;*}
+RGB_CUR_GB=${var__rgb_cur_color#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
 var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
@@ -443,41 +439,41 @@ _MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 . "$_MONORAIL_CONFIG/settings-$_MONORAIL_SHORT_HOSTNAME.conf"
 __git_ps1(){ :;}
 _MONORAIL_MAGIC_SHELLBALL(){
-local ANSWER SPACES i
+local var__answer SPACES i
 SPACES=
 i=0
 case "$RANDOM" in
 *[0-4])case "$RANDOM" in
-*0)ANSWER="IT IS CERTAIN.";;
-*1)ANSWER="IT IS DECIDEDLY SO.";;
-*2)ANSWER="WITHOUT A DOUBT.";;
-*3)ANSWER="YES – DEFINITELY.";;
-*4)ANSWER="YOU MAY RELY ON IT.";;
-*5)ANSWER="AS I SEE IT, YES.";;
-*6)ANSWER="MOST LIKELY.";;
-*7)ANSWER="OUTLOOK GOOD.";;
-*8)ANSWER="YES.";;
-*)ANSWER="SIGNS POINT TO YES."
+*0)var__answer="IT IS CERTAIN.";;
+*1)var__answer="IT IS DECIDEDLY SO.";;
+*2)var__answer="WITHOUT A DOUBT.";;
+*3)var__answer="YES – DEFINITELY.";;
+*4)var__answer="YOU MAY RELY ON IT.";;
+*5)var__answer="AS I SEE IT, YES.";;
+*6)var__answer="MOST LIKELY.";;
+*7)var__answer="OUTLOOK GOOD.";;
+*8)var__answer="YES.";;
+*)var__answer="SIGNS POINT TO YES."
 esac
 ;;
 *)case "$RANDOM" in
-*0)ANSWER="REPLY HAZY, TRY AGAIN.";;
-*1)ANSWER="ASK AGAIN LATER.";;
-*2)ANSWER="BETTER NOT TELL YOU NOW.";;
-*3)ANSWER="CANNOT PREDICT NOW.";;
-*4)ANSWER="CONCENTRATE AND ASK AGAIN.";;
-*5)ANSWER="DON'T COUNT ON IT.";;
-*6)ANSWER="MY REPLY IS NO.";;
-*7)ANSWER="MY SOURCES SAY NO.";;
-*8)ANSWER="OUTLOOK NOT SO GOOD.";;
-*)ANSWER="VERY DOUBTFUL."
+*0)var__answer="REPLY HAZY, TRY AGAIN.";;
+*1)var__answer="ASK AGAIN LATER.";;
+*2)var__answer="BETTER NOT TELL YOU NOW.";;
+*3)var__answer="CANNOT PREDICT NOW.";;
+*4)var__answer="CONCENTRATE AND ASK AGAIN.";;
+*5)var__answer="DON'T COUNT ON IT.";;
+*6)var__answer="MY REPLY IS NO.";;
+*7)var__answer="MY SOURCES SAY NO.";;
+*8)var__answer="OUTLOOK NOT SO GOOD.";;
+*)var__answer="VERY DOUBTFUL."
 esac
 esac
-while [[ $i -lt $((COLUMNS/2-${#ANSWER}/2)) ]];do
+while [[ $i -lt $((COLUMNS/2-${#var__answer}/2)) ]];do
 SPACES="$SPACES "
 i=$((i+1))
 done
-echo -e "\e[?25l\e[3A\r\e[K$SPACES$ANSWER"
+echo -e "\e[?25l\e[3A\r\e[K$SPACES$var__answer"
 }
 if [[ $TERM == xterm-256color ]];then
 [[ $ZUTTY_VERSION ]]&&_MONORAIL_COMPAT=1

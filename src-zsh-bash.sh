@@ -224,11 +224,7 @@
 		[[ $_MONORAIL_NOSTYLING ]] && return 0
 		printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 	}
-	if [[ $XDG_CONFIG_HOME ]]; then
-		_MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
-	else
-		_MONORAIL_CONFIG=$HOME/.config/monorail
-	fi
+	[[ $_MONORAIL_CONFIG ]] || _MONORAIL_CONFIG=$HOME/.config/monorail
 	_MONORAIL_NAME() {
 		unset NAME
 		[[ $1 ]] && NAME="$*"
@@ -328,14 +324,14 @@
 				PROMPT_PWD="${PROMPT_PWD%/*}"
 			done
 			if [[ -z $_MONORAIL_GIT_LOADED ]]; then
-				local DIR
-				DIR=$PWD
-				while [[ $DIR ]]; do
-					if [[ -e "$DIR/.git" ]] && [[ -e /usr/lib/git-core/git-sh-prompt ]]; then
+				local var__dir
+				var__dir=$PWD
+				while [[ $var__dir ]]; do
+					if [[ -e "$var__dir/.git" ]] && [[ -e /usr/lib/git-core/git-sh-prompt ]]; then
 						. /usr/lib/git-core/git-sh-prompt
 						_MONORAIL_GIT_LOADED=1
 					fi
-					DIR=${DIR%/*}
+					var__dir=${var__dir%/*}
 				done
 			fi
 			# shellcheck disable=SC2329 # _TITLE function is invoked by __git_ps1 which is assigned later
@@ -411,7 +407,7 @@
 			var__monorail_text_array[I]=${var__monorail_text:I:1} #keep_for_bash
 		done                                                   #keep_for_bash
 		var__monorail_text_array_len=${#var__monorail_text_array[@]}
-		local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
+		local var__rgb_cur_color RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 		if [[ $_MONORAIL_CACHE != "$COLUMNS$var__monorail_text" ]]; then
 			unset _MONORAIL_CACHE _MEASURE
 			if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]]; then
@@ -464,9 +460,9 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 				# In this case the horizontal bar is colored with background color.
 				var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${var__colors[17]:0:2}));$((0x${var__colors[17]:2:2}));$((0x${var__colors[17]:4:2}))m@PROMPT_POSTHIDE@|"
 			fi
-			RGB_CUR_COLOR=${var__prompt_lut[$((${#var__prompt_lut[*]} * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))]}
-			RGB_CUR_R=${RGB_CUR_COLOR%%;*}
-			RGB_CUR_GB=${RGB_CUR_COLOR#*;}
+			var__rgb_cur_color=${var__prompt_lut[$((${#var__prompt_lut[*]} * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))]}
+			RGB_CUR_R=${var__rgb_cur_color%%;*}
+			RGB_CUR_GB=${var__rgb_cur_color#*;}
 			RGB_CUR_G=${RGB_CUR_GB%%;*}
 			RGB_CUR_B=${RGB_CUR_GB##*;}
 			var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)

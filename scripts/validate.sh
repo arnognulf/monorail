@@ -49,6 +49,10 @@ cat "$SRC" |
 		-e 's/var__monorail_title/q/g' \
 		-e 's/var__hex_cursor_color/r/g' \
 		-e 's/var__answer/s/g' \
+		-e 's/var__prompt_text_lut/t/g' \
+		-e 's/var__dir/u/g' \
+		-e 's/var__monorail_line/v/g' \
+		-e 's/var__rgb_cur_color/w/g' \
 		>"${TEMP_BASH}"
 shfmt -mn "${TEMP_BASH}" >monorail.bash || exit 42
 
