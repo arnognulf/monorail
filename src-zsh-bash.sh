@@ -53,7 +53,7 @@
 		[[ $__bp_inside_preexec ]] && return                                #keep_for_bash
 		local __bp_inside_preexec=1                                         #keep_for_bash
 		[[ ! -t 1 ]] && return                                              #keep_for_bash
-		[[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]] && return        #keep_for_bash
+		[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]] && return              #keep_for_bash
 		if [[ -z ${__bp_preexec_interactive_mode:-} ]]; then                #keep_for_bash
 			return                                                             #keep_for_bash
 		else                                                                #keep_for_bash
@@ -86,14 +86,12 @@
 		return "${__bp_last_ret_value-0}"                                         #keep_for_bash
 	}                                                                          #keep_for_bash
 	__bp_install() {                                                           #keep_for_bash
-		if [[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]]; then                        #keep_for_bash
-			return 1                                                                 #keep_for_bash
-		fi                                                                        #keep_for_bash
+		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                     #keep_for_bash
 		trap '__bp_preexec_invoke_exec "$_"' DEBUG                                #keep_for_bash
 		eval "local trap_argv=(${__bp_trap_string:-})"                            #keep_for_bash
 		local prior_trap=${trap_argv[2]:-}                                        #keep_for_bash
 		unset __bp_trap_string                                                    #keep_for_bash
-		if [[ -n $prior_trap ]]; then                                             #keep_for_bash
+		if [[ $prior_trap ]]; then                                                #keep_for_bash
 			eval '__bp_original_debug_trap() { #keep_for_bash
             '"$prior_trap"' #keep_for_bash
         }'                                                                                                                   #keep_for_bash
@@ -168,7 +166,7 @@
 			for XCMD in "${_MONORAIL_CMD_IGNORED[@]}"; do
 				[[ $XCMD = "${_TIMER_CMD%% *}" ]] && IGNORED_TITLE=1
 			done
-			ICON="*️⃣"
+			ICON=${_MONORAIL_ICON[$const_command]}
 			_MONORAIL_TITLE="$ICON  $_TIMER_CMD"
 			[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 			CMD=${_TIMER_CMD%% *}
@@ -359,51 +357,38 @@
 		local ICON TITLE_BASE
 		TITLE_BASE=${PWD##*/}
 		if [[ $MONORAIL_REPO ]]; then
-			ICON=🏗️
+			ICON=${_MONORAIL_ICON[$const_repo]}
 		elif [[ $_MONORAIL_GIT_PS1 ]]; then
-			ICON=🚧
+			ICON=${_MONORAIL_ICON[$const_git]}
 		else
 			case $PWD in
-			*/etc | */etc/*) ICON=🗂️ ;;
-			*/bin | */sbin) ICON=⚙️ ;;
-			*/lib | */lib64 | */lib32) ICON=🔩 ;;
-			*/tmp | */tmp/* | */.cache | */.cache/*) ICON=🚽 ;;
-			"$HOME/Trash"*) ICON=🗑️ ;;
-			"$HOME/.local/share/Trash/files"*) ICON=♻️ ;;
-			/boot | /boot/*) ICON=🥾 ;;
+			"$HOME/Trash"* | "$HOME/.local/share/Trash/files"*) ICON=${_MONORAIL_ICON[$const_trash]} ;;
 			/)
-				ICON=💻
+				ICON=${_MONORAIL_ICON[$const_computer]}
 				TITLE_BASE=/
 				;;
-			*/.*) ICON=📌 ;;
-			/media/*) ICON=💾 ;;
-			/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) ICON=🤖 ;;
-			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "$XDG_DOCUMENTS_DIR" | "$XDG_DOCUMENTS_DIR"/*) ICON=📑 ;;
-			*/out | */out/*) ICON="🚀  ${PWD##*/}" ;;
-			*/src | */src/* | */sources | */sources/*) ICON=🚧 ;;
-			"$XDG_MUSIC_DIR" | "$XDG_MUSIC_DIR"/*) ICON=🎵 ;;
-			"$XDG_PICTURES_DIR" | "$XDG_PICTURES_DIR"/*) ICON=🖼️ ;;
-			"$XDG_VIDEOS_DIR" | "$XDG_VIDEOS_DIR"/*) ICON=🎬 ;;
-			*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) ICON=📦 ;;
-			*) ICON=📂 ;;
+			/media/*) ICON=${_MONORAIL_ICON[$const_media]} ;;
+			/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) ICON=${_MONORAIL_ICON[$const_system]} ;;
+			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "$XDG_DOCUMENTS_DIR" | "$XDG_DOCUMENTS_DIR"/*) ICON=${_MONORAIL_ICON[$const_documents]} ;;
+			"$XDG_MUSIC_DIR" | "$XDG_MUSIC_DIR"/*) ICON=${_MONORAIL_ICON[$const_music]} ;;
+			"$XDG_PICTURES_DIR" | "$XDG_PICTURES_DIR"/*) ICON=${_MONORAIL_ICON[$const_pictures]} ;;
+			"$XDG_VIDEOS_DIR" | "$XDG_VIDEOS_DIR"/*) ICON=${_MONORAIL_ICON[$const_videos]} ;;
+			*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) ICON=ICON=_MONORAIL_ICON[$const_downloads] ;;
+			*) ICON=_MONORAIL_ICON[$const_folder] ;;
 			esac
 			case $PWD in
 			"$HOME")
+				TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
 				if [[ $CRAFT_STATE_DIR ]]; then
-					TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-					ICON=🛠️
+					ICON=${_MONORAIL_ICON[$const_snapcraft]}
 				elif [[ $SSH_CLIENT ]]; then
-					TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-					ICON=🌐
+					ICON=${_MONORAIL_ICON[$const_ssh]}
 				elif [[ -e /.dockerenv ]]; then
-					TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-					ICON=🐋
+					ICON=${_MONORAIL_ICON[$const_docker]}
 				elif [[ -e /run/containerenv ]]; then
-					TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-					ICON=🦭
+					ICON=${_MONORAIL_ICON[$const_podman]}
 				else
-					ICON=🏠
-					TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+					ICON=${_MONORAIL_ICON[$const_home]}
 				fi
 				;;
 			*) ;;
@@ -569,10 +554,27 @@ $_MONORAIL_TEXT_FORMATTED@PROMPT_PREHIDE@"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'
 	}
 	# shellcheck disable=SC2329
 	_monorail_icon() {
+		# I'd prefer to use associative arrays here. but for unknown reasons, it does not work as of bash 5.3.9(1)-release
 		case "$2" in
-		/*) _MONORAIL_ICON[$2]=$1 ;;
-		*/*) _MONORAIL_ICON[${HOME//\//_}$2]= ;;
-		*) _MONORAIL_ICON[$2]=$1 ;;
+		home) _MONORAIL_ICON[$const_home]=$1 ;;
+		ssh) _MONORAIL_ICON[$const_ssh]=$1 ;;
+		docker) _MONORAIL_ICON[$const_docker]=$1 ;;
+		podman) _MONORAIL_ICON[$const_podman]=$1 ;;
+		git) _MONORAIL_ICON[$const_git]=$1 ;;
+		repo) _MONORAIL_ICON[$const_repo]=$1 ;;
+		trash) _MONORAIL_ICON[$const_trash]=$1 ;;
+		documents) _MONORAIL_ICON[$const_documents]=$1 ;;
+		media) _MONORAIL_ICON[$const_media]=$1 ;;
+		music) _MONORAIL_ICON[$const_music]=$1 ;;
+		videos) _MONORAIL_ICON[$const_videos]=$1 ;;
+		downloads) _MONORAIL_ICON[$const_downloads]=$1 ;;
+		settings) _MONORAIL_ICON[$const_settings]=$1 ;;
+		folder) _MONORAIL_ICON[$const_folder]=$1 ;;
+		completed) _MONORAIL_ICON[$const_completed]=$1 ;;
+		command) _MONORAIL_ICON[$const_command]=$1 ;;
+		computer) _MONORAIL_ICON[$const_computer]=$1 ;;
+		system) _MONORAIL_ICON[$const_system]=$1 ;;
+		*) echo "not supported value: $2" ;;
 		esac
 	}
 	# shellcheck disable=SC2329

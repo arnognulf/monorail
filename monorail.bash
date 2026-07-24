@@ -40,7 +40,7 @@ __bp_last_argument_prev_command="${1:-}"
 [[ $__bp_inside_preexec ]]&&return
 local __bp_inside_preexec=1
 [[ ! -t 1 ]]&&return
-[[ -n ${COMP_POINT:-} || -n ${READLINE_POINT:-} ]]&&return
+[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]]&&return
 if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
 return
 else
@@ -72,14 +72,12 @@ done
 return "${__bp_last_ret_value-0}"
 }
 __bp_install(){
-if [[ ${PROMPT_COMMAND[*]:-} == *"precmd"* ]];then
-return 1
-fi
+[[ ${PROMPT_COMMAND[*]:-} == *"precmd"* ]]&&return 1
 trap '__bp_preexec_invoke_exec "$_"' DEBUG
 eval "local trap_argv=(${__bp_trap_string:-})"
 local prior_trap=${trap_argv[2]:-}
 unset __bp_trap_string
-if [[ -n $prior_trap ]];then
+if [[ $prior_trap ]];then
 eval '__bp_original_debug_trap() { 
             '"$prior_trap"' 
         }'
@@ -151,7 +149,7 @@ local XCMD IGNORED_TITLE=
 for XCMD in "${_MONORAIL_CMD_IGNORED[@]}";do
 [[ $XCMD == "${_TIMER_CMD%% *}" ]]&&IGNORED_TITLE=1
 done
-ICON="*️⃣"
+ICON=${_MONORAIL_ICON[15]}
 _MONORAIL_TITLE="$ICON  $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 CMD=${_TIMER_CMD%% *}
@@ -326,51 +324,36 @@ esac
 local ICON TITLE_BASE
 TITLE_BASE=${PWD##*/}
 if [[ $MONORAIL_REPO ]];then
-ICON=🏗️
+ICON=${_MONORAIL_ICON[5]}
 elif [[ $_MONORAIL_GIT_PS1 ]];then
-ICON=🚧
+ICON=${_MONORAIL_ICON[4]}
 else
 case $PWD in
-*/etc|*/etc/*)ICON=🗂️;;
-*/bin|*/sbin)ICON=⚙️;;
-*/lib|*/lib64|*/lib32)ICON=🔩;;
-*/tmp|*/tmp/*|*/.cache|*/.cache/*)ICON=🚽;;
-"$HOME/Trash"*)ICON=🗑️;;
-"$HOME/.local/share/Trash/files"*)ICON=♻️;;
-/boot|/boot/*)ICON=🥾;;
-/)ICON=💻
+"$HOME/Trash"*|"$HOME/.local/share/Trash/files"*)ICON=${_MONORAIL_ICON[6]};;
+/)ICON=${_MONORAIL_ICON[16]}
 TITLE_BASE=/
 ;;
-*/.*)ICON=📌;;
-/media/*)ICON=💾;;
-/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)ICON=🤖;;
-*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)ICON=📑;;
-*/out|*/out/*)ICON="🚀  ${PWD##*/}";;
-*/src|*/src/*|*/sources|*/sources/*)ICON=🚧;;
-"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON=🎵;;
-"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON=🖼️;;
-"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON=🎬;;
-*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=📦;;
-*)ICON=📂
+/media/*)ICON=${_MONORAIL_ICON[8]};;
+/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)ICON=${_MONORAIL_ICON[17]};;
+*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)ICON=${_MONORAIL_ICON[7]};;
+"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON=${_MONORAIL_ICON[9]};;
+"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON=${_MONORAIL_ICON[$const_pictures]};;
+"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON=${_MONORAIL_ICON[10]};;
+*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=ICON=_MONORAIL_ICON[11];;
+*)ICON=_MONORAIL_ICON[13]
 esac
 case $PWD in
-"$HOME")if
-[[ $CRAFT_STATE_DIR ]]
-then
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-ICON=🛠️
+"$HOME")TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+if [[ $CRAFT_STATE_DIR ]];then
+ICON=${_MONORAIL_ICON[$const_snapcraft]}
 elif [[ $SSH_CLIENT ]];then
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-ICON=🌐
+ICON=${_MONORAIL_ICON[1]}
 elif [[ -e /.dockerenv ]];then
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-ICON=🐋
+ICON=${_MONORAIL_ICON[2]}
 elif [[ -e /run/containerenv ]];then
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-ICON=🦭
+ICON=${_MONORAIL_ICON[3]}
 else
-ICON=🏠
-TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+ICON=${_MONORAIL_ICON[0]}
 fi
 ;;
 *)
@@ -510,9 +493,25 @@ _LOW_PRIO "$@"
 }
 _monorail_icon(){
 case "$2" in
-/*)_MONORAIL_ICON[$2]=$1;;
-*/*)_MONORAIL_ICON[${HOME//\//_}$2]=;;
-*)_MONORAIL_ICON[$2]=$1
+home)_MONORAIL_ICON[0]=$1;;
+ssh)_MONORAIL_ICON[1]=$1;;
+docker)_MONORAIL_ICON[2]=$1;;
+podman)_MONORAIL_ICON[3]=$1;;
+git)_MONORAIL_ICON[4]=$1;;
+repo)_MONORAIL_ICON[5]=$1;;
+trash)_MONORAIL_ICON[6]=$1;;
+documents)_MONORAIL_ICON[7]=$1;;
+media)_MONORAIL_ICON[8]=$1;;
+music)_MONORAIL_ICON[9]=$1;;
+videos)_MONORAIL_ICON[10]=$1;;
+downloads)_MONORAIL_ICON[11]=$1;;
+settings)_MONORAIL_ICON[12]=$1;;
+folder)_MONORAIL_ICON[13]=$1;;
+completed)_MONORAIL_ICON[14]=$1;;
+command)_MONORAIL_ICON[15]=$1;;
+computer)_MONORAIL_ICON[16]=$1;;
+system)_MONORAIL_ICON[17]=$1;;
+*)echo "not supported value: $2"
 esac
 }
 _monorail_cmd_interactive(){
