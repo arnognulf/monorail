@@ -534,7 +534,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 			_LOW_PRIO() {
 				# As an ordinary user, you cannot raise the priority and mark the importance
 				# of a process.
-				# However, you can mark which processes are less important than low-prio tasks
+				# However, you can mark which processes are less important than high-prio tasks
 				# such as video calls or music.
 				# The idea is to mark batch processes as less important to get better
 				# interactivity.
