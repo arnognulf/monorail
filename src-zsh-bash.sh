@@ -5,6 +5,24 @@
 # Copyright (c) 2017 Ryan Caloras and contributors (see https://github.com/rcaloras/bash-preexec)
 # SPDX-License-Identifier: BSD-3-Clause
 # see FAST_SHELL_GUIDELINES.md on coding guidelines for this file.
+const_home=0       #discard_for_all
+const_ssh=1        #discard_for_all
+const_docker=2     #discard_for_all
+const_podman=3     #discard_for_all
+const_git=4        #discard_for_all
+const_repo=5       #discard_for_all
+const_trash=6      #discard_for_all
+const_documents=7  #discard_for_all
+const_media=8      #discard_for_all
+const_music=9      #discard_for_all
+const_videos=10    #discard_for_all
+const_downloads=11 #discard_for_all
+const_settings=12  #discard_for_all
+const_folder=13    #discard_for_all
+const_completed=14 #discard_for_all
+const_command=15   #discard_for_all
+const_computer=16  #discard_for_all
+const_system=17    #discard_for_all
 {
 	[[ $_MONORAIL_DIR ]] || _MONORAIL_DIR=$HOME/.local/share/monorail
 	[[ $HOSTNAME ]] || HOSTNAME=$(hostname)
@@ -167,7 +185,7 @@
 			for XCMD in "${_MONORAIL_CMD_IGNORED[@]}"; do
 				[[ $XCMD = "${_TIMER_CMD%% *}" ]] && IGNORED_TITLE=1
 			done
-			ICON=${_MONORAIL_ICON[$const_command]}
+			ICON=${_MONORAIL_ICON[const_command]}
 			_MONORAIL_TITLE="$ICON  $_TIMER_CMD"
 			[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 			CMD=${_TIMER_CMD%% *}
@@ -380,38 +398,38 @@
 		local ICON TITLE_BASE
 		TITLE_BASE=${PWD##*/}
 		if [[ $var__monorail_repo ]]; then
-			ICON=${_MONORAIL_ICON[$const_repo]}
+			ICON=${_MONORAIL_ICON[const_repo]}
 		elif [[ $_MONORAIL_GIT_PS1 ]]; then
-			ICON=${_MONORAIL_ICON[$const_git]}
+			ICON=${_MONORAIL_ICON[const_git]}
 		else
 			case $PWD in
-			"$HOME/Trash"* | "$HOME/.local/share/Trash/files"*) ICON=${_MONORAIL_ICON[$const_trash]} ;;
+			"$HOME/Trash"* | "$HOME/.local/share/Trash/files"*) ICON=${_MONORAIL_ICON[const_trash]} ;;
 			/)
-				ICON=${_MONORAIL_ICON[$const_computer]}
+				ICON=${_MONORAIL_ICON[const_computer]}
 				TITLE_BASE=/
 				;;
-			/media/*) ICON=${_MONORAIL_ICON[$const_media]} ;;
-			/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) ICON=${_MONORAIL_ICON[$const_system]} ;;
-			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "$XDG_DOCUMENTS_DIR" | "$XDG_DOCUMENTS_DIR"/*) ICON=${_MONORAIL_ICON[$const_documents]} ;;
-			"$XDG_MUSIC_DIR" | "$XDG_MUSIC_DIR"/*) ICON=${_MONORAIL_ICON[$const_music]} ;;
-			"$XDG_PICTURES_DIR" | "$XDG_PICTURES_DIR"/*) ICON=${_MONORAIL_ICON[$const_pictures]} ;;
-			"$XDG_VIDEOS_DIR" | "$XDG_VIDEOS_DIR"/*) ICON=${_MONORAIL_ICON[$const_videos]} ;;
-			*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) ICON=_MONORAIL_ICON[$const_downloads] ;;
-			*) ICON=_MONORAIL_ICON[$const_folder] ;;
+			/media/*) ICON=${_MONORAIL_ICON[const_media]} ;;
+			/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) ICON=${_MONORAIL_ICON[const_system]} ;;
+			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "$XDG_DOCUMENTS_DIR" | "$XDG_DOCUMENTS_DIR"/*) ICON=${_MONORAIL_ICON[const_documents]} ;;
+			"$XDG_MUSIC_DIR" | "$XDG_MUSIC_DIR"/*) ICON=${_MONORAIL_ICON[const_music]} ;;
+			"$XDG_PICTURES_DIR" | "$XDG_PICTURES_DIR"/*) ICON=${_MONORAIL_ICON[const_pictures]} ;;
+			"$XDG_VIDEOS_DIR" | "$XDG_VIDEOS_DIR"/*) ICON=${_MONORAIL_ICON[const_videos]} ;;
+			*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) ICON=${_MONORAIL_ICON[const_downloads]} ;;
+			*) ICON=${_MONORAIL_ICON[const_folder]} ;;
 			esac
 			case $PWD in
 			"$HOME")
 				TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
 				if [[ $CRAFT_STATE_DIR ]]; then
-					ICON=${_MONORAIL_ICON[$const_snapcraft]}
+					ICON=${_MONORAIL_ICON[const_snapcraft]}
 				elif [[ $SSH_CLIENT ]]; then
-					ICON=${_MONORAIL_ICON[$const_ssh]}
+					ICON=${_MONORAIL_ICON[const_ssh]}
 				elif [[ -e /.dockerenv ]]; then
-					ICON=${_MONORAIL_ICON[$const_docker]}
+					ICON=${_MONORAIL_ICON[const_docker]}
 				elif [[ -e /run/containerenv ]]; then
-					ICON=${_MONORAIL_ICON[$const_podman]}
+					ICON=${_MONORAIL_ICON[const_podman]}
 				else
-					ICON=${_MONORAIL_ICON[$const_home]}
+					ICON=${_MONORAIL_ICON[const_home]}
 				fi
 				;;
 			*) ;;
@@ -419,13 +437,13 @@
 		fi
 		_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${ICON}}  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
 		[[ $PWD != "$HOME" ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
-		local PWD_BASENAME="${PWD##*/}"
-		[[ $PWD_BASENAME ]] || PWD_BASENAME=/
+		local var__pwd_basename="${PWD##*/}"
+		[[ $var__pwd_basename ]] || var__pwd_basename=/
 		case $PWD in
-		"$HOME") _MONORAIL_PWD_BASENAME="~" ;;
-		*) _MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}" ;;
+		"$HOME") var__pwd_basename="~" ;;
+		*) var__pwd_basename="${NAME-$var__pwd_basename}" ;;
 		esac
-		local var__monorail_text=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
+		local var__monorail_text=" $var__pwd_basename$_MONORAIL_GIT_PS1 "
 		var__monorail_text=${var__monorail_text//\.\.\./$'\xe2\x80\xa6'}
 		# frequently, the last of the text is the most relevant, cut beginning if too long path
 		[[ ${#var__monorail_text} -gt $((COLUMNS / 3)) ]] && var__monorail_text=" $'\xe2\x80\xa6'${var__monorail_text:$((${#var__monorail_text} - $((COLUMNS / 3))))}"
@@ -461,7 +479,6 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 				fi
 			fi
 			_COLORS=()
-			local var__text_lut=()
 			local I=0
 			local var__monorail_line=
 			# here _monorail_gradient _monorail_textgradient _monorail_colors are called
@@ -549,24 +566,24 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	_monorail_icon() {
 		# I'd prefer to use associative arrays here. but for unknown reasons, it does not work as of bash 5.3.9(1)-release
 		case "$2" in
-		home) _MONORAIL_ICON[$const_home]=$1 ;;
-		ssh) _MONORAIL_ICON[$const_ssh]=$1 ;;
-		docker) _MONORAIL_ICON[$const_docker]=$1 ;;
-		podman) _MONORAIL_ICON[$const_podman]=$1 ;;
-		git) _MONORAIL_ICON[$const_git]=$1 ;;
-		repo) _MONORAIL_ICON[$const_repo]=$1 ;;
-		trash) _MONORAIL_ICON[$const_trash]=$1 ;;
-		documents) _MONORAIL_ICON[$const_documents]=$1 ;;
-		media) _MONORAIL_ICON[$const_media]=$1 ;;
-		music) _MONORAIL_ICON[$const_music]=$1 ;;
-		videos) _MONORAIL_ICON[$const_videos]=$1 ;;
-		downloads) _MONORAIL_ICON[$const_downloads]=$1 ;;
-		settings) _MONORAIL_ICON[$const_settings]=$1 ;;
-		folder) _MONORAIL_ICON[$const_folder]=$1 ;;
-		completed) _MONORAIL_ICON[$const_completed]=$1 ;;
-		command) _MONORAIL_ICON[$const_command]=$1 ;;
-		computer) _MONORAIL_ICON[$const_computer]=$1 ;;
-		system) _MONORAIL_ICON[$const_system]=$1 ;;
+		home) _MONORAIL_ICON[const_home]=$1 ;;
+		ssh) _MONORAIL_ICON[const_ssh]=$1 ;;
+		docker) _MONORAIL_ICON[const_docker]=$1 ;;
+		podman) _MONORAIL_ICON[const_podman]=$1 ;;
+		git) _MONORAIL_ICON[const_git]=$1 ;;
+		repo) _MONORAIL_ICON[const_repo]=$1 ;;
+		trash) _MONORAIL_ICON[const_trash]=$1 ;;
+		documents) _MONORAIL_ICON[const_documents]=$1 ;;
+		media) _MONORAIL_ICON[const_media]=$1 ;;
+		music) _MONORAIL_ICON[const_music]=$1 ;;
+		videos) _MONORAIL_ICON[const_videos]=$1 ;;
+		downloads) _MONORAIL_ICON[const_downloads]=$1 ;;
+		settings) _MONORAIL_ICON[const_settings]=$1 ;;
+		folder) _MONORAIL_ICON[const_folder]=$1 ;;
+		completed) _MONORAIL_ICON[const_completed]=$1 ;;
+		command) _MONORAIL_ICON[const_command]=$1 ;;
+		computer) _MONORAIL_ICON[const_computer]=$1 ;;
+		system) _MONORAIL_ICON[const_system]=$1 ;;
 		*) echo "not supported value: $2" ;;
 		esac
 	}
@@ -589,8 +606,8 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	. "$_MONORAIL_CONFIG/settings-${_MONORAIL_SHORT_HOSTNAME}.conf"
 	__git_ps1() { :; }
 	_MONORAIL_MAGIC_SHELLBALL() {
-		local var__answer SPACES i
-		SPACES=
+		local var__answer var__spaces i
+		var__spaces=
 		i=0
 		case "$RANDOM" in
 		*[0-4])
@@ -621,10 +638,10 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 			esac ;;
 		esac
 		while [[ $i -lt $((COLUMNS / 2 - ${#var__answer} / 2)) ]]; do
-			SPACES="$SPACES "
+			var__spaces+=" "
 			i=$((i + 1))
 		done
-		echo -e "\e[?25l\e[3A\r\e[K$SPACES$var__answer"
+		echo -e "\e[?25l\e[3A\r\e[K$var__spaces$var__answer"
 	}
 	if [[ $TERM = xterm-256color ]]; then
 		# zutty (vterm) doesn't handle background color, nor hidden text.

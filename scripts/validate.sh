@@ -13,24 +13,24 @@ cat "$SRC" |
 	sed -e 's/#keep_for_bash//g' \
 		-e 's/@PROMPT_PREHIDE@/\\[/g' \
 		-e 's/@PROMPT_POSTHIDE@/\\]/g' \
-		-e 's/$const_home/0/g' \
-		-e 's/$const_ssh/1/g' \
-		-e 's/$const_docker/2/g' \
-		-e 's/$const_podman/3/g' \
-		-e 's/$const_git/4/g' \
-		-e 's/$const_repo/5/g' \
-		-e 's/$const_trash/6/g' \
-		-e 's/$const_documents/7/g' \
-		-e 's/$const_media/8/g' \
-		-e 's/$const_music/9/g' \
-		-e 's/$const_videos/10/g' \
-		-e 's/$const_downloads/11/g' \
-		-e 's/$const_settings/12/g' \
-		-e 's/$const_folder/13/g' \
-		-e 's/$const_completed/14/g' \
-		-e 's/$const_command/15/g' \
-		-e 's/$const_computer/16/g' \
-		-e 's/$const_system/17/g' \
+		-e 's/const_home/0/g' \
+		-e 's/const_ssh/1/g' \
+		-e 's/const_docker/2/g' \
+		-e 's/const_podman/3/g' \
+		-e 's/const_git/4/g' \
+		-e 's/const_repo/5/g' \
+		-e 's/const_trash/6/g' \
+		-e 's/const_documents/7/g' \
+		-e 's/const_media/8/g' \
+		-e 's/const_music/9/g' \
+		-e 's/const_videos/10/g' \
+		-e 's/const_downloads/11/g' \
+		-e 's/const_settings/12/g' \
+		-e 's/const_folder/13/g' \
+		-e 's/const_completed/14/g' \
+		-e 's/const_command/15/g' \
+		-e 's/const_computer/16/g' \
+		-e 's/const_system/17/g' \
 		-e 's/var__this_command/a/g' \
 		-e 's/var__monorail_text_formatted/c/g' \
 		-e 's/var__monorail_text_array_len/e/g' \
@@ -55,6 +55,8 @@ cat "$SRC" |
 		-e 's/var__rgb_cur_color/w/g' \
 		-e 's/var__prompt_pwd/x/g' \
 		-e 's/var__monorail_repo/y/g' \
+		-e 's/var__pwd_basename/z/g' \
+		-e 's/var__spaces/A/g' \
 		>"${TEMP_BASH}"
 shfmt -mn "${TEMP_BASH}" >monorail.bash || exit 42
 
@@ -68,24 +70,24 @@ cat "$SRC" |
 	sed -e 's/#keep_for_zsh//g' \
 		-e 's/@PROMPT_PREHIDE@/%{/g' \
 		-e 's/@PROMPT_POSTHIDE@/%}/g' \
-		-e 's/$const_home/0/g' \
-		-e 's/$const_ssh/1/g' \
-		-e 's/$const_docker/2/g' \
-		-e 's/$const_podman/3/g' \
-		-e 's/$const_git/4/g' \
-		-e 's/$const_repo/5/g' \
-		-e 's/$const_trash/6/g' \
-		-e 's/$const_documents/7/g' \
-		-e 's/$const_media/8/g' \
-		-e 's/$const_music/9/g' \
-		-e 's/$const_videos/10/g' \
-		-e 's/$const_downloads/11/g' \
-		-e 's/$const_settings/12/g' \
-		-e 's/$const_folder/13/g' \
-		-e 's/$const_completed/14/g' \
-		-e 's/$const_command/15/g' \
-		-e 's/$const_computer/16/g' \
-		-e 's/$const_system/17/g' \
+		-e 's/const_home/0/g' \
+		-e 's/const_ssh/1/g' \
+		-e 's/const_docker/2/g' \
+		-e 's/const_podman/3/g' \
+		-e 's/const_git/4/g' \
+		-e 's/const_repo/5/g' \
+		-e 's/const_trash/6/g' \
+		-e 's/const_documents/7/g' \
+		-e 's/const_media/8/g' \
+		-e 's/const_music/9/g' \
+		-e 's/const_videos/10/g' \
+		-e 's/const_downloads/11/g' \
+		-e 's/const_settings/12/g' \
+		-e 's/const_folder/13/g' \
+		-e 's/const_completed/14/g' \
+		-e 's/const_command/15/g' \
+		-e 's/const_computer/16/g' \
+		-e 's/const_system/17/g' \
 		-e 's/var__this_command/a/g' \
 		-e 's/var__monorail_text/b/g' \
 		-e 's/var__monorail_text_formatted/c/g' \

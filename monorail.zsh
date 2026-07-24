@@ -274,15 +274,15 @@ TITLE_BASE=/
 /proc/*|/sys/*|/dev/*|/proc|/sys|/dev)ICON=${_MONORAIL_ICON[17]};;
 */Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)ICON=${_MONORAIL_ICON[7]};;
 "$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON=${_MONORAIL_ICON[9]};;
-"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON=${_MONORAIL_ICON[$const_pictures]};;
+"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON=${_MONORAIL_ICON[const_pictures]};;
 "$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON=${_MONORAIL_ICON[10]};;
-*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=_MONORAIL_ICON[11];;
-*)ICON=_MONORAIL_ICON[13]
+*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=${_MONORAIL_ICON[11]};;
+*)ICON=${_MONORAIL_ICON[13]}
 esac
 case $PWD in
 "$HOME")TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
 if [[ $CRAFT_STATE_DIR ]];then
-ICON=${_MONORAIL_ICON[$const_snapcraft]}
+ICON=${_MONORAIL_ICON[const_snapcraft]}
 elif [[ $SSH_CLIENT ]];then
 ICON=${_MONORAIL_ICON[1]}
 elif [[ -e /.dockerenv ]];then
@@ -298,13 +298,13 @@ esac
 fi
 _MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-$ICON}  ${_MONORAIL_TITLE_OVERRIDE-$TITLE_BASE}"
 [[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-local PWD_BASENAME="${PWD##*/}"
-[[ $PWD_BASENAME ]]||PWD_BASENAME=/
+local var__pwd_basename="${PWD##*/}"
+[[ $var__pwd_basename ]]||var__pwd_basename=/
 case $PWD in
-"$HOME")_MONORAIL_PWD_BASENAME="~";;
-*)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
+"$HOME")var__pwd_basename="~";;
+*)var__pwd_basename="${NAME-$var__pwd_basename}"
 esac
-local b=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
+local b=" $var__pwd_basename$_MONORAIL_GIT_PS1 "
 b=${b//\.\.\./$'\xe2\x80\xa6'}
 [[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $'\xe2\x80\xa6'${b:$((${#b}-$((COLUMNS/3))))}"
 local b_array=()
@@ -333,7 +333,6 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 fi
 fi
 _COLORS=()
-local var__text_lut=()
 local I=0
 local h=
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
@@ -437,8 +436,8 @@ _MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 . "$_MONORAIL_CONFIG/settings-$_MONORAIL_SHORT_HOSTNAME.conf"
 __git_ps1(){ :;}
 _MONORAIL_MAGIC_SHELLBALL(){
-local var__answer SPACES i
-SPACES=
+local var__answer var__spaces i
+var__spaces=
 i=0
 case "$RANDOM" in
 *[0-4])case "$RANDOM" in
@@ -468,10 +467,10 @@ esac
 esac
 esac
 while [[ $i -lt $((COLUMNS/2-${#var__answer}/2)) ]];do
-SPACES="$SPACES "
+var__spaces+=" "
 i=$((i+1))
 done
-echo -e "\e[?25l\e[3A\r\e[K$SPACES$var__answer"
+echo -e "\e[?25l\e[3A\r\e[K$var__spaces$var__answer"
 }
 if [[ $TERM == xterm-256color ]];then
 [[ $ZUTTY_VERSION ]]&&_MONORAIL_COMPAT=1
