@@ -48,25 +48,25 @@ else
 fi
 local prompt_command_array IFS=$'\n;'
 read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
-local trimmed_arg="${BASH_COMMAND:-}"
-trimmed_arg="${trimmed_arg#"${trimmed_arg%%[![:space:]]*}"}"
-trimmed_arg="${trimmed_arg%"${trimmed_arg##*[![:space:]]}"}"
-local command trimmed_command
-for command in "${prompt_command_array[@]:-}";do
-trimmed_command=$command
-trimmed_command="${trimmed_command#"${trimmed_command%%[![:space:]]*}"}"
-trimmed_command="${trimmed_command%"${trimmed_command##*[![:space:]]}"}"
-[[ $trimmed_command == "$trimmed_arg" ]]&&return
+local h="${BASH_COMMAND:-}"
+h="${h#"${h%%[![:space:]]*}"}"
+h="${h%"${h##*[![:space:]]}"}"
+local l g
+for l in "${prompt_command_array[@]:-}";do
+g=$l
+g="${g#"${g%%[![:space:]]*}"}"
+g="${g%"${g##*[![:space:]]}"}"
+[[ $g == "$h" ]]&&return
 done
-local this_command
-this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
-this_command="${this_command#*[[:digit:]][* ] }"
-[[ $this_command ]]||return
+local a
+a=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
+a="${a#*[[:digit:]][* ] }"
+[[ $a ]]||return
 local preexec_function
 for preexec_function in "${preexec_functions[@]:-}";do
 if type -t "$preexec_function" >/dev/null;then
 [[ ${__bp_last_ret_value-0} == 0 ]]||(exit "${__bp_last_ret_value-0}")
-"$preexec_function" "$this_command"
+"$preexec_function" "$a"
 fi
 done
 return "${__bp_last_ret_value-0}"
@@ -83,34 +83,34 @@ eval '__bp_original_debug_trap() {
         }'
 preexec_functions+=(__bp_original_debug_trap)
 fi
-local histcontrol
-histcontrol="${HISTCONTROL:-}"
-histcontrol="${histcontrol//ignorespace/}"
-[[ $histcontrol == *"ignoreboth"* ]]&&histcontrol="ignoredups:${histcontrol//ignoreboth/}"
-export HISTCONTROL="$histcontrol"
-local existing_prompt_command
-existing_prompt_command="${PROMPT_COMMAND:-}"
-existing_prompt_command="${existing_prompt_command//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}"
-existing_prompt_command="${existing_prompt_command//$'\n':$'\n'/$'\n'}"
-existing_prompt_command="${existing_prompt_command//$'\n':;/$'\n'}"
-existing_prompt_command="${existing_prompt_command#"${existing_prompt_command%%[![:space:]]*}"}"
-existing_prompt_command="${existing_prompt_command%"${existing_prompt_command##*[![:space:]]}"}"
-existing_prompt_command=${existing_prompt_command%;}
-existing_prompt_command=${existing_prompt_command#;}
-[[ ${existing_prompt_command:-:} == ":" ]]&&existing_prompt_command=
+local k
+k="${HISTCONTROL:-}"
+k="${k//ignorespace/}"
+[[ $k == *"ignoreboth"* ]]&&k="ignoredups:${k//ignoreboth/}"
+export HISTCONTROL="$k"
+local f
+f="${PROMPT_COMMAND:-}"
+f="${f//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}"
+f="${f//$'\n':$'\n'/$'\n'}"
+f="${f//$'\n':;/$'\n'}"
+f="${f#"${f%%[![:space:]]*}"}"
+f="${f%"${f##*[![:space:]]}"}"
+f=${f%;}
+f=${f#;}
+[[ ${f:-:} == ":" ]]&&f=
 PROMPT_COMMAND='precmd'
-PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}
+PROMPT_COMMAND+=${f:+$'\n'$f}
 PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')
 preexec_functions+=(preexec)
 __bp_inside_precmd=1 precmd
 __bp_preexec_interactive_mode=1
 }
-sanitized="${PROMPT_COMMAND:-}"
-sanitized="${sanitized#"${sanitized%%[![:space:]]*}"}"
-sanitized="${sanitized%"${sanitized##*[![:space:]]}"}"
-sanitized=${sanitized%;}
-sanitized=${sanitized#;}
-[[ $sanitized ]]&&PROMPT_COMMAND=("$sanitized")
+k="${PROMPT_COMMAND:-}"
+k="${k#"${k%%[![:space:]]*}"}"
+k="${k%"${k##*[![:space:]]}"}"
+k=${k%;}
+k=${k#;}
+[[ $k ]]&&PROMPT_COMMAND=("$k")
 PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install')
 preexec(){
 {
@@ -367,17 +367,17 @@ case $PWD in
 "$HOME")_MONORAIL_PWD_BASENAME="~";;
 *)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
 esac
-_MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
-_MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
-_MONORAIL_TEXT=${_MONORAIL_TEXT//\.\.\./$_MONORAIL_ELIPSIS}
-[[ ${#_MONORAIL_TEXT} -gt $((COLUMNS/3)) ]]&&_MONORAIL_TEXT=" $_MONORAIL_ELIPSIS${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT}-$((COLUMNS/3))))}"
-_MONORAIL_TEXT_ARRAY=()
-for ((I=0; I<${#_MONORAIL_TEXT}; I++));do
-_MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT:I:1}
+local b=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
+local _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
+b=${b//\.\.\./$_MONORAIL_ELIPSIS}
+[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $_MONORAIL_ELIPSIS${b:$((${#b}-$((COLUMNS/3))))}"
+local b_array=()
+for ((I=0; I<${#b}; I++));do
+b_array[I]=${b:I:1}
 done
-_MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
+b_array_len=${#b_array[@]}
 local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
-if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
+if [[ $_MONORAIL_CACHE != "$COLUMNS$b" ]];then
 unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]];then
 mkdir -p "$_MONORAIL_CONFIG"
@@ -406,33 +406,33 @@ I=$((I+1))
 done
 local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
-_MONORAIL_TEXT_FORMATTED=\[$'\e'"[0;7m\]"
-while [[ $I -lt $_MONORAIL_TEXT_ARRAY_LEN ]];do
-_MONORAIL_TEXT_FORMATTED+=${_MONORAIL_TEXT_ARRAY[I]}
+b_formatted=\[$'\e'"[0;7m\]"
+while [[ $I -lt $b_array_len ]];do
+b_formatted+=${b_array[I]}
 I=$((I+1))
 done
-_MONORAIL_TEXT_FORMATTED+=\[$'\e[0;8m'"\]|"
+b_formatted+=\[$'\e[0;8m'"\]|"
 else
-_MONORAIL_TEXT_FORMATTED=
+b_formatted=
 [[ -z ${_PROMPT_TEXT_LUT[*]} ]]&&_PROMPT_TEXT_LUT[0]="255;255;255"
-while [[ $I -lt $_MONORAIL_TEXT_ARRAY_LEN ]];do
-_MONORAIL_TEXT_FORMATTED+="\["$'\e['"$((_MONORAIL_TEXT_ARRAY_LEN+1))C"$'\e'["$((_MONORAIL_TEXT_ARRAY_LEN+1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m\]${_MONORAIL_TEXT_ARRAY[I]}"
+while [[ $I -lt $b_array_len ]];do
+b_formatted+="\["$'\e['"$((b_array_len+1))C"$'\e'["$((b_array_len+1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m\]${b_array[I]}"
 I=$((I+1))
 done
-_MONORAIL_TEXT_FORMATTED+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m\]|"
+b_formatted+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m\]|"
 fi
-RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*$((_MONORAIL_TEXT_ARRAY_LEN+1))/$((COLUMNS+1))))]}
+RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*$((b_array_len+1))/$((COLUMNS+1))))]}
 RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
 HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
 [[ ${_PROMPT_LUT[0]} ]]||HEX_CURSOR_COLOR=${_COLORS[21]}
-_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
+_MONORAIL_CACHE="$COLUMNS$b"
 fi
 unset _MONORAIL_NOSTYLING
 PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED\["$'\r\e['$((${#_MONORAIL_TEXT}+1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"\]"
+$b_formatted\["$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"\]"
 printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 }
 _TITLE(){

@@ -47,86 +47,86 @@
 	__bp_preexec_interactive_mode=       #keep_for_bash
 	declare -a preexec_functions         #keep_for_bash
 
-	__bp_preexec_interactive_mode=1                                      #keep_for_bash
-	__bp_preexec_invoke_exec() {                                         #keep_for_bash
-		__bp_last_argument_prev_command="${1:-}"                            #keep_for_bash
-		[[ $__bp_inside_preexec ]] && return                                #keep_for_bash
-		local __bp_inside_preexec=1                                         #keep_for_bash
-		[[ ! -t 1 ]] && return                                              #keep_for_bash
-		[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]] && return              #keep_for_bash
-		if [[ -z ${__bp_preexec_interactive_mode:-} ]]; then                #keep_for_bash
-			return                                                             #keep_for_bash
-		else                                                                #keep_for_bash
-			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && __bp_preexec_interactive_mode="" #keep_for_bash
-		fi                                                                  #keep_for_bash
-		local prompt_command_array IFS=$'\n;'                               #keep_for_bash
-		read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"     #keep_for_bash
-		local trimmed_arg="${BASH_COMMAND:-}"                               #keep_for_bash
-		trimmed_arg="${trimmed_arg#"${trimmed_arg%%[![:space:]]*}"}"        #keep_for_bash
-		trimmed_arg="${trimmed_arg%"${trimmed_arg##*[![:space:]]}"}"        #keep_for_bash
+	__bp_preexec_interactive_mode=1                                              #keep_for_bash
+	__bp_preexec_invoke_exec() {                                                 #keep_for_bash
+		__bp_last_argument_prev_command="${1:-}"                                    #keep_for_bash
+		[[ $__bp_inside_preexec ]] && return                                        #keep_for_bash
+		local __bp_inside_preexec=1                                                 #keep_for_bash
+		[[ ! -t 1 ]] && return                                                      #keep_for_bash
+		[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]] && return                      #keep_for_bash
+		if [[ -z ${__bp_preexec_interactive_mode:-} ]]; then                        #keep_for_bash
+			return                                                                     #keep_for_bash
+		else                                                                        #keep_for_bash
+			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && __bp_preexec_interactive_mode=""         #keep_for_bash
+		fi                                                                          #keep_for_bash
+		local prompt_command_array IFS=$'\n;'                                       #keep_for_bash
+		read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"             #keep_for_bash
+		local var__trimmed_arg="${BASH_COMMAND:-}"                                  #keep_for_bash
+		var__trimmed_arg="${var__trimmed_arg#"${var__trimmed_arg%%[![:space:]]*}"}" #keep_for_bash
+		var__trimmed_arg="${var__trimmed_arg%"${var__trimmed_arg##*[![:space:]]}"}" #keep_for_bash
 
-		local command trimmed_command                                             #keep_for_bash
-		for command in "${prompt_command_array[@]:-}"; do                         #keep_for_bash
-			trimmed_command=${command}                                               #keep_for_bash
-			trimmed_command="${trimmed_command#"${trimmed_command%%[![:space:]]*}"}" #keep_for_bash
-			trimmed_command="${trimmed_command%"${trimmed_command##*[![:space:]]}"}" #keep_for_bash
-			[[ $trimmed_command = "$trimmed_arg" ]] && return                        #keep_for_bash
-		done                                                                      #keep_for_bash
-		local this_command                                                        #keep_for_bash
-		this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)              #keep_for_bash
-		this_command="${this_command#*[[:digit:]][* ] }"                          #keep_for_bash
-		[[ $this_command ]] || return                                             #keep_for_bash
-		local preexec_function                                                    #keep_for_bash
-		for preexec_function in "${preexec_functions[@]:-}"; do                   #keep_for_bash
-			if type -t "$preexec_function" >/dev/null; then                          #keep_for_bash
-				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}") #keep_for_bash
-				"$preexec_function" "$this_command"                                     #keep_for_bash
-			fi                                                                       #keep_for_bash
-		done                                                                      #keep_for_bash
-		return "${__bp_last_ret_value-0}"                                         #keep_for_bash
-	}                                                                          #keep_for_bash
-	__bp_install() {                                                           #keep_for_bash
-		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                     #keep_for_bash
-		trap '__bp_preexec_invoke_exec "$_"' DEBUG                                #keep_for_bash
-		eval "local trap_argv=(${__bp_trap_string:-})"                            #keep_for_bash
-		local prior_trap=${trap_argv[2]:-}                                        #keep_for_bash
-		unset __bp_trap_string                                                    #keep_for_bash
-		if [[ $prior_trap ]]; then                                                #keep_for_bash
+		local var__command var__trimmed_command                                                  #keep_for_bash
+		for var__command in "${prompt_command_array[@]:-}"; do                                   #keep_for_bash
+			var__trimmed_command=${var__command}                                                    #keep_for_bash
+			var__trimmed_command="${var__trimmed_command#"${var__trimmed_command%%[![:space:]]*}"}" #keep_for_bash
+			var__trimmed_command="${var__trimmed_command%"${var__trimmed_command##*[![:space:]]}"}" #keep_for_bash
+			[[ $var__trimmed_command = "$var__trimmed_arg" ]] && return                             #keep_for_bash
+		done                                                                                     #keep_for_bash
+		local var__this_command                                                                  #keep_for_bash
+		var__this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)                        #keep_for_bash
+		var__this_command="${var__this_command#*[[:digit:]][* ] }"                               #keep_for_bash
+		[[ $var__this_command ]] || return                                                       #keep_for_bash
+		local preexec_function                                                                   #keep_for_bash
+		for preexec_function in "${preexec_functions[@]:-}"; do                                  #keep_for_bash
+			if type -t "$preexec_function" >/dev/null; then                                         #keep_for_bash
+				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}")                #keep_for_bash
+				"$preexec_function" "$var__this_command"                                               #keep_for_bash
+			fi                                                                                      #keep_for_bash
+		done                                                                                     #keep_for_bash
+		return "${__bp_last_ret_value-0}"                                                        #keep_for_bash
+	}                                                                                         #keep_for_bash
+	__bp_install() {                                                                          #keep_for_bash
+		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                                    #keep_for_bash
+		trap '__bp_preexec_invoke_exec "$_"' DEBUG                                               #keep_for_bash
+		eval "local trap_argv=(${__bp_trap_string:-})"                                           #keep_for_bash
+		local prior_trap=${trap_argv[2]:-}                                                       #keep_for_bash
+		unset __bp_trap_string                                                                   #keep_for_bash
+		if [[ $prior_trap ]]; then                                                               #keep_for_bash
 			eval '__bp_original_debug_trap() { #keep_for_bash
             '"$prior_trap"' #keep_for_bash
-        }'                                                                                                                   #keep_for_bash
-			preexec_functions+=(__bp_original_debug_trap)                                                                             #keep_for_bash
-		fi                                                                                                                         #keep_for_bash
-		local histcontrol                                                                                                          #keep_for_bash
-		histcontrol="${HISTCONTROL:-}"                                                                                             #keep_for_bash
-		histcontrol="${histcontrol//ignorespace/}"                                                                                 #keep_for_bash
-		[[ $histcontrol = *"ignoreboth"* ]] && histcontrol="ignoredups:${histcontrol//ignoreboth/}"                                #keep_for_bash
-		export HISTCONTROL="$histcontrol"                                                                                          #keep_for_bash
-		local existing_prompt_command                                                                                              #keep_for_bash
-		existing_prompt_command="${PROMPT_COMMAND:-}"                                                                              #keep_for_bash
-		existing_prompt_command="${existing_prompt_command//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}" #keep_for_bash
-		existing_prompt_command="${existing_prompt_command//$'\n':$'\n'/$'\n'}"                                                    #keep_for_bash
-		existing_prompt_command="${existing_prompt_command//$'\n':;/$'\n'}"                                                        #keep_for_bash
+        }'                                                                                                                             #keep_for_bash
+			preexec_functions+=(__bp_original_debug_trap)                                                                                       #keep_for_bash
+		fi                                                                                                                                   #keep_for_bash
+		local var__histcontrol                                                                                                               #keep_for_bash
+		var__histcontrol="${HISTCONTROL:-}"                                                                                                  #keep_for_bash
+		var__histcontrol="${var__histcontrol//ignorespace/}"                                                                                 #keep_for_bash
+		[[ $var__histcontrol = *"ignoreboth"* ]] && var__histcontrol="ignoredups:${var__histcontrol//ignoreboth/}"                           #keep_for_bash
+		export HISTCONTROL="$var__histcontrol"                                                                                               #keep_for_bash
+		local var__existing_prompt_command                                                                                                   #keep_for_bash
+		var__existing_prompt_command="${PROMPT_COMMAND:-}"                                                                                   #keep_for_bash
+		var__existing_prompt_command="${var__existing_prompt_command//$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'/:}" #keep_for_bash
+		var__existing_prompt_command="${var__existing_prompt_command//$'\n':$'\n'/$'\n'}"                                                    #keep_for_bash
+		var__existing_prompt_command="${var__existing_prompt_command//$'\n':;/$'\n'}"                                                        #keep_for_bash
 
-		existing_prompt_command="${existing_prompt_command#"${existing_prompt_command%%[![:space:]]*}"}" #keep_for_bash
-		existing_prompt_command="${existing_prompt_command%"${existing_prompt_command##*[![:space:]]}"}" #keep_for_bash
-		existing_prompt_command=${existing_prompt_command%;}                                             #keep_for_bash
-		existing_prompt_command=${existing_prompt_command#;}                                             #keep_for_bash
-		[[ ${existing_prompt_command:-:} = ":" ]] && existing_prompt_command=                            #keep_for_bash
-		PROMPT_COMMAND='precmd'                                                                          #keep_for_bash
-		PROMPT_COMMAND+=${existing_prompt_command:+$'\n'$existing_prompt_command}                        #keep_for_bash
-		PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')                                              #keep_for_bash
-		preexec_functions+=(preexec)                                                                     #keep_for_bash
-		__bp_inside_precmd=1 precmd                                                                      #keep_for_bash
-		__bp_preexec_interactive_mode=1                                                                  #keep_for_bash
-	}                                                                                                 #keep_for_bash
-	sanitized="${PROMPT_COMMAND:-}"                                                                   #keep_for_bash
-	sanitized="${sanitized#"${sanitized%%[![:space:]]*}"}"                                            #keep_for_bash
-	sanitized="${sanitized%"${sanitized##*[![:space:]]}"}"                                            #keep_for_bash
-	sanitized=${sanitized%;}                                                                          #keep_for_bash
-	sanitized=${sanitized#;}                                                                          #keep_for_bash
+		var__existing_prompt_command="${var__existing_prompt_command#"${var__existing_prompt_command%%[![:space:]]*}"}" #keep_for_bash
+		var__existing_prompt_command="${var__existing_prompt_command%"${var__existing_prompt_command##*[![:space:]]}"}" #keep_for_bash
+		var__existing_prompt_command=${var__existing_prompt_command%;}                                                  #keep_for_bash
+		var__existing_prompt_command=${var__existing_prompt_command#;}                                                  #keep_for_bash
+		[[ ${var__existing_prompt_command:-:} = ":" ]] && var__existing_prompt_command=                                 #keep_for_bash
+		PROMPT_COMMAND='precmd'                                                                                         #keep_for_bash
+		PROMPT_COMMAND+=${var__existing_prompt_command:+$'\n'$var__existing_prompt_command}                             #keep_for_bash
+		PROMPT_COMMAND+=('__bp_preexec_interactive_mode=1')                                                             #keep_for_bash
+		preexec_functions+=(preexec)                                                                                    #keep_for_bash
+		__bp_inside_precmd=1 precmd                                                                                     #keep_for_bash
+		__bp_preexec_interactive_mode=1                                                                                 #keep_for_bash
+	}                                                                                                                #keep_for_bash
+	var__sanitized="${PROMPT_COMMAND:-}"                                                                             #keep_for_bash
+	var__sanitized="${var__sanitized#"${var__sanitized%%[![:space:]]*}"}"                                            #keep_for_bash
+	var__sanitized="${var__sanitized%"${var__sanitized##*[![:space:]]}"}"                                            #keep_for_bash
+	var__sanitized=${var__sanitized%;}                                                                               #keep_for_bash
+	var__sanitized=${var__sanitized#;}                                                                               #keep_for_bash
 
-	[[ $sanitized ]] && PROMPT_COMMAND=("$sanitized")                                    #keep_for_bash
+	[[ $var__sanitized ]] && PROMPT_COMMAND=("$var__sanitized")                          #keep_for_bash
 	PROMPT_COMMAND+=($'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install') #keep_for_bash
 	preexec() {
 		{
@@ -402,23 +402,23 @@
 		"$HOME") _MONORAIL_PWD_BASENAME="~" ;;
 		*) _MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}" ;;
 		esac
-		_MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
-		_MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
-		_MONORAIL_TEXT=${_MONORAIL_TEXT//\.\.\./${_MONORAIL_ELIPSIS}}
+		local var__monorail_text=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
+		local _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
+		var__monorail_text=${var__monorail_text//\.\.\./${_MONORAIL_ELIPSIS}}
 		# frequently, the last of the text is the most relevant, cut beginning if too long path
-		[[ ${#_MONORAIL_TEXT} -gt $((COLUMNS / 3)) ]] && _MONORAIL_TEXT=" ${_MONORAIL_ELIPSIS}${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT} - $((COLUMNS / 3))))}"
-		_MONORAIL_TEXT_ARRAY=()
-		for ((I = 0; I < ${#_MONORAIL_TEXT}; I++)); do #keep_for_zsh
+		[[ ${#var__monorail_text} -gt $((COLUMNS / 3)) ]] && var__monorail_text=" ${_MONORAIL_ELIPSIS}${var__monorail_text:$((${#var__monorail_text} - $((COLUMNS / 3))))}"
+		local var__monorail_text_array=()
+		for ((I = 0; I < ${#var__monorail_text}; I++)); do #keep_for_zsh
 			#keep_for_zsh
-			_MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT[I]}  #keep_for_zsh
-		done                                           #keep_for_zsh
-		for ((I = 0; I < ${#_MONORAIL_TEXT}; I++)); do #keep_for_bash
+			var__monorail_text_array[I]=${var__monorail_text[I]} #keep_for_zsh
+		done                                                  #keep_for_zsh
+		for ((I = 0; I < ${#var__monorail_text}; I++)); do    #keep_for_bash
 			#keep_for_bash
-			_MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT:I:1} #keep_for_bash
-		done                                           #keep_for_bash
-		_MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
+			var__monorail_text_array[I]=${var__monorail_text:I:1} #keep_for_bash
+		done                                                   #keep_for_bash
+		var__monorail_text_array_len=${#var__monorail_text_array[@]}
 		local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
-		if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]]; then
+		if [[ $_MONORAIL_CACHE != "$COLUMNS$var__monorail_text" ]]; then
 			unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 			if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]]; then
 				mkdir -p "$_MONORAIL_CONFIG"
@@ -449,38 +449,38 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 			done
 			local I=0
 			if [[ -z ${_PROMPT_LUT[0]} ]]; then
-				_MONORAIL_TEXT_FORMATTED=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
-				while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]]; do
-					_MONORAIL_TEXT_FORMATTED+=${_MONORAIL_TEXT_ARRAY[I]}
+				var__monorail_text_formatted=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
+				while [[ $I -lt ${var__monorail_text_array_len} ]]; do
+					var__monorail_text_formatted+=${var__monorail_text_array[I]}
 					I=$((I + 1))
 				done
-				_MONORAIL_TEXT_FORMATTED+=@PROMPT_PREHIDE@$'\e[0;8m'"@PROMPT_POSTHIDE@|"
+				var__monorail_text_formatted+=@PROMPT_PREHIDE@$'\e[0;8m'"@PROMPT_POSTHIDE@|"
 			else
-				_MONORAIL_TEXT_FORMATTED=
+				var__monorail_text_formatted=
 				[[ -z ${_PROMPT_TEXT_LUT[*]} ]] && _PROMPT_TEXT_LUT[0]="255;255;255"
-				while [[ $I -lt ${_MONORAIL_TEXT_ARRAY_LEN} ]]; do
-					_MONORAIL_TEXT_FORMATTED+="@PROMPT_PREHIDE@"$'\e['"$((_MONORAIL_TEXT_ARRAY_LEN + 1))C"$'\e'["$((_MONORAIL_TEXT_ARRAY_LEN + 1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * I / $((COLUMNS + 1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]} * I / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${_MONORAIL_TEXT_ARRAY[I]}"
+				while [[ $I -lt ${var__monorail_text_array_len} ]]; do
+					var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e['"$((var__monorail_text_array_len + 1))C"$'\e'["$((var__monorail_text_array_len + 1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * I / $((COLUMNS + 1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]} * I / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[I]}"
 					I=$((I + 1))
 				done
 				# The invisible vertical bar is added to make the prompt more readable when copied to a chat or text doc.
 				# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
 				# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
 				# In this case the horizontal bar is colored with background color.
-				_MONORAIL_TEXT_FORMATTED+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m@PROMPT_POSTHIDE@|"
+				var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m@PROMPT_POSTHIDE@|"
 			fi
-			RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * $((_MONORAIL_TEXT_ARRAY_LEN + 1)) / $((COLUMNS + 1))))]}
+			RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))]}
 			RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 			RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 			RGB_CUR_G=${RGB_CUR_GB%%;*}
 			RGB_CUR_B=${RGB_CUR_GB##*;}
 			HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
 			[[ ${_PROMPT_LUT[0]} ]] || HEX_CURSOR_COLOR=${_COLORS[21]}
-			_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
+			_MONORAIL_CACHE="$COLUMNS$var__monorail_text"
 		fi
 		unset _MONORAIL_NOSTYLING
 		# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 		PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED@PROMPT_PREHIDE@"$'\r\e['$((${#_MONORAIL_TEXT} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"@PROMPT_POSTHIDE@"
+$var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"@PROMPT_POSTHIDE@"
 		# shellcheck disable=SC2059 # keep printf compact
 		printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 	}

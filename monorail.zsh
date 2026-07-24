@@ -286,17 +286,17 @@ case $PWD in
 "$HOME")_MONORAIL_PWD_BASENAME="~";;
 *)_MONORAIL_PWD_BASENAME="${NAME-$PWD_BASENAME}"
 esac
-_MONORAIL_TEXT=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
-_MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
-_MONORAIL_TEXT=${_MONORAIL_TEXT//\.\.\./$_MONORAIL_ELIPSIS}
-[[ ${#_MONORAIL_TEXT} -gt $((COLUMNS/3)) ]]&&_MONORAIL_TEXT=" $_MONORAIL_ELIPSIS${_MONORAIL_TEXT:$((${#_MONORAIL_TEXT}-$((COLUMNS/3))))}"
-_MONORAIL_TEXT_ARRAY=()
-for ((I=0; I<${#_MONORAIL_TEXT}; I++));do
-_MONORAIL_TEXT_ARRAY[I]=${_MONORAIL_TEXT[I]}
+local b=" $_MONORAIL_PWD_BASENAME$_MONORAIL_GIT_PS1 "
+local _MONORAIL_ELIPSIS=$'\xe2\x80\xa6'
+b=${b//\.\.\./$_MONORAIL_ELIPSIS}
+[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $_MONORAIL_ELIPSIS${b:$((${#b}-$((COLUMNS/3))))}"
+local b_array=()
+for ((I=0; I<${#b}; I++));do
+b_array[I]=${b[I]}
 done
-_MONORAIL_TEXT_ARRAY_LEN=${#_MONORAIL_TEXT_ARRAY[@]}
+b_array_len=${#b_array[@]}
 local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
-if [[ $_MONORAIL_CACHE != "$COLUMNS$_MONORAIL_TEXT" ]];then
+if [[ $_MONORAIL_CACHE != "$COLUMNS$b" ]];then
 unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]];then
 mkdir -p "$_MONORAIL_CONFIG"
@@ -325,33 +325,33 @@ I=$((I+1))
 done
 local I=0
 if [[ -z ${_PROMPT_LUT[0]} ]];then
-_MONORAIL_TEXT_FORMATTED=%{$'\e'"[0;7m%}"
-while [[ $I -lt $_MONORAIL_TEXT_ARRAY_LEN ]];do
-_MONORAIL_TEXT_FORMATTED+=${_MONORAIL_TEXT_ARRAY[I]}
+b_formatted=%{$'\e'"[0;7m%}"
+while [[ $I -lt $b_array_len ]];do
+b_formatted+=${b_array[I]}
 I=$((I+1))
 done
-_MONORAIL_TEXT_FORMATTED+=%{$'\e[0;8m'"%}|"
+b_formatted+=%{$'\e[0;8m'"%}|"
 else
-_MONORAIL_TEXT_FORMATTED=
+b_formatted=
 [[ -z ${_PROMPT_TEXT_LUT[*]} ]]&&_PROMPT_TEXT_LUT[0]="255;255;255"
-while [[ $I -lt $_MONORAIL_TEXT_ARRAY_LEN ]];do
-_MONORAIL_TEXT_FORMATTED+="%{"$'\e['"$((_MONORAIL_TEXT_ARRAY_LEN+1))C"$'\e'["$((_MONORAIL_TEXT_ARRAY_LEN+1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m%}${_MONORAIL_TEXT_ARRAY[I]}"
+while [[ $I -lt $b_array_len ]];do
+b_formatted+="%{"$'\e['"$((b_array_len+1))C"$'\e'["$((b_array_len+1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*I/$((COLUMNS+1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]}*I/$((COLUMNS+1))))]}m%}${b_array[I]}"
 I=$((I+1))
 done
-_MONORAIL_TEXT_FORMATTED+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m%}|"
+b_formatted+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m%}|"
 fi
-RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*$((_MONORAIL_TEXT_ARRAY_LEN+1))/$((COLUMNS+1))))]}
+RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]}*$((b_array_len+1))/$((COLUMNS+1))))]}
 RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 RGB_CUR_G=${RGB_CUR_GB%%;*}
 RGB_CUR_B=${RGB_CUR_GB##*;}
 HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
 [[ ${_PROMPT_LUT[0]} ]]||HEX_CURSOR_COLOR=${_COLORS[21]}
-_MONORAIL_CACHE="$COLUMNS$_MONORAIL_TEXT"
+_MONORAIL_CACHE="$COLUMNS$b"
 fi
 unset _MONORAIL_NOSTYLING
 PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$_MONORAIL_TEXT_FORMATTED%{"$'\r\e['$((${#_MONORAIL_TEXT}+1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"%}"
+$b_formatted%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"%}"
 printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 }
 _TITLE(){
