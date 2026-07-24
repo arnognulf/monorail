@@ -179,11 +179,11 @@
 			_MEASURE=1
 			_START_SECONDS=$SECONDS
 			_MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-			local _MONORAIL_TITLE_FORMATTED=
-			[[ $IGNORED_TITLE ]] || _MONORAIL_TITLE_FORMATTED=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
+			local var__monorail_title_formatted=
+			[[ $IGNORED_TITLE ]] || var__monorail_title_formatted=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
 			[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 			# shellcheck disable=SC2059 # keep printf compact
-			printf "$_MONORAIL_TITLE_FORMATTED\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
+			printf "$var__monorail_title_formatted\e]11;#${var__colors[17]}\a\e]10;#${var__colors[16]}\a\e]12;#${var__colors[21]}\a\r\e[K" >/dev/tty 2>&-
 			unset _MONORAIL_CUSTOM_TITLE
 			# dummy syntax so curly brackets match up for preprocessed brackets below
 			{  #discard_for_all
@@ -193,26 +193,20 @@
 		} >&- 2>&-     #keep_for_bash
 	}
 	_monorail_gradient() {
-		unset "_PROMPT_LUT[*]"
-		_PROMPT_LUT=()
 		while [[ $1 ]]; do
-			_PROMPT_LUT[${#_PROMPT_LUT[@]}]=$1
+			var__prompt_lut[${#var__prompt_lut[@]}]=$1
 			shift
 		done
 	}
 	_monorail_textgradient() {
-		unset "_PROMPT_TEXT_LUT[*]"
-		_PROMPT_TEXT_LUT=()
 		while [[ $1 ]]; do
-			_PROMPT_TEXT_LUT[${#_PROMPT_TEXT_LUT[@]}]=$1
+			var__prompt_text_lut[${#var__prompt_text_lut[@]}]=$1
 			shift
 		done
 	}
 	_monorail_colors() {
-		unset "_COLORS[*]"
-		_COLORS=()
 		while [[ "$1" ]]; do
-			_COLORS[${#_COLORS[@]}]=$1
+			var__colors[${#var__colors[@]}]=$1
 			shift
 		done
 	}
@@ -419,7 +413,7 @@
 		var__monorail_text_array_len=${#var__monorail_text_array[@]}
 		local RGB_CUR_COLOR RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
 		if [[ $_MONORAIL_CACHE != "$COLUMNS$var__monorail_text" ]]; then
-			unset _MONORAIL_CACHE "_PROMPT_LUT[*]" "_PROMPT_TEXT_LUT[*]" _MEASURE
+			unset _MONORAIL_CACHE _MEASURE
 			if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]]; then
 				mkdir -p "$_MONORAIL_CONFIG"
 				if [[ -f "$_MONORAIL_DIR/gradients/Default.conf" ]]; then
@@ -438,17 +432,19 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
                      3. Restart terminal." >/dev/tty
 				fi
 			fi
+			local var__colors=()
+			local var__text_lut=()
+			local var__prompt_lut=()
 			# shellcheck source=scripts/dummy.conf
 			. "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 			local I=0
-			_MONORAIL_LINE=
-			_MONORAIL_UNDERLINE=
+			local var__monorail_line=
 			while [[ $I -le $COLUMNS ]]; do
-				_MONORAIL_LINE+=$'\e'"[38;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * I / $((COLUMNS + 1))))]}m"$'\xe2\x96\x81'
+				var__monorail_line+=$'\e'"[38;2;${var__prompt_lut[$((${#var__prompt_lut[*]} * I / $((COLUMNS + 1))))]}m"$'\xe2\x96\x81'
 				I=$((I + 1))
 			done
 			local I=0
-			if [[ -z ${_PROMPT_LUT[0]} ]]; then
+			if [[ -z ${var__prompt_lut[0]} ]]; then
 				var__monorail_text_formatted=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
 				while [[ $I -lt ${var__monorail_text_array_len} ]]; do
 					var__monorail_text_formatted+=${var__monorail_text_array[I]}
@@ -457,32 +453,33 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 				var__monorail_text_formatted+=@PROMPT_PREHIDE@$'\e[0;8m'"@PROMPT_POSTHIDE@|"
 			else
 				var__monorail_text_formatted=
-				[[ -z ${_PROMPT_TEXT_LUT[*]} ]] && _PROMPT_TEXT_LUT[0]="255;255;255"
+				[[ -z ${var__prompt_text_lut[*]} ]] && var__prompt_text_lut[0]="255;255;255"
 				while [[ $I -lt ${var__monorail_text_array_len} ]]; do
-					var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e['"$((var__monorail_text_array_len + 1))C"$'\e'["$((var__monorail_text_array_len + 1))"D$'\e'"[48;2;${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * I / $((COLUMNS + 1))))]}m"$'\e'"[38;2;${_PROMPT_TEXT_LUT[$((${#_PROMPT_TEXT_LUT[*]} * I / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[I]}"
+					var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e['"$((var__monorail_text_array_len + 1))C"$'\e'["$((var__monorail_text_array_len + 1))"D$'\e'"[48;2;${var__prompt_lut[$((${#var__prompt_lut[*]} * I / $((COLUMNS + 1))))]}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * I / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[I]}"
 					I=$((I + 1))
 				done
 				# The invisible vertical bar is added to make the prompt more readable when copied to a chat or text doc.
 				# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
 				# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
 				# In this case the horizontal bar is colored with background color.
-				var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m@PROMPT_POSTHIDE@|"
+				var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${var__colors[17]:0:2}));$((0x${var__colors[17]:2:2}));$((0x${var__colors[17]:4:2}))m@PROMPT_POSTHIDE@|"
 			fi
-			RGB_CUR_COLOR=${_PROMPT_LUT[$((${#_PROMPT_LUT[*]} * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))]}
+			RGB_CUR_COLOR=${var__prompt_lut[$((${#var__prompt_lut[*]} * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))]}
 			RGB_CUR_R=${RGB_CUR_COLOR%%;*}
 			RGB_CUR_GB=${RGB_CUR_COLOR#*;}
 			RGB_CUR_G=${RGB_CUR_GB%%;*}
 			RGB_CUR_B=${RGB_CUR_GB##*;}
-			HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
-			[[ ${_PROMPT_LUT[0]} ]] || HEX_CURSOR_COLOR=${_COLORS[21]}
+			var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
+			[[ ${var__prompt_lut[0]} ]] || var__hex_cursor_color=${var__colors[21]}
 			_MONORAIL_CACHE="$COLUMNS$var__monorail_text"
+			# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
+			PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$var__monorail_line
+$var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e]12;#$var__hex_cursor_color\a\e[0m'"@PROMPT_POSTHIDE@"
+			# shellcheck disable=SC2059 # keep printf compact
+			printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${var__colors[17]}\a\e]10;#${var__colors[16]}\a\e]4;0;#${var__colors[0]}\a\e]4;1;#${var__colors[1]}\a\e]4;2;#${var__colors[2]}\a\e]4;3;#${var__colors[3]}\a\e]4;4;#${var__colors[4]}\a\e]4;5;#${var__colors[5]}\a\e]4;6;#${var__colors[6]}\a\e]4;7;#${var__colors[7]}\a\e]4;8;#${var__colors[8]}\a\e]4;9;#${var__colors[9]}\a\e]4;10;#${var__colors[10]}\a\e]4;11;#${var__colors[11]}\a\e]4;12;#${var__colors[12]}\a\e]4;13;#${var__colors[13]}\a\e]4;14;#${var__colors[14]}\a\e]4;15;#${var__colors[15]}\a\r"
 		fi
 		unset _MONORAIL_NOSTYLING
-		# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-		PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$_MONORAIL_LINE
-$var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e]12;#$HEX_CURSOR_COLOR\a\e[0m'"@PROMPT_POSTHIDE@"
-		# shellcheck disable=SC2059 # keep printf compact
-		printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
+
 	}
 	_TITLE() {
 		local _MONORAIL_TITLE="$*"

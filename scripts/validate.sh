@@ -32,16 +32,22 @@ cat "$SRC" |
 		-e 's/$const_computer/16/g' \
 		-e 's/$const_system/17/g' \
 		-e 's/var__this_command/a/g' \
-		-e 's/var__monorail_text/b/g' \
 		-e 's/var__monorail_text_formatted/c/g' \
-		-e 's/var__monorail_text_array/d/g' \
 		-e 's/var__monorail_text_array_len/e/g' \
+		-e 's/var__monorail_text_array/d/g' \
+		-e 's/var__monorail_text/b/g' \
 		-e 's/var__existing_prompt_command/f/g' \
 		-e 's/var__trimmed_command/g/g' \
 		-e 's/var__trimmed_arg/h/g' \
 		-e 's/var__sanitized/k/g' \
 		-e 's/var__histcontrol/k/g' \
 		-e 's/var__command/l/g' \
+		-e 's/var__colors/m/g' \
+		-e 's/var__text_lut/n/g' \
+		-e 's/var__prompt_lut/o/g' \
+		-e 's/var__monorail_title_formatted/p/g' \
+		-e 's/var__monorail_title/q/g' \
+		-e 's/var__hex_cursor_color/r/g' \
 		>"${TEMP_BASH}"
 shfmt -mn "${TEMP_BASH}" >monorail.bash || exit 42
 
@@ -80,6 +86,7 @@ cat "$SRC" |
 		-e 's/var__monorail_text_array_len/e/g' \
 		-e 's/var__existing_prompt_command/f/g' \
 		-e 's/var__trimmed_command/g/g' \
+		-e 's/var__monorail_line/h/g' \
 		>"${TEMP_ZSH}"
 shfmt -mn "${TEMP_ZSH}" >monorail.zsh || exit 42
 
