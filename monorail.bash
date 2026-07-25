@@ -205,16 +205,10 @@ r=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
 [[ $1 ]]||r=${_COLORS[21]}
 }
 _monorail_textgradient(){
-while [[ $1 ]];do
-t[${#t[@]}]=$1
-shift
-done
+t=("$@")
 }
 _monorail_colors(){
-while [[ "$1" ]];do
-_COLORS[${#_COLORS[@]}]=$1
-shift
-done
+_COLORS=("$@")
 }
 _MONORAIL_SET_TITLE(){
 unset _MONORAIL_TITLE_OVERRIDE

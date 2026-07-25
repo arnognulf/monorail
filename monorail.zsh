@@ -124,16 +124,10 @@ var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CU
 [[ $1 ]]||var__hex_cursor_color=${_COLORS[21]}
 }
 _monorail_textgradient(){
-while [[ $1 ]];do
-var__prompt_text_lut[${#var__prompt_text_lut[@]}]=$1
-shift
-done
+var__prompt_text_lut=("$@")
 }
 _monorail_colors(){
-while [[ "$1" ]];do
-_COLORS[${#_COLORS[@]}]=$1
-shift
-done
+_COLORS=("$@")
 }
 _MONORAIL_SET_TITLE(){
 unset _MONORAIL_TITLE_OVERRIDE

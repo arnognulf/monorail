@@ -251,16 +251,10 @@ const_system=17    #discard_for_all
 		[[ $1 ]] || var__hex_cursor_color=${_COLORS[21]}
 	}
 	_monorail_textgradient() {
-		while [[ $1 ]]; do
-			var__prompt_text_lut[${#var__prompt_text_lut[@]}]=$1
-			shift
-		done
+		var__prompt_text_lut=("$@")
 	}
 	_monorail_colors() {
-		while [[ "$1" ]]; do
-			_COLORS[${#_COLORS[@]}]=$1
-			shift
-		done
+		_COLORS=("$@")
 	}
 	_MONORAIL_SET_TITLE() {
 		unset _MONORAIL_TITLE_OVERRIDE
