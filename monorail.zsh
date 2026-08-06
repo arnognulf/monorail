@@ -99,7 +99,7 @@ done
 i=0
 if [[ $1 ]];then
 b_formatted=
-[[ -z ${var__prompt_text_lut[*]} ]]&&var__prompt_text_lut[0]="255;255;255"
+[[ ${var__prompt_text_lut[*]} ]]||var__prompt_text_lut[0]="255;255;255"
 while [[ $i -lt $b_array_len ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 b_formatted+="%{"$'\e['"$((b_array_len+1))C"$'\e'["$((b_array_len+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]}*i/$((COLUMNS+1))))]}m%}${b_array[i]}"
