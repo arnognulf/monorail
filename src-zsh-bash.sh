@@ -74,11 +74,8 @@ const_system=17    #discard_for_all
 		local __bp_inside_preexec=1                                                 #keep_for_bash
 		[[ ! -t 1 ]] && return                                                      #keep_for_bash
 		[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]] && return                      #keep_for_bash
-		if [[ -z ${__bp_preexec_interactive_mode:-} ]]; then                        #keep_for_bash
-			return                                                                     #keep_for_bash
-		else                                                                        #keep_for_bash
-			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && __bp_preexec_interactive_mode=""         #keep_for_bash
-		fi                                                                          #keep_for_bash
+		[[ ${__bp_preexec_interactive_mode:-} ]] || return                          #keep_for_bash
+		[[ 0 -eq ${BASH_SUBSHELL:-} ]] && __bp_preexec_interactive_mode=""          #keep_for_bash
 		local var__prompt_command_array IFS=$'\n;'                                  #keep_for_bash
 		read -rd '' -a var__prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"        #keep_for_bash
 		local var__trimmed_arg="${BASH_COMMAND:-}"                                  #keep_for_bash
@@ -222,14 +219,7 @@ const_system=17    #discard_for_all
 			i=$((i + 1))
 		done
 		i=0
-		if [[ -z $1 ]]; then
-			var__monorail_text_formatted=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
-			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
-				var__monorail_text_formatted+=${var__monorail_text_array[i]}
-				i=$((i + 1))
-			done
-			var__monorail_text_formatted+=@PROMPT_PREHIDE@$'\e[0;8m'"@PROMPT_POSTHIDE@|"
-		else
+		if [[ $1 ]]; then
 			var__monorail_text_formatted=
 			[[ -z ${var__prompt_text_lut[*]} ]] && var__prompt_text_lut[0]="255;255;255"
 			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
@@ -242,6 +232,13 @@ const_system=17    #discard_for_all
 			# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
 			# In this case the horizontal bar is colored with background color.
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m@PROMPT_POSTHIDE@|"
+		else
+			var__monorail_text_formatted=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
+			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
+				var__monorail_text_formatted+=${var__monorail_text_array[i]}
+				i=$((i + 1))
+			done
+			var__monorail_text_formatted+=@PROMPT_PREHIDE@$'\e[0;8m'"@PROMPT_POSTHIDE@|"
 		fi
 		j=$(($# * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))
 		var__rgb_cur_color=${!j}

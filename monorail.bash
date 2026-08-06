@@ -40,11 +40,8 @@ __bp_last_argument_prev_command="${1:-}"
 local __bp_inside_preexec=1
 [[ ! -t 1 ]]&&return
 [[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]]&&return
-if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
-return
-else
+[[ ${__bp_preexec_interactive_mode:-} ]]||return
 [[ 0 -eq ${BASH_SUBSHELL:-} ]]&&__bp_preexec_interactive_mode=""
-fi
 local H IFS=$'\n;'
 read -rd '' -a H <<<"${PROMPT_COMMAND[*]:-}"
 local h="${BASH_COMMAND:-}"
@@ -177,14 +174,7 @@ v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-if [[ -z $1 ]];then
-c=\[$'\e'"[0;7m\]"
-while [[ $i -lt $e ]];do
-c+=${d[i]}
-i=$((i+1))
-done
-c+=\[$'\e[0;8m'"\]|"
-else
+if [[ $1 ]];then
 c=
 [[ -z ${t[*]} ]]&&t[0]="255;255;255"
 while [[ $i -lt $e ]];do
@@ -193,6 +183,13 @@ c+="\["$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${t[$(($
 i=$((i+1))
 done
 c+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m\]|"
+else
+c=\[$'\e'"[0;7m\]"
+while [[ $i -lt $e ]];do
+c+=${d[i]}
+i=$((i+1))
+done
+c+=\[$'\e[0;8m'"\]|"
 fi
 j=$(($#*$((e+1))/$((COLUMNS+1))))
 w=${!j}
