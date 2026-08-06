@@ -24,6 +24,8 @@ const_command=15   #discard_for_all
 const_computer=16  #discard_for_all
 const_system=17    #discard_for_all
 {
+# the monorail dir is hardcoded to simplify installation instructions
+# for XDG compliance, the user may set _MONORAIL_DIR=$XDG_LOCAL_SHARE/monorail and _MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
 	[[ $_MONORAIL_DIR ]] || _MONORAIL_DIR=$HOME/.local/share/monorail
 	[[ $HOSTNAME ]] || HOSTNAME=$(hostname)
 	if [[ $CRAFT_STATE_DIR ]]; then
@@ -152,41 +154,41 @@ const_system=17    #discard_for_all
 			# TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 			[[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]] && return
 			_MONORAIL_PREV_CMD=$(fc -l -1)
-			local C ICON CMD
-			C=${1/\\\a/\\\\\a}
-			C=${C/\\\b/\\\\\b}
-			C=${C/\\\c/\\\\\c}
-			C=${C/\\\d/\\\\\d}
-			C=${C/\\\e/\\\\\e}
-			C=${C/\\\f/\\\\\f}
-			C=${C/\\\g/\\\\\g}
-			C=${C/\\\h/\\\\\h}
-			C=${C/\\\i/\\\\\i}
-			C=${C/\\\j/\\\\\j}
-			C=${C/\\\k/\\\\\k}
-			C=${C/\\\l/\\\\\l}
-			C=${C/\\\m/\\\\\m}
-			C=${C/\\\n/\\\\\n}
-			C=${C/\\\o/\\\\\o}
-			C=${C/\\\p/\\\\\p}
-			C=${C/\\\q/\\\\\q}
-			C=${C/\\\r/\\\\\r}
-			C=${C/\\\s/\\\\\s}
-			C=${C/\\\t/\\\\\t}
-			C=${C/\\\u/\\\\\u}
-			C=${C/\\\v/\\\\\v}
-			C=${C/\\\w/\\\\\w}
-			C=${C/\\\x/\\\\\x}
-			C=${C/\\\y/\\\\\y}
-			C=${C/\\\z/\\\\\z}
-			C=${C/\\\033/<ESC>}
-			_TIMER_CMD=${C/\\\007/<BEL>}
+			local var__escaped_command var__icon CMD
+			var__escaped_command=${1/\\\a/\\\\\a}
+			var__escaped_command=${var__escaped_command/\\\b/\\\\\b}
+			var__escaped_command=${var__escaped_command/\\\c/\\\\\c}
+			var__escaped_command=${var__escaped_command/\\\d/\\\\\d}
+			var__escaped_command=${var__escaped_command/\\\e/\\\\\e}
+			var__escaped_command=${var__escaped_command/\\\f/\\\\\f}
+			var__escaped_command=${var__escaped_command/\\\g/\\\\\g}
+			var__escaped_command=${var__escaped_command/\\\h/\\\\\h}
+			var__escaped_command=${var__escaped_command/\\\i/\\\\\i}
+			var__escaped_command=${var__escaped_command/\\\j/\\\\\j}
+			var__escaped_command=${var__escaped_command/\\\k/\\\\\k}
+			var__escaped_command=${var__escaped_command/\\\l/\\\\\l}
+			var__escaped_command=${var__escaped_command/\\\m/\\\\\m}
+			var__escaped_command=${var__escaped_command/\\\n/\\\\\n}
+			var__escaped_command=${var__escaped_command/\\\o/\\\\\o}
+			var__escaped_command=${var__escaped_command/\\\p/\\\\\p}
+			var__escaped_command=${var__escaped_command/\\\q/\\\\\q}
+			var__escaped_command=${var__escaped_command/\\\r/\\\\\r}
+			var__escaped_command=${var__escaped_command/\\\s/\\\\\s}
+			var__escaped_command=${var__escaped_command/\\\t/\\\\\t}
+			var__escaped_command=${var__escaped_command/\\\u/\\\\\u}
+			var__escaped_command=${var__escaped_command/\\\v/\\\\\v}
+			var__escaped_command=${var__escaped_command/\\\w/\\\\\w}
+			var__escaped_command=${var__escaped_command/\\\x/\\\\\x}
+			var__escaped_command=${var__escaped_command/\\\y/\\\\\y}
+			var__escaped_command=${var__escaped_command/\\\z/\\\\\z}
+			var__escaped_command=${var__escaped_command/\\\033/<ESC>}
+			_TIMER_CMD=${var__escaped_command/\\\007/<BEL>}
 			local XCMD IGNORED_TITLE=
 			for XCMD in "${_MONORAIL_CMD_IGNORED[@]}"; do
 				[[ $XCMD = "${_TIMER_CMD%% *}" ]] && IGNORED_TITLE=1
 			done
-			ICON=${_MONORAIL_ICON[const_command]}
-			_MONORAIL_TITLE="$ICON  $_TIMER_CMD"
+			var__icon=${_MONORAIL_ICON[const_command]}
+			_MONORAIL_TITLE="$var__icon  $_TIMER_CMD"
 			[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 			CMD=${_TIMER_CMD%% *}
 			CMD=${CMD%%;*}
@@ -341,7 +343,7 @@ const_system=17    #discard_for_all
 			_MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
 			trap "_MONORAIL_CTRLC=1;echo -n" INT
 			trap "_MONORAIL_CTRLC=1;echo -n" ERR
-			[[ $BASH_VERSION ]] && history -a >&- 2>&-
+			[[ $BASH_VERSION ]] && history -a >&- 2>&- #keep_for_bash
 
 		else
 			alias for='_MONORAIL_NOSTYLING=1;for'
@@ -389,47 +391,47 @@ const_system=17    #discard_for_all
 			)
 			;;
 		esac
-		local ICON TITLE_BASE
+		local var__icon TITLE_BASE
 		TITLE_BASE=${PWD##*/}
 		if [[ $var__monorail_repo ]]; then
-			ICON=${_MONORAIL_ICON[const_repo]}
+			var__icon=${_MONORAIL_ICON[const_repo]}
 		elif [[ $_MONORAIL_GIT_PS1 ]]; then
-			ICON=${_MONORAIL_ICON[const_git]}
+			var__icon=${_MONORAIL_ICON[const_git]}
 		else
 			case $PWD in
-			"$HOME/Trash"* | "$HOME/.local/share/Trash/files"*) ICON=${_MONORAIL_ICON[const_trash]} ;;
+			"$HOME/Trash"* | "$HOME/.local/share/Trash/files"*) var__icon=${_MONORAIL_ICON[const_trash]} ;;
 			/)
-				ICON=${_MONORAIL_ICON[const_computer]}
+				var__icon=${_MONORAIL_ICON[const_computer]}
 				TITLE_BASE=/
 				;;
-			/media/*) ICON=${_MONORAIL_ICON[const_media]} ;;
-			/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) ICON=${_MONORAIL_ICON[const_system]} ;;
-			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "$XDG_DOCUMENTS_DIR" | "$XDG_DOCUMENTS_DIR"/*) ICON=${_MONORAIL_ICON[const_documents]} ;;
-			"$XDG_MUSIC_DIR" | "$XDG_MUSIC_DIR"/*) ICON=${_MONORAIL_ICON[const_music]} ;;
-			"$XDG_PICTURES_DIR" | "$XDG_PICTURES_DIR"/*) ICON=${_MONORAIL_ICON[const_pictures]} ;;
-			"$XDG_VIDEOS_DIR" | "$XDG_VIDEOS_DIR"/*) ICON=${_MONORAIL_ICON[const_videos]} ;;
-			*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) ICON=${_MONORAIL_ICON[const_downloads]} ;;
-			*) ICON=${_MONORAIL_ICON[const_folder]} ;;
+			/media/*) var__icon=${_MONORAIL_ICON[const_media]} ;;
+			/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) var__icon=${_MONORAIL_ICON[const_system]} ;;
+			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "$XDG_DOCUMENTS_DIR" | "$XDG_DOCUMENTS_DIR"/*) var__icon=${_MONORAIL_ICON[const_documents]} ;;
+			"$XDG_MUSIC_DIR" | "$XDG_MUSIC_DIR"/*) var__icon=${_MONORAIL_ICON[const_music]} ;;
+			"$XDG_PICTURES_DIR" | "$XDG_PICTURES_DIR"/*) var__icon=${_MONORAIL_ICON[const_pictures]} ;;
+			"$XDG_VIDEOS_DIR" | "$XDG_VIDEOS_DIR"/*) var__icon=${_MONORAIL_ICON[const_videos]} ;;
+			*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) var__icon=${_MONORAIL_ICON[const_downloads]} ;;
+			*) var__icon=${_MONORAIL_ICON[const_folder]} ;;
 			esac
 			case $PWD in
 			"$HOME")
 				TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
 				if [[ $CRAFT_STATE_DIR ]]; then
-					ICON=${_MONORAIL_ICON[const_snapcraft]}
+					var__icon=${_MONORAIL_ICON[const_snapcraft]}
 				elif [[ $SSH_CLIENT ]]; then
-					ICON=${_MONORAIL_ICON[const_ssh]}
+					var__icon=${_MONORAIL_ICON[const_ssh]}
 				elif [[ -e /.dockerenv ]]; then
-					ICON=${_MONORAIL_ICON[const_docker]}
+					var__icon=${_MONORAIL_ICON[const_docker]}
 				elif [[ -e /run/containerenv ]]; then
-					ICON=${_MONORAIL_ICON[const_podman]}
+					var__icon=${_MONORAIL_ICON[const_podman]}
 				else
-					ICON=${_MONORAIL_ICON[const_home]}
+					var__icon=${_MONORAIL_ICON[const_home]}
 				fi
 				;;
 			*) ;;
 			esac
 		fi
-		_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${ICON}}  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
+		_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${var__icon}}  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
 		[[ $PWD != "$HOME" ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 		local var__pwd_basename="${PWD##*/}"
 		[[ $var__pwd_basename ]] || var__pwd_basename=/
@@ -505,7 +507,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		"$@"
 	}
 	_ICON() {
-		local ICON="$1"
+		local var__icon="$1"
 		shift
 		if [[ -z ${FUNCNAME[1]} ]] || [[ ${FUNCNAME[1]} = "_NO_MEASURE" ]]; then
 			local FIRST_ARG="$1"
@@ -523,10 +525,10 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 					fi
 					FIRST_NON_OPTION="$2"
 				done
-				[[ $ICON ]] && if [[ -z "$FIRST_NON_OPTION" ]]; then
-					_TITLE "${_MONORAIL_ICON_OVERRIDE-${ICON}}  ${FIRST_ARG##*/}"
+				[[ $var__icon ]] && if [[ -z "$FIRST_NON_OPTION" ]]; then
+					_TITLE "${_MONORAIL_ICON_OVERRIDE-${var__icon}}  ${FIRST_ARG##*/}"
 				else
-					_TITLE "${_MONORAIL_ICON_OVERRIDE-${ICON}}  ${FIRST_NON_OPTION##*/}"
+					_TITLE "${_MONORAIL_ICON_OVERRIDE-${var__icon}}  ${FIRST_NON_OPTION##*/}"
 				fi
 			) >&- 2>&-
 		fi

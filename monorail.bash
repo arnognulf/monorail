@@ -116,7 +116,7 @@ preexec(){
 {
 [[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]]&&return
 _MONORAIL_PREV_CMD=$(fc -l -1)
-local C ICON CMD
+local C B CMD
 C=${1/\\\a/\\\\\a}
 C=${C/\\\b/\\\\\b}
 C=${C/\\\c/\\\\\c}
@@ -149,8 +149,8 @@ local XCMD IGNORED_TITLE=
 for XCMD in "${_MONORAIL_CMD_IGNORED[@]}";do
 [[ $XCMD == "${_TIMER_CMD%% *}" ]]&&IGNORED_TITLE=1
 done
-ICON=${_MONORAIL_ICON[15]}
-_MONORAIL_TITLE="$ICON  $_TIMER_CMD"
+B=${_MONORAIL_ICON[15]}
+_MONORAIL_TITLE="$B  $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 CMD=${_TIMER_CMD%% *}
 CMD=${CMD%%;*}
@@ -333,45 +333,45 @@ shift
 }
 TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
-local ICON TITLE_BASE
+local B TITLE_BASE
 TITLE_BASE=${PWD##*/}
 if [[ $y ]];then
-ICON=${_MONORAIL_ICON[5]}
+B=${_MONORAIL_ICON[5]}
 elif [[ $_MONORAIL_GIT_PS1 ]];then
-ICON=${_MONORAIL_ICON[4]}
+B=${_MONORAIL_ICON[4]}
 else
 case $PWD in
-"$HOME/Trash"*|"$HOME/.local/share/Trash/files"*)ICON=${_MONORAIL_ICON[6]};;
-/)ICON=${_MONORAIL_ICON[16]}
+"$HOME/Trash"*|"$HOME/.local/share/Trash/files"*)B=${_MONORAIL_ICON[6]};;
+/)B=${_MONORAIL_ICON[16]}
 TITLE_BASE=/
 ;;
-/media/*)ICON=${_MONORAIL_ICON[8]};;
-/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)ICON=${_MONORAIL_ICON[17]};;
-*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)ICON=${_MONORAIL_ICON[7]};;
-"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)ICON=${_MONORAIL_ICON[9]};;
-"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)ICON=${_MONORAIL_ICON[const_pictures]};;
-"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)ICON=${_MONORAIL_ICON[10]};;
-*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)ICON=${_MONORAIL_ICON[11]};;
-*)ICON=${_MONORAIL_ICON[13]}
+/media/*)B=${_MONORAIL_ICON[8]};;
+/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)B=${_MONORAIL_ICON[17]};;
+*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)B=${_MONORAIL_ICON[7]};;
+"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)B=${_MONORAIL_ICON[9]};;
+"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)B=${_MONORAIL_ICON[const_pictures]};;
+"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)B=${_MONORAIL_ICON[10]};;
+*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)B=${_MONORAIL_ICON[11]};;
+*)B=${_MONORAIL_ICON[13]}
 esac
 case $PWD in
 "$HOME")TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
 if [[ $CRAFT_STATE_DIR ]];then
-ICON=${_MONORAIL_ICON[const_snapcraft]}
+B=${_MONORAIL_ICON[const_snapcraft]}
 elif [[ $SSH_CLIENT ]];then
-ICON=${_MONORAIL_ICON[1]}
+B=${_MONORAIL_ICON[1]}
 elif [[ -e /.dockerenv ]];then
-ICON=${_MONORAIL_ICON[2]}
+B=${_MONORAIL_ICON[2]}
 elif [[ -e /run/containerenv ]];then
-ICON=${_MONORAIL_ICON[3]}
+B=${_MONORAIL_ICON[3]}
 else
-ICON=${_MONORAIL_ICON[0]}
+B=${_MONORAIL_ICON[0]}
 fi
 ;;
 *)
 esac
 fi
-_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-$ICON}  ${_MONORAIL_TITLE_OVERRIDE-$TITLE_BASE}"
+_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-$B}  ${_MONORAIL_TITLE_OVERRIDE-$TITLE_BASE}"
 [[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 local z="${PWD##*/}"
 [[ $z ]]||z=/
@@ -435,7 +435,7 @@ unset _MEASURE
 "$@"
 }
 _ICON(){
-local ICON="$1"
+local B="$1"
 shift
 if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} == "_NO_MEASURE" ]];then
 local FIRST_ARG="$1"
@@ -452,10 +452,10 @@ shift
 fi
 FIRST_NON_OPTION="$2"
 done
-[[ $ICON ]]&&if [[ -z $FIRST_NON_OPTION ]];then
-_TITLE "${_MONORAIL_ICON_OVERRIDE-$ICON}  ${FIRST_ARG##*/}"
+[[ $B ]]&&if [[ -z $FIRST_NON_OPTION ]];then
+_TITLE "${_MONORAIL_ICON_OVERRIDE-$B}  ${FIRST_ARG##*/}"
 else
-_TITLE "${_MONORAIL_ICON_OVERRIDE-$ICON}  ${FIRST_NON_OPTION##*/}"
+_TITLE "${_MONORAIL_ICON_OVERRIDE-$B}  ${FIRST_NON_OPTION##*/}"
 fi) >& \
 - 2>&-
 fi

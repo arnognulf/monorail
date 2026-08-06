@@ -57,6 +57,8 @@ cat "$SRC" |
 		-e 's/var__monorail_repo/y/g' \
 		-e 's/var__pwd_basename/z/g' \
 		-e 's/var__spaces/A/g' \
+		-e 's/var__icon/B/g' \
+		-e 's/var__escaped_command/C/g' \
 		>"${TEMP_BASH}"
 shfmt -mn "${TEMP_BASH}" >monorail.bash || exit 42
 

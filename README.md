@@ -26,14 +26,14 @@ On Debian and Ubuntu based systems, these can be installed with
 
 `sudo apt install bc xxd fzf imagemagick`
 
-Add monorail to your prompt by running the following:
+Download monorail as follows:
 
 ```
 mkdir -p ~/.local/share
 cd ~/.local/share
 git clone https://github.com/arnognulf/monorail
 ```
-(if not using git, download zip from https://github.com/arnognulf/monorail/archive/refs/heads/master.zip)
+(if not using git, download zip from https://github.com/arnognulf/monorail/archive/refs/heads/master.zip , unzip and place contents of monorail-master in ~/.local/share/monorail)
 
 Bash
 ----
@@ -262,24 +262,13 @@ Notably, macOS Terminal prior to macOS 26 Tahoe does not support truecolor.
 
 Color setting with `monorail_color`
 ------------------------------------
-Foreground, background, and 16 color theming set with `monorail_color` are less supported than truecolor.
+Foreground, background, and 16 color theming are set with `monorail_color`.
 
-Color setting uses the `OSC 10`, `OSC 11`, and `OSC 12` "Operating System Controls" as specified in https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+For an extensive list of supported terminals, see:
 
-Known supported terminals:
-
-* gnome-terminal
-* konsole
-* ghostty
-* Windows Terminal
-* alacritty
-* xterm
-* rxvt-unicode
-* foot
-* mlterm
-* wezterm
-* st
-* rio
+https://vtdn.dev/docs/osc/osc10
+https://vtdn.dev/docs/osc/osc11
+https://vtdn.dev/docs/osc/osc12
 
 Contributing themes
 -------------------
