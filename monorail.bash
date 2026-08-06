@@ -30,7 +30,6 @@ _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 fi
 [[ $BRUSH_VERSION ]]&&_MONORAIL_COMPAT=1
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
-__bp_last_argument_prev_command="$_"
 unset __bp_inside_preexec
 __bp_preexec_interactive_mode=
 declare -a preexec_functions
@@ -46,13 +45,13 @@ return
 else
 [[ 0 -eq ${BASH_SUBSHELL:-} ]]&&__bp_preexec_interactive_mode=""
 fi
-local prompt_command_array IFS=$'\n;'
-read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"
+local H IFS=$'\n;'
+read -rd '' -a H <<<"${PROMPT_COMMAND[*]:-}"
 local h="${BASH_COMMAND:-}"
 h="${h#"${h%%[![:space:]]*}"}"
 h="${h%"${h##*[![:space:]]}"}"
 local l g
-for l in "${prompt_command_array[@]:-}";do
+for l in "${H[@]:-}";do
 g=$l
 g="${g#"${g%%[![:space:]]*}"}"
 g="${g%"${g##*[![:space:]]}"}"
@@ -62,11 +61,11 @@ local a
 a=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
 a="${a#*[[:digit:]][* ] }"
 [[ $a ]]||return
-local preexec_function
-for preexec_function in "${preexec_functions[@]:-}";do
-if type -t "$preexec_function" >/dev/null;then
+local L
+for L in "${preexec_functions[@]:-}";do
+if type -t "$L" >/dev/null;then
 [[ ${__bp_last_ret_value-0} == 0 ]]||(exit "${__bp_last_ret_value-0}")
-"$preexec_function" "$a"
+"$L" "$a"
 fi
 done
 return "${__bp_last_ret_value-0}"
@@ -145,7 +144,7 @@ C=${C/\\\y/\\\\\y}
 C=${C/\\\z/\\\\\z}
 C=${C/\\\033/<ESC>}
 _TIMER_CMD=${C/\\\007/<BEL>}
-local XCMD IGNORED_TITLE=
+local XCMD COMMAND IGNORED_TITLE=
 for XCMD in "${_MONORAIL_CMD_IGNORED[@]}";do
 [[ $XCMD == "${_TIMER_CMD%% *}" ]]&&IGNORED_TITLE=1
 done
@@ -197,11 +196,11 @@ c+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}
 fi
 j=$(($#*$((e+1))/$((COLUMNS+1))))
 w=${!j}
-RGB_CUR_R=${w%%;*}
-RGB_CUR_GB=${w#*;}
-RGB_CUR_G=${RGB_CUR_GB%%;*}
-RGB_CUR_B=${RGB_CUR_GB##*;}
-r=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
+D=${w%%;*}
+E=${w#*;}
+F=${E%%;*}
+G=${E##*;}
+r=$(printf "%.2x%.2x%.2x" "$D" "$F" "$G" 2>&-)
 [[ $1 ]]||r=${_COLORS[21]}
 }
 _monorail_textgradient(){
@@ -387,7 +386,7 @@ for ((I=0; I<${#b}; I++));do
 d[I]=${b:I:1}
 done
 e=${#d[@]}
-local w RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
+local w D E F G
 if [[ $_MONORAIL_CACHE != "$COLUMNS$b" ]];then
 unset _MONORAIL_CACHE _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]];then

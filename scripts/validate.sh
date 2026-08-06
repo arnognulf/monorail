@@ -59,6 +59,12 @@ cat "$SRC" |
 		-e 's/var__spaces/A/g' \
 		-e 's/var__icon/B/g' \
 		-e 's/var__escaped_command/C/g' \
+		-e 's/var__rgb_cur_r/D/g' \
+		-e 's/var__rgb_cur_gb/E/g' \
+		-e 's/var__rgb_cur_g/F/g' \
+		-e 's/var__rgb_cur_b/G/g' \
+		-e 's/var__prompt_command_array/H/g' \
+		-e 's/var__preexec_function/L/g' \
 		>"${TEMP_BASH}"
 shfmt -mn "${TEMP_BASH}" >monorail.bash || exit 42
 

@@ -64,7 +64,7 @@ var__escaped_command=${var__escaped_command/\\\y/\\\\\y}
 var__escaped_command=${var__escaped_command/\\\z/\\\\\z}
 var__escaped_command=${var__escaped_command/\\\033/<ESC>}
 _TIMER_CMD=${var__escaped_command/\\\007/<BEL>}
-local XCMD IGNORED_TITLE=
+local XCMD COMMAND IGNORED_TITLE=
 for XCMD in "${_MONORAIL_CMD_IGNORED[@]}";do
 [[ $XCMD == "${_TIMER_CMD%% *}" ]]&&IGNORED_TITLE=1
 done
@@ -116,11 +116,11 @@ b_formatted+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLOR
 fi
 j=$(($#*$((b_array_len+1))/$((COLUMNS+1))))
 var__rgb_cur_color=${!j}
-RGB_CUR_R=${var__rgb_cur_color%%;*}
-RGB_CUR_GB=${var__rgb_cur_color#*;}
-RGB_CUR_G=${RGB_CUR_GB%%;*}
-RGB_CUR_B=${RGB_CUR_GB##*;}
-var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
+var__rgb_cur_r=${var__rgb_cur_color%%;*}
+var__rgb_cur_gb=${var__rgb_cur_color#*;}
+var__rgb_cur_g=${var__rgb_cur_gb%%;*}
+var__rgb_cur_b=${var__rgb_cur_gb##*;}
+var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$var__rgb_cur_r" "$var__rgb_cur_g" "$var__rgb_cur_b" 2>&-)
 [[ $1 ]]||var__hex_cursor_color=${_COLORS[21]}
 }
 _monorail_textgradient(){
@@ -305,7 +305,7 @@ for ((I=0; I<${#b}; I++));do
 b_array[I]=${b[I]}
 done
 b_array_len=${#b_array[@]}
-local var__rgb_cur_color RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
+local var__rgb_cur_color var__rgb_cur_r var__rgb_cur_gb var__rgb_cur_g var__rgb_cur_b
 if [[ $_MONORAIL_CACHE != "$COLUMNS$b" ]];then
 unset _MONORAIL_CACHE _MEASURE
 if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]];then

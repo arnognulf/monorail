@@ -24,8 +24,8 @@ const_command=15   #discard_for_all
 const_computer=16  #discard_for_all
 const_system=17    #discard_for_all
 {
-# the monorail dir is hardcoded to simplify installation instructions
-# for XDG compliance, the user may set _MONORAIL_DIR=$XDG_LOCAL_SHARE/monorail and _MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
+	# the monorail dir is hardcoded to simplify installation instructions
+	# for XDG compliance, the user may set _MONORAIL_DIR=$XDG_LOCAL_SHARE/monorail and _MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
 	[[ $_MONORAIL_DIR ]] || _MONORAIL_DIR=$HOME/.local/share/monorail
 	[[ $HOSTNAME ]] || HOSTNAME=$(hostname)
 	if [[ $CRAFT_STATE_DIR ]]; then
@@ -62,10 +62,10 @@ const_system=17    #discard_for_all
 	[[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1             #keep_for_bash
 	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,} #keep_for_bash
 
-	__bp_last_argument_prev_command="$_" #keep_for_bash
-	unset __bp_inside_preexec            #keep_for_bash
-	__bp_preexec_interactive_mode=       #keep_for_bash
-	declare -a preexec_functions         #keep_for_bash
+	#__bp_last_argument_prev_command="$_" #keep_for_bash
+	unset __bp_inside_preexec      #keep_for_bash
+	__bp_preexec_interactive_mode= #keep_for_bash
+	declare -a preexec_functions   #keep_for_bash
 
 	__bp_preexec_interactive_mode=1                                              #keep_for_bash
 	__bp_preexec_invoke_exec() {                                                 #keep_for_bash
@@ -79,14 +79,14 @@ const_system=17    #discard_for_all
 		else                                                                        #keep_for_bash
 			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && __bp_preexec_interactive_mode=""         #keep_for_bash
 		fi                                                                          #keep_for_bash
-		local prompt_command_array IFS=$'\n;'                                       #keep_for_bash
-		read -rd '' -a prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"             #keep_for_bash
+		local var__prompt_command_array IFS=$'\n;'                                  #keep_for_bash
+		read -rd '' -a var__prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"        #keep_for_bash
 		local var__trimmed_arg="${BASH_COMMAND:-}"                                  #keep_for_bash
 		var__trimmed_arg="${var__trimmed_arg#"${var__trimmed_arg%%[![:space:]]*}"}" #keep_for_bash
 		var__trimmed_arg="${var__trimmed_arg%"${var__trimmed_arg##*[![:space:]]}"}" #keep_for_bash
 
 		local var__command var__trimmed_command                                                  #keep_for_bash
-		for var__command in "${prompt_command_array[@]:-}"; do                                   #keep_for_bash
+		for var__command in "${var__prompt_command_array[@]:-}"; do                              #keep_for_bash
 			var__trimmed_command=${var__command}                                                    #keep_for_bash
 			var__trimmed_command="${var__trimmed_command#"${var__trimmed_command%%[![:space:]]*}"}" #keep_for_bash
 			var__trimmed_command="${var__trimmed_command%"${var__trimmed_command##*[![:space:]]}"}" #keep_for_bash
@@ -96,12 +96,12 @@ const_system=17    #discard_for_all
 		var__this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)                        #keep_for_bash
 		var__this_command="${var__this_command#*[[:digit:]][* ] }"                               #keep_for_bash
 		[[ $var__this_command ]] || return                                                       #keep_for_bash
-		local preexec_function                                                                   #keep_for_bash
-		for preexec_function in "${preexec_functions[@]:-}"; do                                  #keep_for_bash
-			if type -t "$preexec_function" >/dev/null; then                                         #keep_for_bash
+		local var__preexec_function                                                              #keep_for_bash
+		for var__preexec_function in "${preexec_functions[@]:-}"; do                             #keep_for_bash
+			if type -t "$var__preexec_function" >/dev/null; then                                    #keep_for_bash
 				# TODO: __bp_last_ret_value is never set! accidently removed?
 				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}") #keep_for_bash
-				"$preexec_function" "$var__this_command"                                #keep_for_bash
+				"$var__preexec_function" "$var__this_command"                           #keep_for_bash
 			fi                                                                       #keep_for_bash
 		done                                                                      #keep_for_bash
 		return "${__bp_last_ret_value-0}"                                         #keep_for_bash
@@ -183,7 +183,7 @@ const_system=17    #discard_for_all
 			var__escaped_command=${var__escaped_command/\\\z/\\\\\z}
 			var__escaped_command=${var__escaped_command/\\\033/<ESC>}
 			_TIMER_CMD=${var__escaped_command/\\\007/<BEL>}
-			local XCMD IGNORED_TITLE=
+			local XCMD COMMAND IGNORED_TITLE=
 			for XCMD in "${_MONORAIL_CMD_IGNORED[@]}"; do
 				[[ $XCMD = "${_TIMER_CMD%% *}" ]] && IGNORED_TITLE=1
 			done
@@ -245,11 +245,11 @@ const_system=17    #discard_for_all
 		fi
 		j=$(($# * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))
 		var__rgb_cur_color=${!j}
-		RGB_CUR_R=${var__rgb_cur_color%%;*}
-		RGB_CUR_GB=${var__rgb_cur_color#*;}
-		RGB_CUR_G=${RGB_CUR_GB%%;*}
-		RGB_CUR_B=${RGB_CUR_GB##*;}
-		var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B" 2>&-)
+		var__rgb_cur_r=${var__rgb_cur_color%%;*}
+		var__rgb_cur_gb=${var__rgb_cur_color#*;}
+		var__rgb_cur_g=${var__rgb_cur_gb%%;*}
+		var__rgb_cur_b=${var__rgb_cur_gb##*;}
+		var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$var__rgb_cur_r" "$var__rgb_cur_g" "$var__rgb_cur_b" 2>&-)
 		[[ $1 ]] || var__hex_cursor_color=${_COLORS[21]}
 	}
 	_monorail_textgradient() {
@@ -453,7 +453,7 @@ const_system=17    #discard_for_all
 			var__monorail_text_array[I]=${var__monorail_text:I:1} #keep_for_bash
 		done                                                   #keep_for_bash
 		var__monorail_text_array_len=${#var__monorail_text_array[@]}
-		local var__rgb_cur_color RGB_CUR_R RGB_CUR_GB RGB_CUR_G RGB_CUR_B
+		local var__rgb_cur_color var__rgb_cur_r var__rgb_cur_gb var__rgb_cur_g var__rgb_cur_b
 		if [[ $_MONORAIL_CACHE != "$COLUMNS$var__monorail_text" ]]; then
 			unset _MONORAIL_CACHE _MEASURE
 			if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]]; then
