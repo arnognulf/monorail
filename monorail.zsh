@@ -97,22 +97,22 @@ h+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-if [[ $1 ]];then
-b_formatted=
-[[ ${var__prompt_text_lut[*]} ]]||var__prompt_text_lut[0]="255;255;255"
-while [[ $i -lt $b_array_len ]];do
-j=$((1+$#*i/$((COLUMNS+1))))
-b_formatted+="%{"$'\e['"$((b_array_len+1))C"$'\e'["$((b_array_len+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]}*i/$((COLUMNS+1))))]}m%}${b_array[i]}"
-i=$((i+1))
-done
-b_formatted+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m%}|"
-else
+if [[ -z $1 ]];then
 b_formatted=%{$'\e'"[0;7m%}"
 while [[ $i -lt $b_array_len ]];do
 b_formatted+=${b_array[i]}
 i=$((i+1))
 done
 b_formatted+=%{$'\e[0;8m'"%}|"
+else
+b_formatted=
+[[ -z ${var__prompt_text_lut[*]} ]]&&var__prompt_text_lut[0]="255;255;255"
+while [[ $i -lt $b_array_len ]];do
+j=$((1+$#*i/$((COLUMNS+1))))
+b_formatted+="%{"$'\e['"$((b_array_len+1))C"$'\e'["$((b_array_len+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]}*i/$((COLUMNS+1))))]}m%}${b_array[i]}"
+i=$((i+1))
+done
+b_formatted+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m%}|"
 fi
 j=$(($#*$((b_array_len+1))/$((COLUMNS+1))))
 var__rgb_cur_color=${!j}
