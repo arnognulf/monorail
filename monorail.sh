@@ -342,7 +342,9 @@ else
 		:
 	}
 	_monorail_textgradient() {
-		_MONORAIL_LINE="${ESC}[0m"
+		if [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
+			_MONORAIL_LINE="${ESC}[0m"
+		fi
 		while [ "$I" -lt "$LINE_WIDTH" ]; do
 			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
 			I=$((I + 1))
