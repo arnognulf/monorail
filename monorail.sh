@@ -16,14 +16,22 @@ fi
 if [ -z "$_MONORAIL_CONFIG" ]; then
 	_MONORAIL_CONFIG="$HOME/.config/monorail"
 fi
-# netbsd sets LC_CTYPE, Linux sets LANG
-if [ "$XTERM_LOCALE" ]; then
-	_MONORAIL_LANG=$XTERM_LOCALE
-elif [ "$LANG" ]; then
-	_MONORAIL_LANG=$LANG
-else
-	_MONORAIL_LANG=$LC_CTYPE
-fi
+# some terminals cannot display UTF-8 despite locale being set
+case $TERM in
+linux | vt* | Eterm)
+	:
+	;;
+*)
+	# netbsd sets LC_CTYPE, Linux sets LANG
+	if [ "$XTERM_LOCALE" ]; then
+		_MONORAIL_LANG=$XTERM_LOCALE
+	elif [ "$LANG" ]; then
+		_MONORAIL_LANG=$LANG
+	else
+		_MONORAIL_LANG=$LC_CTYPE
+	fi
+	;;
+esac
 _MONORAIL_NORMAL="|"
 _MONORAIL_LINE_SEGMENT=_
 _MONORAIL_ELIPSIS="..."
@@ -53,7 +61,7 @@ fi
 export COLUMNS
 export LINES
 
-case "$TERM" in
+case $TERM in
 "vt"???)
 	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
@@ -334,7 +342,7 @@ else
 		:
 	}
 	_monorail_textgradient() {
-		_MONORAIL_LINE=""
+		_MONORAIL_LINE="${ESC}[0m"
 		while [ "$I" -lt "$LINE_WIDTH" ]; do
 			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
 			I=$((I + 1))

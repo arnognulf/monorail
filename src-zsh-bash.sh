@@ -442,7 +442,7 @@ const_system=17    #discard_for_all
 		local var__monorail_text=" $var__pwd_basename$_MONORAIL_GIT_PS1 "
 		var__monorail_text=${var__monorail_text//\.\.\./$'\xe2\x80\xa6'}
 		# frequently, the last of the text is the most relevant, cut beginning if too long path
-		[[ ${#var__monorail_text} -gt $((COLUMNS / 3)) ]] && var__monorail_text=" $'\xe2\x80\xa6'${var__monorail_text:$((${#var__monorail_text} - $((COLUMNS / 3))))}"
+		[[ ${#var__monorail_text} -gt $((COLUMNS / 3)) ]] && var__monorail_text=$' \xe2\x80\xa6'"${var__monorail_text:$((${#var__monorail_text} - $((COLUMNS / 3))))}"
 		local var__monorail_text_array=()
 		for ((I = 0; I < ${#var__monorail_text}; I++)); do #keep_for_zsh
 			#keep_for_zsh

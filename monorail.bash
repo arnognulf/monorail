@@ -380,7 +380,7 @@ case $PWD in
 esac
 local b=" $z$_MONORAIL_GIT_PS1 "
 b=${b//\.\.\./$'\xe2\x80\xa6'}
-[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $'\xe2\x80\xa6'${b:$((${#b}-$((COLUMNS/3))))}"
+[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=$' \xe2\x80\xa6'"${b:$((${#b}-$((COLUMNS/3))))}"
 local d=()
 for ((I=0; I<${#b}; I++));do
 d[I]=${b:I:1}

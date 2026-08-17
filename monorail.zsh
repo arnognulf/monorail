@@ -299,7 +299,7 @@ case $PWD in
 esac
 local b=" $var__pwd_basename$_MONORAIL_GIT_PS1 "
 b=${b//\.\.\./$'\xe2\x80\xa6'}
-[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=" $'\xe2\x80\xa6'${b:$((${#b}-$((COLUMNS/3))))}"
+[[ ${#b} -gt $((COLUMNS/3)) ]]&&b=$' \xe2\x80\xa6'"${b:$((${#b}-$((COLUMNS/3))))}"
 local b_array=()
 for ((I=0; I<${#b}; I++));do
 b_array[I]=${b[I]}
