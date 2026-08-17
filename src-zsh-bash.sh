@@ -100,22 +100,20 @@ const_system=17    #discard_for_all
 		for var__preexec_function in "${preexec_functions[@]:-}"; do                             #keep_for_bash
 			if type -t "$var__preexec_function" >/dev/null; then                                    #keep_for_bash
 				# TODO: __bp_last_ret_value is never set! accidently removed?
-				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}") #keep_for_bash
-				"$var__preexec_function" "$var__this_command"                           #keep_for_bash
-			fi                                                                       #keep_for_bash
-		done                                                                      #keep_for_bash
-		return "${__bp_last_ret_value-0}"                                         #keep_for_bash
-	}                                                                          #keep_for_bash
-	__bp_install() {                                                           #keep_for_bash
-		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                     #keep_for_bash
-		trap '__bp_preexec_invoke_exec "$_"' DEBUG                                #keep_for_bash
-		eval "local trap_argv=(${__bp_trap_string:-})"                            #keep_for_bash
-		local prior_trap=${trap_argv[2]:-}                                        #keep_for_bash
-		unset __bp_trap_string                                                    #keep_for_bash
-		if [[ $prior_trap ]]; then                                                #keep_for_bash
-			eval '__bp_original_debug_trap() { #keep_for_bash
-            '"$prior_trap"' #keep_for_bash
-        }'                                                                                                                             #keep_for_bash
+				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}")                                                            #keep_for_bash
+				"$var__preexec_function" "$var__this_command"                                                                                      #keep_for_bash
+			fi                                                                                                                                  #keep_for_bash
+		done                                                                                                                                 #keep_for_bash
+		return "${__bp_last_ret_value-0}"                                                                                                    #keep_for_bash
+	}                                                                                                                                     #keep_for_bash
+	__bp_install() {                                                                                                                      #keep_for_bash
+		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                                                                                #keep_for_bash
+		trap '__bp_preexec_invoke_exec "$_"' DEBUG                                                                                           #keep_for_bash
+		eval "local trap_argv=(${__bp_trap_string:-})"                                                                                       #keep_for_bash
+		local prior_trap=${trap_argv[2]:-}                                                                                                   #keep_for_bash
+		unset __bp_trap_string                                                                                                               #keep_for_bash
+		if [[ $prior_trap ]]; then                                                                                                           #keep_for_bash
+			eval '__bp_original_debug_trap(){ '"$prior_trap"';}'                                                                                #keep_for_bash
 			preexec_functions+=(__bp_original_debug_trap)                                                                                       #keep_for_bash
 		fi                                                                                                                                   #keep_for_bash
 		local var__histcontrol                                                                                                               #keep_for_bash

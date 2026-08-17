@@ -77,9 +77,7 @@ eval "local trap_argv=(${__bp_trap_string:-})"
 local prior_trap=${trap_argv[2]:-}
 unset __bp_trap_string
 if [[ $prior_trap ]];then
-eval '__bp_original_debug_trap() { 
-            '"$prior_trap"' 
-        }'
+eval '__bp_original_debug_trap(){ '"$prior_trap"';}'
 preexec_functions+=(__bp_original_debug_trap)
 fi
 local k
