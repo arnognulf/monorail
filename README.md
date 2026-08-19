@@ -248,8 +248,8 @@ Tested on
 * [FreeBSD 15 sh](https://man.freebsd.org/cgi/man.cgi?sh(1)) - gradients disabled due to shell bugs
 * [Guile As Shell](https://codeberg.org/guix/gash/) - does not work yet. 
 
-Supported terminals
-===================
+Terminal features
+=================
 Truecolor gradients
 -------------------
 Monorail gradients are drawn with the truecolor escape codes which are supported on most modern terminals.
@@ -270,6 +270,14 @@ https://vtdn.dev/docs/osc/osc10
 https://vtdn.dev/docs/osc/osc11
 https://vtdn.dev/docs/osc/osc12
 
+Serial port size
+----------------
+Monorail automatically detects serial terminal size and sets COLUMNS and LINES so your editor works even in a non-80x24 window.
+
+Colors are inactivated for serial terminals since prompt updates would be slowed down by truecolor as well as serial terminals cannot be distinguished from your old rusty VT220.
+
+Contributions
+=============
 Contributing themes
 -------------------
 Avoid trademarks and names of organizations (political and apolitical).
