@@ -299,8 +299,7 @@ if [[ $_MONORAIL_LONGRUNNING ]];then
 _MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 unset _MONORAIL_LONGRUNNING
-return 0
-fi
+else
 case $PWD in
 /run/user/*/gvfs/*)_MONORAIL_GIT_PS1=;;
 *)local x y
@@ -370,6 +369,7 @@ esac
 fi
 _MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-$B}  ${_MONORAIL_TITLE_OVERRIDE-$TITLE_BASE}"
 [[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
+fi
 local z="${PWD##*/}"
 [[ $z ]]||z=/
 case $PWD in
@@ -409,7 +409,7 @@ local I=0
 local v=
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 _MONORAIL_CACHE="$COLUMNS$b"
-PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$v
+PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE$''\a\e[0m\r'"$v
 $c\["$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$r\a\e[0m'"\]"
 fi
 unset _MONORAIL_NOSTYLING

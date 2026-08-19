@@ -220,8 +220,7 @@ if [[ $_MONORAIL_LONGRUNNING ]];then
 _MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 unset _MONORAIL_LONGRUNNING
-return 0
-fi
+else
 case $PWD in
 /run/user/*/gvfs/*)_MONORAIL_GIT_PS1=;;
 *)local var__prompt_pwd var__monorail_repo
@@ -291,6 +290,7 @@ esac
 fi
 _MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-$var__icon}  ${_MONORAIL_TITLE_OVERRIDE-$TITLE_BASE}"
 [[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
+fi
 local var__pwd_basename="${PWD##*/}"
 [[ $var__pwd_basename ]]||var__pwd_basename=/
 case $PWD in
@@ -330,7 +330,7 @@ local I=0
 local h=
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 _MONORAIL_CACHE="$COLUMNS$b"
-PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$h
+PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE$''\a\e[0m\r'"$h
 $b_formatted%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$var__hex_cursor_color\a\e[0m'"%}"
 fi
 unset _MONORAIL_NOSTYLING

@@ -353,84 +353,84 @@ const_system=17    #discard_for_all
 			_MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
 			[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 			unset _MONORAIL_LONGRUNNING
-			return 0
-		fi
-		case $PWD in
-		/run/user/*/gvfs/*) _MONORAIL_GIT_PS1= ;;
-		*)
-			local var__prompt_pwd var__monorail_repo
-			var__prompt_pwd=$PWD
-			var__monorail_repo=
-			while [[ "$var__prompt_pwd" ]]; do
-				if [[ -d "$var__prompt_pwd/.repo" ]]; then
-					var__monorail_repo=1
-					break
-				fi
-				var__prompt_pwd="${var__prompt_pwd%/*}"
-			done
-			if [[ -z $_MONORAIL_GIT_LOADED ]]; then
-				local var__dir
-				var__dir=$PWD
-				while [[ $var__dir ]]; do
-					if [[ -e "$var__dir/.git" ]] && [[ -e /usr/lib/git-core/git-sh-prompt ]]; then
-						. /usr/lib/git-core/git-sh-prompt
-						_MONORAIL_GIT_LOADED=1
-					fi
-					var__dir=${var__dir%/*}
-				done
-			fi
-			# shellcheck disable=SC2329 # _TITLE function is invoked by __git_ps1 which is assigned later
-			_MONORAIL_GIT_PS1=$(
-				_TITLE() {
-					shift
-					"$@"
-				}
-				TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 ""
-			)
-			;;
-		esac
-		local var__icon TITLE_BASE
-		TITLE_BASE=${PWD##*/}
-		if [[ $var__monorail_repo ]]; then
-			var__icon=${_MONORAIL_ICON[const_repo]}
-		elif [[ $_MONORAIL_GIT_PS1 ]]; then
-			var__icon=${_MONORAIL_ICON[const_git]}
 		else
 			case $PWD in
-			"$HOME/Trash"* | "$HOME/.local/share/Trash/files"*) var__icon=${_MONORAIL_ICON[const_trash]} ;;
-			/)
-				var__icon=${_MONORAIL_ICON[const_computer]}
-				TITLE_BASE=/
-				;;
-			/media/*) var__icon=${_MONORAIL_ICON[const_media]} ;;
-			/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) var__icon=${_MONORAIL_ICON[const_system]} ;;
-			*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "$XDG_DOCUMENTS_DIR" | "$XDG_DOCUMENTS_DIR"/*) var__icon=${_MONORAIL_ICON[const_documents]} ;;
-			"$XDG_MUSIC_DIR" | "$XDG_MUSIC_DIR"/*) var__icon=${_MONORAIL_ICON[const_music]} ;;
-			"$XDG_PICTURES_DIR" | "$XDG_PICTURES_DIR"/*) var__icon=${_MONORAIL_ICON[const_pictures]} ;;
-			"$XDG_VIDEOS_DIR" | "$XDG_VIDEOS_DIR"/*) var__icon=${_MONORAIL_ICON[const_videos]} ;;
-			*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) var__icon=${_MONORAIL_ICON[const_downloads]} ;;
-			*) var__icon=${_MONORAIL_ICON[const_folder]} ;;
-			esac
-			case $PWD in
-			"$HOME")
-				TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
-				if [[ $CRAFT_STATE_DIR ]]; then
-					var__icon=${_MONORAIL_ICON[const_snapcraft]}
-				elif [[ $SSH_CLIENT ]]; then
-					var__icon=${_MONORAIL_ICON[const_ssh]}
-				elif [[ -e /.dockerenv ]]; then
-					var__icon=${_MONORAIL_ICON[const_docker]}
-				elif [[ -e /run/containerenv ]]; then
-					var__icon=${_MONORAIL_ICON[const_podman]}
-				else
-					var__icon=${_MONORAIL_ICON[const_home]}
+			/run/user/*/gvfs/*) _MONORAIL_GIT_PS1= ;;
+			*)
+				local var__prompt_pwd var__monorail_repo
+				var__prompt_pwd=$PWD
+				var__monorail_repo=
+				while [[ "$var__prompt_pwd" ]]; do
+					if [[ -d "$var__prompt_pwd/.repo" ]]; then
+						var__monorail_repo=1
+						break
+					fi
+					var__prompt_pwd="${var__prompt_pwd%/*}"
+				done
+				if [[ -z $_MONORAIL_GIT_LOADED ]]; then
+					local var__dir
+					var__dir=$PWD
+					while [[ $var__dir ]]; do
+						if [[ -e "$var__dir/.git" ]] && [[ -e /usr/lib/git-core/git-sh-prompt ]]; then
+							. /usr/lib/git-core/git-sh-prompt
+							_MONORAIL_GIT_LOADED=1
+						fi
+						var__dir=${var__dir%/*}
+					done
 				fi
+				# shellcheck disable=SC2329 # _TITLE function is invoked by __git_ps1 which is assigned later
+				_MONORAIL_GIT_PS1=$(
+					_TITLE() {
+						shift
+						"$@"
+					}
+					TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 ""
+				)
 				;;
-			*) ;;
 			esac
+			local var__icon TITLE_BASE
+			TITLE_BASE=${PWD##*/}
+			if [[ $var__monorail_repo ]]; then
+				var__icon=${_MONORAIL_ICON[const_repo]}
+			elif [[ $_MONORAIL_GIT_PS1 ]]; then
+				var__icon=${_MONORAIL_ICON[const_git]}
+			else
+				case $PWD in
+				"$HOME/Trash"* | "$HOME/.local/share/Trash/files"*) var__icon=${_MONORAIL_ICON[const_trash]} ;;
+				/)
+					var__icon=${_MONORAIL_ICON[const_computer]}
+					TITLE_BASE=/
+					;;
+				/media/*) var__icon=${_MONORAIL_ICON[const_media]} ;;
+				/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) var__icon=${_MONORAIL_ICON[const_system]} ;;
+				*/Documents | */Documents/* | */doc | */docs | */doc/* | */docs/* | "$XDG_DOCUMENTS_DIR" | "$XDG_DOCUMENTS_DIR"/*) var__icon=${_MONORAIL_ICON[const_documents]} ;;
+				"$XDG_MUSIC_DIR" | "$XDG_MUSIC_DIR"/*) var__icon=${_MONORAIL_ICON[const_music]} ;;
+				"$XDG_PICTURES_DIR" | "$XDG_PICTURES_DIR"/*) var__icon=${_MONORAIL_ICON[const_pictures]} ;;
+				"$XDG_VIDEOS_DIR" | "$XDG_VIDEOS_DIR"/*) var__icon=${_MONORAIL_ICON[const_videos]} ;;
+				*/Downloads | */Downloads/* | "$XDG_DOWNLOAD_DIR" | "$XDG_DOWNLOAD_DIR"/*) var__icon=${_MONORAIL_ICON[const_downloads]} ;;
+				*) var__icon=${_MONORAIL_ICON[const_folder]} ;;
+				esac
+				case $PWD in
+				"$HOME")
+					TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+					if [[ $CRAFT_STATE_DIR ]]; then
+						var__icon=${_MONORAIL_ICON[const_snapcraft]}
+					elif [[ $SSH_CLIENT ]]; then
+						var__icon=${_MONORAIL_ICON[const_ssh]}
+					elif [[ -e /.dockerenv ]]; then
+						var__icon=${_MONORAIL_ICON[const_docker]}
+					elif [[ -e /run/containerenv ]]; then
+						var__icon=${_MONORAIL_ICON[const_podman]}
+					else
+						var__icon=${_MONORAIL_ICON[const_home]}
+					fi
+					;;
+				*) ;;
+				esac
+			fi
+			_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${var__icon}}  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
+			[[ $PWD != "$HOME" ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 		fi
-		_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${var__icon}}  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
-		[[ $PWD != "$HOME" ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 		local var__pwd_basename="${PWD##*/}"
 		[[ $var__pwd_basename ]] || var__pwd_basename=/
 		case $PWD in
@@ -481,7 +481,7 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 
 			_MONORAIL_CACHE="$COLUMNS$var__monorail_text"
 			# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-			PS1=$'\e[?7l\e]0;'$_MONORAIL_TITLE$'\a\e[0m\r'"$var__monorail_line
+			PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE$''\a\e[0m\r'"$var__monorail_line
 $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e]12;#$var__hex_cursor_color\a\e[0m'"@PROMPT_POSTHIDE@"
 		fi
 		unset _MONORAIL_NOSTYLING
