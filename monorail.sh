@@ -67,6 +67,10 @@ case $TERM in
 	_MONORAIL_ANSI_TERMINAL=1
 	# terminal size detection needs further work on zsh and ksh
 	if [ "$BASH_VERSION" ] || [ -z "$ZSH_NAME" ] && [ -z "$KSH_VERSION" ]; then
+		# on Linux serial port, the size as reported from ioctl is always 80x24. Don't ask for it again as we're autodetecting it at monorail startup
+		# shellcheck disable=SC3044 # statement only runs in bash
+		[ "$BASH_VERSION" ] && shopt -u checkwinsize
+
 		# ask terminal for its size
 		# on serial terminals there is normally no COLUMNS/LINES set
 		# https://gist.github.com/asmagill/4b792359c7a01da46b2d
@@ -230,9 +234,10 @@ if [ "$(command -v freebsd_wordexp 2>/dev/null)" = "freebsd_wordexp" ]; then
 
 fi
 _MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
-if [ ! -f "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf ]; then
+# if colors-hostname.conf is not  nonzero sized regular file: recreate it
+if [ ! -s "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf ]; then
 	mkdir -p "$_MONORAIL_CONFIG"
-	cat "$_MONORAIL_DIR"/gradients/Default.conf "$_MONORAIL_DIR"/colors/Default.conf >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf 2>/dev/null
+	[ -s "$_MONORAIL_DIR"/gradients/Default.conf ] && [ -s "$_MONORAIL_DIR"/colors/Default.conf ] && cat "$_MONORAIL_DIR"/gradients/Default.conf "$_MONORAIL_DIR"/colors/Default.conf >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf 2>/dev/null
 fi
 if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
 	# vscode does not support disabling line wrap
@@ -349,11 +354,14 @@ else
 			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
 			I=$((I + 1))
 		done
+echo XXX=$_MONORAIL_TEXT_LEN >/dev/tty
+		CURSOR_POSITION_FIXUP="${ESC}[A
+${ESC}["$(printf "%0$((_MONORAIL_TEXT_LEN - 3))d" "$_MONORAIL_TEXT_LEN")C
+
 		if [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
-			_MONORAIL_LINE="$ESC(0${ESC}#5$_MONORAIL_LINE${ESC}(B${ESC}#6
-$_MONORAIL_REVERSE$_MONORAIL_TEXT"
+			_MONORAIL_LINE="$ESC(0${ESC}#5$_MONORAIL_LINE${ESC}(B${ESC}#6$_MONORAIL_REVERSE$_MONORAIL_TEXT$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
 		elif [ "$_MONORAIL_ANSI_TERMINAL" ]; then
-			_MONORAIL_LINE="${ESC}[4m$_MONORAIL_LINE${ESC}[0m$_MONORAIL_REVERSE$_MONORAIL_TEXT"
+			_MONORAIL_LINE="${ESC}[4m$_MONORAIL_LINE${ESC}[0m$_MONORAIL_REVERSE$_MONORAIL_TEXT$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
 		else
 			_MONORAIL_LINE="$_MONORAIL_LINE
 $_MONORAIL_TEXT"
@@ -434,7 +442,7 @@ _MONORAIL_UPDATE() {
 		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c | tr -d ' ')
 	fi
 
-	if [ -e "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]; then
+	if [ -s "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]; then
 		# shellcheck source=scripts/dummy.conf
 		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf 2>/dev/null
 	else
