@@ -175,14 +175,7 @@ v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-if [[ -z $1 ]];then
-c=\[$'\e'"[0;7m\]"
-while [[ $i -lt $e ]];do
-c+=${d[i]}
-i=$((i+1))
-done
-c+=\[$'\e[0;8m'"\]|"
-else
+if [[ $1 ]];then
 c=
 [[ -z ${t[*]} ]]&&t[0]="255;255;255"
 while [[ $i -lt $e ]];do
@@ -191,6 +184,13 @@ c+="\["$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${t[$(($
 i=$((i+1))
 done
 c+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m\]|"
+else
+c=\[$'\e'"[0;7m\]"
+while [[ $i -lt $e ]];do
+c+=${d[i]}
+i=$((i+1))
+done
+c+=\[$'\e[0;8m'"\]|"
 fi
 j=$(($#*$((e+1))/$((COLUMNS+1))))
 w=${!j}
@@ -409,7 +409,7 @@ local I=0
 local v=
 . "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
 _MONORAIL_CACHE="$COLUMNS$b"
-PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE$''\a\e[0m\r'"$v
+PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE''\a\e[0m\r'"$v
 $c\["$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$r\a\e[0m'"\]"
 fi
 unset _MONORAIL_NOSTYLING

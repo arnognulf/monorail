@@ -67,13 +67,14 @@ const_system=17    #discard_for_all
 	__bp_preexec_interactive_mode= #keep_for_bash
 	declare -a preexec_functions   #keep_for_bash
 
-	__bp_preexec_interactive_mode=1                                              #keep_for_bash
-	__bp_preexec_invoke_exec() {                                                 #keep_for_bash
-		__bp_last_argument_prev_command="${1:-}"                                    #keep_for_bash
-		[[ $__bp_inside_preexec ]] && return                                        #keep_for_bash
-		local __bp_inside_preexec=1                                                 #keep_for_bash
-		[[ ! -t 1 ]] && return                                                      #keep_for_bash
-		[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]] && return                      #keep_for_bash
+	__bp_preexec_interactive_mode=1                         #keep_for_bash
+	__bp_preexec_invoke_exec() {                            #keep_for_bash
+		__bp_last_argument_prev_command="${1:-}"               #keep_for_bash
+		[[ $__bp_inside_preexec ]] && return                   #keep_for_bash
+		local __bp_inside_preexec=1                            #keep_for_bash
+		[[ ! -t 1 ]] && return                                 #keep_for_bash
+		[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]] && return #keep_for_bash
+		# this -z cannot be removed since it would break bash-preexec (wat?)
 		if [[ -z ${__bp_preexec_interactive_mode:-} ]]; then                        #keep_for_bash
 			return                                                                     #keep_for_bash
 		else                                                                        #keep_for_bash
@@ -220,14 +221,7 @@ const_system=17    #discard_for_all
 			i=$((i + 1))
 		done
 		i=0
-		if [[ -z $1 ]]; then
-			var__monorail_text_formatted=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
-			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
-				var__monorail_text_formatted+=${var__monorail_text_array[i]}
-				i=$((i + 1))
-			done
-			var__monorail_text_formatted+=@PROMPT_PREHIDE@$'\e[0;8m'"@PROMPT_POSTHIDE@|"
-		else
+		if [[ $1 ]]; then
 			var__monorail_text_formatted=
 			[[ -z ${var__prompt_text_lut[*]} ]] && var__prompt_text_lut[0]="255;255;255"
 			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
@@ -240,6 +234,13 @@ const_system=17    #discard_for_all
 			# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
 			# In this case the horizontal bar is colored with background color.
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m@PROMPT_POSTHIDE@|"
+		else
+			var__monorail_text_formatted=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
+			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
+				var__monorail_text_formatted+=${var__monorail_text_array[i]}
+				i=$((i + 1))
+			done
+			var__monorail_text_formatted+=@PROMPT_PREHIDE@$'\e[0;8m'"@PROMPT_POSTHIDE@|"
 		fi
 		j=$(($# * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))
 		var__rgb_cur_color=${!j}
@@ -481,7 +482,7 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 
 			_MONORAIL_CACHE="$COLUMNS$var__monorail_text"
 			# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-			PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE$''\a\e[0m\r'"$var__monorail_line
+			PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE''\a\e[0m\r'"$var__monorail_line
 $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e]12;#$var__hex_cursor_color\a\e[0m'"@PROMPT_POSTHIDE@"
 		fi
 		unset _MONORAIL_NOSTYLING
