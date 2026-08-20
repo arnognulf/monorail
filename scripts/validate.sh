@@ -31,6 +31,9 @@ cat "$SRC" |
 		-e 's/const_command/15/g' \
 		-e 's/const_computer/16/g' \
 		-e 's/const_system/17/g' \
+		-e 's/const_color_foreground/16/g' \
+		-e 's/const_color_background/17/g' \
+		-e 's/const_color_cursor/21/g' \
 		-e 's/var__this_command/a/g' \
 		-e 's/var__monorail_text_formatted/c/g' \
 		-e 's/var__monorail_text_array_len/e/g' \
@@ -65,6 +68,12 @@ cat "$SRC" |
 		-e 's/var__rgb_cur_b/G/g' \
 		-e 's/var__prompt_command_array/H/g' \
 		-e 's/var__preexec_function/L/g' \
+		-e 's/var__cmd_status/M/g' \
+		-e 's/var__cmd/N/g' \
+		-e 's/var__prior_trap/O/g' \
+		-e 's/var__trap_argv/P/g' \
+		-e 's/var__xcmd/Q/g' \
+		-e 's/var__ignored_title/R/g' \
 		>"${TEMP_BASH}"
 shfmt -mn "${TEMP_BASH}" >monorail.bash || exit 42
 

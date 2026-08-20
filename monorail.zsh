@@ -35,7 +35,7 @@ preexec(){
 {
 [[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]]&&return
 _MONORAIL_PREV_CMD=$(fc -l -1)
-local var__escaped_command var__icon CMD
+local var__escaped_command var__icon var__cmd
 var__escaped_command=${1/\\\a/\\\\\a}
 var__escaped_command=${var__escaped_command/\\\b/\\\\\b}
 var__escaped_command=${var__escaped_command/\\\c/\\\\\c}
@@ -64,27 +64,27 @@ var__escaped_command=${var__escaped_command/\\\y/\\\\\y}
 var__escaped_command=${var__escaped_command/\\\z/\\\\\z}
 var__escaped_command=${var__escaped_command/\\\033/<ESC>}
 _TIMER_CMD=${var__escaped_command/\\\007/<BEL>}
-local XCMD COMMAND IGNORED_TITLE=
-for XCMD in "${_MONORAIL_CMD_IGNORED[@]}";do
-[[ $XCMD == "${_TIMER_CMD%% *}" ]]&&IGNORED_TITLE=1
+local var__xcmd var__command var__ignored_title=
+for var__xcmd in "${_MONORAIL_CMD_IGNORED[@]}";do
+[[ $var__xcmd == "${_TIMER_CMD%% *}" ]]&&var__ignored_title=1
 done
 var__icon=${_MONORAIL_ICON[15]}
 _MONORAIL_TITLE="$var__icon  $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-CMD=${_TIMER_CMD%% *}
-CMD=${CMD%%;*}
+var__cmd=${_TIMER_CMD%% *}
+var__cmd=${var__cmd%%;*}
 unset _MONORAIL_CUSTOM_TITLE
-alias "$CMD" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE=1
-for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}";do
-[[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]]&&_MONORAIL_CUSTOM_TITLE=1
+alias "$var__cmd" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE=1
+for var__command in "${CUSTOM_TITLE_COMMANDS[@]}";do
+[[ $var__command == "${_TIMER_CMD:0:${#var__command}}" ]]&&_MONORAIL_CUSTOM_TITLE=1
 done
 _MEASURE=1
 _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 local var__monorail_title_formatted=
-[[ $IGNORED_TITLE ]]||var__monorail_title_formatted=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
+[[ $var__ignored_title ]]||var__monorail_title_formatted=$'\e]0;'$_MONORAIL_TITLE$'\a'
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-printf "$var__monorail_title_formatted\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
+printf "$var__monorail_title_formatted\e]11;#${_COLORS[const_color_background]}\a\e]10;#${_COLORS[const_color_foreground]}\a\e]12;#${_COLORS[const_color_cursor]}\a\r\e[K" >/dev/tty 2>&-
 unset _MONORAIL_CUSTOM_TITLE
 } &>/dev/null
 }
@@ -105,7 +105,7 @@ j=$((1+$#*i/$((COLUMNS+1))))
 b_formatted+="%{"$'\e['"$((b_array_len+1))C"$'\e'["$((b_array_len+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]}*i/$((COLUMNS+1))))]}m%}${b_array[i]}"
 i=$((i+1))
 done
-b_formatted+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m%}|"
+b_formatted+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[const_color_background]:0:2}));$((0x${_COLORS[const_color_background]:2:2}));$((0x${_COLORS[const_color_background]:4:2}))m%}|"
 else
 b_formatted=%{$'\e'"[0;7m%}"
 while [[ $i -lt $b_array_len ]];do
@@ -121,7 +121,7 @@ var__rgb_cur_gb=${var__rgb_cur_color#*;}
 var__rgb_cur_g=${var__rgb_cur_gb%%;*}
 var__rgb_cur_b=${var__rgb_cur_gb##*;}
 var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$var__rgb_cur_r" "$var__rgb_cur_g" "$var__rgb_cur_b" 2>&-)
-[[ $1 ]]||var__hex_cursor_color=${_COLORS[21]}
+[[ $1 ]]||var__hex_cursor_color=${_COLORS[const_color_cursor]}
 }
 _monorail_textgradient(){
 var__prompt_text_lut=("$@")
@@ -172,8 +172,8 @@ _MONORAIL_LONGRUNNING=1
 fi
 unset _MEASURE
 } 2>&-
-local CMD_STATUS
-CMD_STATUS=$?
+local var__cmd_status
+var__cmd_status=$?
 printf "%$((COLUMNS-1))s\\r"
 HISTCONTROL=
 _MONORAIL_HISTCMD_PREV=$(fc -l -1)
@@ -183,7 +183,7 @@ _MONORAIL_CR_FIRST=1
 CR_LEVEL=0
 unset _MONORAIL_CTRLC
 elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
-if [[ -z $_MONORAIL_CR_FIRST ]]&&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
+if [[ -z $_MONORAIL_CR_FIRST ]]&&[[ $var__cmd_status == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
 case "$CR_LEVEL" in
 0)ls
 CR_LEVEL=3
@@ -334,7 +334,7 @@ PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE''\a\e[0m\r'"$h
 $b_formatted%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$var__hex_cursor_color\a\e[0m'"%}"
 fi
 unset _MONORAIL_NOSTYLING
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[const_color_background]}\a\e]10;#${_COLORS[const_color_foreground]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 }
 _TITLE(){
 local _MONORAIL_TITLE="$*"

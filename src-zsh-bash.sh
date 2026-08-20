@@ -5,24 +5,27 @@
 # Copyright (c) 2017 Ryan Caloras and contributors (see https://github.com/rcaloras/bash-preexec)
 # SPDX-License-Identifier: BSD-3-Clause
 # see FAST_SHELL_GUIDELINES.md on coding guidelines for this file.
-const_home=0       #discard_for_all
-const_ssh=1        #discard_for_all
-const_docker=2     #discard_for_all
-const_podman=3     #discard_for_all
-const_git=4        #discard_for_all
-const_repo=5       #discard_for_all
-const_trash=6      #discard_for_all
-const_documents=7  #discard_for_all
-const_media=8      #discard_for_all
-const_music=9      #discard_for_all
-const_videos=10    #discard_for_all
-const_downloads=11 #discard_for_all
-const_settings=12  #discard_for_all
-const_folder=13    #discard_for_all
-const_completed=14 #discard_for_all
-const_command=15   #discard_for_all
-const_computer=16  #discard_for_all
-const_system=17    #discard_for_all
+const_home=0              #discard_for_all
+const_ssh=1               #discard_for_all
+const_docker=2            #discard_for_all
+const_podman=3            #discard_for_all
+const_git=4               #discard_for_all
+const_repo=5              #discard_for_all
+const_trash=6             #discard_for_all
+const_documents=7         #discard_for_all
+const_media=8             #discard_for_all
+const_music=9             #discard_for_all
+const_videos=10           #discard_for_all
+const_downloads=11        #discard_for_all
+const_settings=12         #discard_for_all
+const_folder=13           #discard_for_all
+const_completed=14        #discard_for_all
+const_command=15          #discard_for_all
+const_computer=16         #discard_for_all
+const_system=17           #discard_for_all
+const_color_foreground=16 #discard_for_all
+const_color_background=17 #discard_for_all
+const_color_cursor=21     #discard_for_all
 {
 	# the monorail dir is hardcoded to simplify installation instructions
 	# for XDG compliance, the user may set _MONORAIL_DIR=$XDG_LOCAL_SHARE/monorail and _MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
@@ -61,25 +64,28 @@ const_system=17    #discard_for_all
 	# brush 0.4.0 needs to run posix version
 	[[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1             #keep_for_bash
 	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,} #keep_for_bash
-
-	#__bp_last_argument_prev_command="$_" #keep_for_bash
-	unset __bp_inside_preexec      #keep_for_bash
-	__bp_preexec_interactive_mode= #keep_for_bash
-	declare -a preexec_functions   #keep_for_bash
-
+	# this is a rather hackish method of enabling `preexec()` on first command
+	__bp_preexec_enabled=                                   #keep_for_bash
+	unset __bp_inside_preexec                               #keep_for_bash
+	__bp_preexec_interactive_mode=                          #keep_for_bash
+	declare -a preexec_functions                            #keep_for_bash
 	__bp_preexec_interactive_mode=1                         #keep_for_bash
 	__bp_preexec_invoke_exec() {                            #keep_for_bash
-		__bp_last_argument_prev_command="${1:-}"               #keep_for_bash
+		if [[ $1 = "__bp_install" ]]; then                     #keep_for_bash
+			__bp_preexec_enabled=1                                #keep_for_bash
+		fi                                                     #keep_for_bash
+		[[ $__bp_preexec_enabled ]] || return                  #keep_for_bash
 		[[ $__bp_inside_preexec ]] && return                   #keep_for_bash
 		local __bp_inside_preexec=1                            #keep_for_bash
 		[[ ! -t 1 ]] && return                                 #keep_for_bash
 		[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]] && return #keep_for_bash
 		# this -z cannot be removed since it would break bash-preexec (wat?)
-		if [[ -z ${__bp_preexec_interactive_mode:-} ]]; then                        #keep_for_bash
-			return                                                                     #keep_for_bash
-		else                                                                        #keep_for_bash
-			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && __bp_preexec_interactive_mode=""         #keep_for_bash
-		fi                                                                          #keep_for_bash
+		if [[ $__bp_preexec_enabled != 1 ]] && [[ -z ${__bp_preexec_interactive_mode:-} ]]; then #keep_for_bash
+			return                                                                                  #keep_for_bash
+		else                                                                                     #keep_for_bash
+			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && __bp_preexec_interactive_mode=""                      #keep_for_bash
+		fi                                                                                       #keep_for_bash
+
 		local var__prompt_command_array IFS=$'\n;'                                  #keep_for_bash
 		read -rd '' -a var__prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"        #keep_for_bash
 		local var__trimmed_arg="${BASH_COMMAND:-}"                                  #keep_for_bash
@@ -93,13 +99,14 @@ const_system=17    #discard_for_all
 			var__trimmed_command="${var__trimmed_command%"${var__trimmed_command##*[![:space:]]}"}" #keep_for_bash
 			[[ $var__trimmed_command = "$var__trimmed_arg" ]] && return                             #keep_for_bash
 		done                                                                                     #keep_for_bash
-		local var__this_command                                                                  #keep_for_bash
-		var__this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)                        #keep_for_bash
-		var__this_command="${var__this_command#*[[:digit:]][* ] }"                               #keep_for_bash
-		[[ $var__this_command ]] || return                                                       #keep_for_bash
-		local var__preexec_function                                                              #keep_for_bash
-		for var__preexec_function in "${preexec_functions[@]:-}"; do                             #keep_for_bash
-			if type -t "$var__preexec_function" >/dev/null; then                                    #keep_for_bash
+
+		local var__this_command                                           #keep_for_bash
+		var__this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1) #keep_for_bash
+		var__this_command="${var__this_command#*[[:digit:]][* ] }"        #keep_for_bash
+		[[ $var__this_command ]] || return                                #keep_for_bash
+		local var__preexec_function                                       #keep_for_bash
+		for var__preexec_function in "${preexec_functions[@]:-}"; do      #keep_for_bash
+			if type -t "$var__preexec_function" >/dev/null; then             #keep_for_bash
 				# TODO: __bp_last_ret_value is never set! accidently removed?
 				[[ ${__bp_last_ret_value-0} = 0 ]] || (exit "${__bp_last_ret_value-0}")                                                            #keep_for_bash
 				"$var__preexec_function" "$var__this_command"                                                                                      #keep_for_bash
@@ -110,11 +117,11 @@ const_system=17    #discard_for_all
 	__bp_install() {                                                                                                                      #keep_for_bash
 		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                                                                                #keep_for_bash
 		trap '__bp_preexec_invoke_exec "$_"' DEBUG                                                                                           #keep_for_bash
-		eval "local trap_argv=(${__bp_trap_string:-})"                                                                                       #keep_for_bash
-		local prior_trap=${trap_argv[2]:-}                                                                                                   #keep_for_bash
+		eval "local var__trap_argv=(${__bp_trap_string:-})"                                                                                  #keep_for_bash
+		local var__prior_trap=${var__trap_argv[2]:-}                                                                                         #keep_for_bash
 		unset __bp_trap_string                                                                                                               #keep_for_bash
-		if [[ $prior_trap ]]; then                                                                                                           #keep_for_bash
-			eval '__bp_original_debug_trap(){ '"$prior_trap"';}'                                                                                #keep_for_bash
+		if [[ $var__prior_trap ]]; then                                                                                                      #keep_for_bash
+			eval '__bp_original_debug_trap(){ '"$var__prior_trap"';}'                                                                           #keep_for_bash
 			preexec_functions+=(__bp_original_debug_trap)                                                                                       #keep_for_bash
 		fi                                                                                                                                   #keep_for_bash
 		local var__histcontrol                                                                                                               #keep_for_bash
@@ -153,7 +160,7 @@ const_system=17    #discard_for_all
 			# TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 			[[ $(fc -l -1) = "$_MONORAIL_PREV_CMD" ]] && return
 			_MONORAIL_PREV_CMD=$(fc -l -1)
-			local var__escaped_command var__icon CMD
+			local var__escaped_command var__icon var__cmd
 			var__escaped_command=${1/\\\a/\\\\\a}
 			var__escaped_command=${var__escaped_command/\\\b/\\\\\b}
 			var__escaped_command=${var__escaped_command/\\\c/\\\\\c}
@@ -182,28 +189,29 @@ const_system=17    #discard_for_all
 			var__escaped_command=${var__escaped_command/\\\z/\\\\\z}
 			var__escaped_command=${var__escaped_command/\\\033/<ESC>}
 			_TIMER_CMD=${var__escaped_command/\\\007/<BEL>}
-			local XCMD COMMAND IGNORED_TITLE=
-			for XCMD in "${_MONORAIL_CMD_IGNORED[@]}"; do
-				[[ $XCMD = "${_TIMER_CMD%% *}" ]] && IGNORED_TITLE=1
+			local var__xcmd var__command var__ignored_title=
+			for var__xcmd in "${_MONORAIL_CMD_IGNORED[@]}"; do
+				[[ $var__xcmd = "${_TIMER_CMD%% *}" ]] && var__ignored_title=1
 			done
 			var__icon=${_MONORAIL_ICON[const_command]}
 			_MONORAIL_TITLE="$var__icon  $_TIMER_CMD"
 			[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
-			CMD=${_TIMER_CMD%% *}
-			CMD=${CMD%%;*}
+			var__cmd=${_TIMER_CMD%% *}
+			var__cmd=${var__cmd%%;*}
 			unset _MONORAIL_CUSTOM_TITLE
-			alias "$CMD" >&- 2>&- && _MONORAIL_CUSTOM_TITLE=1
-			for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}"; do
-				[[ $COMMAND = "${_TIMER_CMD:0:${#COMMAND}}" ]] && _MONORAIL_CUSTOM_TITLE=1
+			alias "$var__cmd" >&- 2>&- && _MONORAIL_CUSTOM_TITLE=1
+			for var__command in "${CUSTOM_TITLE_COMMANDS[@]}"; do
+				[[ $var__command = "${_TIMER_CMD:0:${#var__command}}" ]] && _MONORAIL_CUSTOM_TITLE=1
 			done
 			_MEASURE=1
 			_START_SECONDS=$SECONDS
 			_MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 			local var__monorail_title_formatted=
-			[[ $IGNORED_TITLE ]] || var__monorail_title_formatted=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
+			#[[ $var__ignored_title ]] || var__monorail_title_formatted=$'\n\e[A\e]0;'$_MONORAIL_TITLE$'\a\r\e[K'
+			[[ $var__ignored_title ]] || var__monorail_title_formatted=$'\e]0;'$_MONORAIL_TITLE$'\a'
 			[[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 			# shellcheck disable=SC2059 # keep printf compact
-			printf "$var__monorail_title_formatted\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
+			printf "$var__monorail_title_formatted\e]11;#${_COLORS[const_color_background]}\a\e]10;#${_COLORS[const_color_foreground]}\a\e]12;#${_COLORS[const_color_cursor]}\a\r\e[K" >/dev/tty 2>&-
 			unset _MONORAIL_CUSTOM_TITLE
 			# dummy syntax so curly brackets match up for preprocessed brackets below
 			{  #discard_for_all
@@ -233,7 +241,7 @@ const_system=17    #discard_for_all
 			# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
 			# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
 			# In this case the horizontal bar is colored with background color.
-			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m@PROMPT_POSTHIDE@|"
+			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[const_color_background]:0:2}));$((0x${_COLORS[const_color_background]:2:2}));$((0x${_COLORS[const_color_background]:4:2}))m@PROMPT_POSTHIDE@|"
 		else
 			var__monorail_text_formatted=@PROMPT_PREHIDE@$'\e'"[0;7m@PROMPT_POSTHIDE@"
 			while [[ $i -lt ${var__monorail_text_array_len} ]]; do
@@ -249,7 +257,7 @@ const_system=17    #discard_for_all
 		var__rgb_cur_g=${var__rgb_cur_gb%%;*}
 		var__rgb_cur_b=${var__rgb_cur_gb##*;}
 		var__hex_cursor_color=$(printf "%.2x%.2x%.2x" "$var__rgb_cur_r" "$var__rgb_cur_g" "$var__rgb_cur_b" 2>&-)
-		[[ $1 ]] || var__hex_cursor_color=${_COLORS[21]}
+		[[ $1 ]] || var__hex_cursor_color=${_COLORS[const_color_cursor]}
 	}
 	_monorail_textgradient() {
 		var__prompt_text_lut=("$@")
@@ -302,8 +310,8 @@ const_system=17    #discard_for_all
 				fi
 				unset _MEASURE
 			} 2>&-
-			local CMD_STATUS
-			CMD_STATUS=$?
+			local var__cmd_status
+			var__cmd_status=$?
 			printf "%$((COLUMNS - 1))s\\r"
 			HISTCONTROL=
 			_MONORAIL_HISTCMD_PREV=$(fc -l -1)
@@ -313,7 +321,7 @@ const_system=17    #discard_for_all
 				CR_LEVEL=0
 				unset _MONORAIL_CTRLC
 			elif [[ $_MONORAIL_PENULTIMATE = "$_MONORAIL_HISTCMD_PREV" ]]; then
-				if [[ -z $_MONORAIL_CR_FIRST ]] && [[ $CMD_STATUS = 0 ]] && [[ -z $_MONORAIL_CTRLC ]]; then
+				if [[ -z $_MONORAIL_CR_FIRST ]] && [[ $var__cmd_status = 0 ]] && [[ -z $_MONORAIL_CTRLC ]]; then
 					case "$CR_LEVEL" in
 					0)
 						ls
@@ -487,7 +495,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		fi
 		unset _MONORAIL_NOSTYLING
 		# shellcheck disable=SC2059 # keep printf compact
-		printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
+		printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[const_color_background]}\a\e]10;#${_COLORS[const_color_foreground]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
 	}
 	_TITLE() {
 		local _MONORAIL_TITLE="$*"
