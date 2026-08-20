@@ -30,17 +30,21 @@ _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
 fi
 [[ $BRUSH_VERSION ]]&&_MONORAIL_COMPAT=1
 _MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,}
+__bp_preexec_enabled=
 unset __bp_inside_preexec
 __bp_preexec_interactive_mode=
 declare -a preexec_functions
 __bp_preexec_interactive_mode=1
 __bp_preexec_invoke_exec(){
-__bp_last_argument_prev_command="${1:-}"
+if [[ $1 == "__bp_install" ]];then
+__bp_preexec_enabled=1
+fi
+[[ $__bp_preexec_enabled ]]||return
 [[ $__bp_inside_preexec ]]&&return
 local __bp_inside_preexec=1
 [[ ! -t 1 ]]&&return
 [[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]]&&return
-if [[ -z ${__bp_preexec_interactive_mode:-} ]];then
+if [[ $__bp_preexec_enabled != 1 ]]&&[[ -z ${__bp_preexec_interactive_mode:-} ]];then
 return
 else
 [[ 0 -eq ${BASH_SUBSHELL:-} ]]&&__bp_preexec_interactive_mode=""
@@ -73,11 +77,11 @@ return "${__bp_last_ret_value-0}"
 __bp_install(){
 [[ ${PROMPT_COMMAND[*]:-} == *"precmd"* ]]&&return 1
 trap '__bp_preexec_invoke_exec "$_"' DEBUG
-eval "local trap_argv=(${__bp_trap_string:-})"
-local prior_trap=${trap_argv[2]:-}
+eval "local P=(${__bp_trap_string:-})"
+local O=${P[2]:-}
 unset __bp_trap_string
-if [[ $prior_trap ]];then
-eval '__bp_original_debug_trap(){ '"$prior_trap"';}'
+if [[ $O ]];then
+eval '__bp_original_debug_trap(){ '"$O"';}'
 preexec_functions+=(__bp_original_debug_trap)
 fi
 local k
@@ -113,7 +117,7 @@ preexec(){
 {
 [[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]]&&return
 _MONORAIL_PREV_CMD=$(fc -l -1)
-local C B CMD
+local C B N
 C=${1/\\\a/\\\\\a}
 C=${C/\\\b/\\\\\b}
 C=${C/\\\c/\\\\\c}
@@ -142,25 +146,25 @@ C=${C/\\\y/\\\\\y}
 C=${C/\\\z/\\\\\z}
 C=${C/\\\033/<ESC>}
 _TIMER_CMD=${C/\\\007/<BEL>}
-local XCMD COMMAND IGNORED_TITLE=
-for XCMD in "${_MONORAIL_CMD_IGNORED[@]}";do
-[[ $XCMD == "${_TIMER_CMD%% *}" ]]&&IGNORED_TITLE=1
+local Q l R=
+for Q in "${_MONORAIL_CMD_IGNORED[@]}";do
+[[ $Q == "${_TIMER_CMD%% *}" ]]&&R=1
 done
 B=${_MONORAIL_ICON[15]}
 _MONORAIL_TITLE="$B  $_TIMER_CMD"
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-CMD=${_TIMER_CMD%% *}
-CMD=${CMD%%;*}
+N=${_TIMER_CMD%% *}
+N=${N%%;*}
 unset _MONORAIL_CUSTOM_TITLE
-alias "$CMD" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE=1
-for COMMAND in "${CUSTOM_TITLE_COMMANDS[@]}";do
-[[ $COMMAND == "${_TIMER_CMD:0:${#COMMAND}}" ]]&&_MONORAIL_CUSTOM_TITLE=1
+alias "$N" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE=1
+for l in "${CUSTOM_TITLE_COMMANDS[@]}";do
+[[ $l == "${_TIMER_CMD:0:${#l}}" ]]&&_MONORAIL_CUSTOM_TITLE=1
 done
 _MEASURE=1
 _START_SECONDS=$SECONDS
 _MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 local p=
-[[ $IGNORED_TITLE ]]||p=$'\e'"]0;"$_MONORAIL_TITLE$'\a\r\e[K'
+[[ $R ]]||p=$'\e]0;'$_MONORAIL_TITLE$'\a'
 [[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
 printf "$p\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
 unset _MONORAIL_CUSTOM_TITLE
@@ -250,8 +254,8 @@ _MONORAIL_LONGRUNNING=1
 fi
 unset _MEASURE
 } 2>&-
-local CMD_STATUS
-CMD_STATUS=$?
+local M
+M=$?
 printf "%$((COLUMNS-1))s\\r"
 HISTCONTROL=
 _MONORAIL_HISTCMD_PREV=$(fc -l -1)
@@ -261,7 +265,7 @@ _MONORAIL_CR_FIRST=1
 CR_LEVEL=0
 unset _MONORAIL_CTRLC
 elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
-if [[ -z $_MONORAIL_CR_FIRST ]]&&[[ $CMD_STATUS == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
+if [[ -z $_MONORAIL_CR_FIRST ]]&&[[ $M == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
 case "$CR_LEVEL" in
 0)ls
 CR_LEVEL=3
