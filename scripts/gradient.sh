@@ -246,8 +246,6 @@ or \"None\" to use text color"
 		if [ -z "$COLOR" ]; then
 			COLOR=$ARG
 			(
-				# shellcheck disable=SC2086 # shellcheck cannot parse nested quotes in subshells
-				[ "$(printf %s \"$COLOR\" | wc -c)" = 6 ] || exit 42
 				# shellcheck disable=SC2034 # need to assign an unused variable to see if conversion is possible or not
 				_=$((0x$COLOR))
 			) 2>/dev/null || {
@@ -262,6 +260,7 @@ or \"None\" to use text color"
 			[ "$STEPS" -gt 100 ] && STEPS=100
 		fi
 	done
+	rm -f "${DEST}"
 	{
 		printf "_monorail_gradient"
 		while [ "${1}" ]; do

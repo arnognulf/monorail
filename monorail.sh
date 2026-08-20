@@ -354,6 +354,7 @@ else
 			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
 			I=$((I + 1))
 		done
+		# shellcheck disable=SC1078,SC1079 # deliberate newline needed for line calculation
 		CURSOR_POSITION_FIXUP="${ESC}[A
 ${ESC}["$(printf "%0$((_MONORAIL_TEXT_LEN - 3))d" "$_MONORAIL_TEXT_LEN")C
 
