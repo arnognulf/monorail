@@ -30,21 +30,16 @@ _mr_hostname=${HOSTNAME%%.*}
 fi
 [[ $BRUSH_VERSION ]]&&MONORAIL_COMPAT=1
 _mr_hostname=${_mr_hostname,,}
-_mr_D=
 unset _mr_A
 _mr_w=
 declare -a preexec_functions
 _mr_w=1
 _mr_x(){
-if [[ $1 == "_mr_C" ]];then
-_mr_D=1
-fi
-[[ $_mr_D ]]||return
 [[ $_mr_A ]]&&return
 local _mr_A=1
 [[ ! -t 1 ]]&&return
 [[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]]&&return
-if [[ $_mr_D != 1 ]]&&[[ -z ${_mr_w:-} ]];then
+if [[ -z ${_mr_w:-} ]];then
 return
 else
 [[ 0 -eq ${BASH_SUBSHELL:-} ]]&&_mr_w=""

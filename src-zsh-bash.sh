@@ -65,26 +65,21 @@ const_color_cursor=21     #discard_for_all
 	[[ $BRUSH_VERSION ]] && MONORAIL_COMPAT=1 #keep_for_bash
 	_mr_hostname=${_mr_hostname,,}            #keep_for_bash
 	# this is a rather hackish method of enabling `preexec()` on first command
-	glob__preexec_enabled=                                  #keep_for_bash
 	unset glob__inside_preexec                              #keep_for_bash
 	glob__preexec_interactive_mode=                         #keep_for_bash
 	declare -a preexec_functions                            #keep_for_bash
 	glob__preexec_interactive_mode=1                        #keep_for_bash
 	glob__preexec_invoke_exec() {                           #keep_for_bash
-		if [[ $1 = "glob__install" ]]; then                    #keep_for_bash
-			glob__preexec_enabled=1                               #keep_for_bash
-		fi                                                     #keep_for_bash
-		[[ $glob__preexec_enabled ]] || return                 #keep_for_bash
 		[[ $glob__inside_preexec ]] && return                  #keep_for_bash
 		local glob__inside_preexec=1                           #keep_for_bash
 		[[ ! -t 1 ]] && return                                 #keep_for_bash
 		[[ ${COMP_POINT:-} || ${READLINE_POINT:-} ]] && return #keep_for_bash
 		# this -z cannot be removed since it would break bash-preexec (wat?)
-		if [[ $glob__preexec_enabled != 1 ]] && [[ -z ${glob__preexec_interactive_mode:-} ]]; then #keep_for_bash
-			return                                                                                    #keep_for_bash
-		else                                                                                       #keep_for_bash
-			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && glob__preexec_interactive_mode=""                       #keep_for_bash
-		fi                                                                                         #keep_for_bash
+		if [[ -z ${glob__preexec_interactive_mode:-} ]]; then                #keep_for_bash
+			return                                                              #keep_for_bash
+		else                                                                 #keep_for_bash
+			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && glob__preexec_interactive_mode="" #keep_for_bash
+		fi                                                                   #keep_for_bash
 
 		local var__prompt_command_array IFS=$'\n;'                                  #keep_for_bash
 		read -rd '' -a var__prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"        #keep_for_bash
