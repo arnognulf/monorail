@@ -1,5 +1,5 @@
 #!/bin/bash
-export _MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+export _MONORAIL_HOSTNAME=${HOSTNAME%%.*}
 if command -v jq &>/dev/null && command -v bc &>/dev/null; then
 	:
 else
@@ -11,10 +11,10 @@ if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
-_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+_MONORAIL_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 
 _MONORAIL_INVALIDATE_CACHE() { :; }
-export _MONORAIL_CONFIG=$HOME/.config/monorail
+export MONORAIL_CONFIG=$HOME/.config/monorail
 FIELDS=$(grep -c \"name\": uiGradients/gradients.json)
 I=0
 while [[ $I -lt $FIELDS ]]; do
@@ -48,7 +48,7 @@ while [[ $I -lt $FIELDS ]]; do
 		:
 	}
 	# shellcheck source=scripts/dummy.conf
-	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	. "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.sh"
 	{
 		# _PROMPT_TEXT_LUT needs to be defined before _PROMPT_LUT as _PROMPT_LUT is dependent on it in monorail.compat
 

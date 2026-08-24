@@ -27,7 +27,7 @@
 #
 # echo -e "\033]Pg4040ff\033\\"
 #
-_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+_MONORAIL_HOSTNAME=${HOSTNAME%%.*}
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -39,7 +39,7 @@ else
 	exit 42
 fi
 
-_MONORAIL_CONFIG=$HOME/.config/monorail
+MONORAIL_CONFIG=$HOME/.config/monorail
 mkdir -p colors
 rm -f colors/*
 (
@@ -60,7 +60,7 @@ _COLORS() {
 }
 for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	# shellcheck disable=SC1090 # file will be available
-	. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.sh"
+	. "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.sh"
 	# shellcheck disable=SC2046 # word splitting is expected here
 	eval $(
 		printf "_COLORS=( "

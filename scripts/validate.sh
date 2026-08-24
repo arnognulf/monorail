@@ -74,6 +74,7 @@ cat "$SRC" |
 		-e 's/var__trap_argv/P/g' \
 		-e 's/var__xcmd/Q/g' \
 		-e 's/var__ignored_title/R/g' \
+		-e 's/var__title_base/S/g' \
 		>"${TEMP_BASH}"
 shfmt -mn "${TEMP_BASH}" >monorail.bash || exit 42
 
@@ -105,14 +106,50 @@ cat "$SRC" |
 		-e 's/const_command/15/g' \
 		-e 's/const_computer/16/g' \
 		-e 's/const_system/17/g' \
+		-e 's/const_color_foreground/16/g' \
+		-e 's/const_color_background/17/g' \
+		-e 's/const_color_cursor/21/g' \
 		-e 's/var__this_command/a/g' \
-		-e 's/var__monorail_text/b/g' \
 		-e 's/var__monorail_text_formatted/c/g' \
-		-e 's/var__monorail_text_array/d/g' \
 		-e 's/var__monorail_text_array_len/e/g' \
+		-e 's/var__monorail_text_array/d/g' \
+		-e 's/var__monorail_text/b/g' \
 		-e 's/var__existing_prompt_command/f/g' \
 		-e 's/var__trimmed_command/g/g' \
-		-e 's/var__monorail_line/h/g' \
+		-e 's/var__trimmed_arg/h/g' \
+		-e 's/var__sanitized/k/g' \
+		-e 's/var__histcontrol/k/g' \
+		-e 's/var__command/l/g' \
+		-e 's/var__diff/m/g' \
+		-e 's/var__text_lut/n/g' \
+		-e 's/var__prompt_lut/o/g' \
+		-e 's/var__monorail_title_formatted/p/g' \
+		-e 's/var__monorail_title/q/g' \
+		-e 's/var__hex_cursor_color/r/g' \
+		-e 's/var__answer/s/g' \
+		-e 's/var__prompt_text_lut/t/g' \
+		-e 's/var__dir/u/g' \
+		-e 's/var__monorail_line/v/g' \
+		-e 's/var__rgb_cur_color/w/g' \
+		-e 's/var__prompt_pwd/x/g' \
+		-e 's/var__monorail_repo/y/g' \
+		-e 's/var__pwd_basename/z/g' \
+		-e 's/var__spaces/A/g' \
+		-e 's/var__icon/B/g' \
+		-e 's/var__escaped_command/C/g' \
+		-e 's/var__rgb_cur_r/D/g' \
+		-e 's/var__rgb_cur_gb/E/g' \
+		-e 's/var__rgb_cur_g/F/g' \
+		-e 's/var__rgb_cur_b/G/g' \
+		-e 's/var__prompt_command_array/H/g' \
+		-e 's/var__preexec_function/L/g' \
+		-e 's/var__cmd_status/M/g' \
+		-e 's/var__cmd/N/g' \
+		-e 's/var__prior_trap/O/g' \
+		-e 's/var__trap_argv/P/g' \
+		-e 's/var__xcmd/Q/g' \
+		-e 's/var__ignored_title/R/g' \
+		-e 's/var__title_base/S/g' \
 		>"${TEMP_ZSH}"
 shfmt -mn "${TEMP_ZSH}" >monorail.zsh || exit 42
 

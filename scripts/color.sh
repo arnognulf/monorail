@@ -9,13 +9,13 @@ if [ "$ZSH_NAME" ]; then
 fi
 
 # shellcheck source=scripts/callbacks.inc.sh
-. "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
+. "${MONORAIL_DIR}"/scripts/callbacks.inc.sh
 # shellcheck source=scripts/sandbox.inc.sh
-. "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
+. "${MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 TEMPDIR=$(mktemp -d)
-cp -f "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
-DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
+cp -f "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
+DEST="${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf"
 
 _MONORAIL_CONTRAST() {
 	if command -v bc >/dev/null 2>/dev/null; then
@@ -74,21 +74,21 @@ _MAIN() {
 			ERROR "preview requires bash, zsh, or ksh to be installed"
 		fi
 		# shellcheck source=scripts/dummy.conf
-		. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
+		. "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf"
 		[ "${_DEFAULT_FGCOLOR}" ] || _DEFAULT_FGCOLOR=444444
 		[ "${_DEFAULT_BGCOLOR}" ] || _DEFAULT_BGCOLOR=ffffff
 		[ "${_COLORS_16}" ] || _COLORS_16=$_DEFAULT_FGCOLOR
 		[ "${_COLORS_17}" ] || _COLORS_17=$_DEFAULT_BGCOLOR
-		THEME=$(\cd "${_MONORAIL_DIR}"/colors && fzf --preview "$PREVIEW_SHELL \"${_MONORAIL_DIR}/scripts/preview.sh\" {}")
+		THEME=$(\cd "${MONORAIL_DIR}"/colors && fzf --preview "$PREVIEW_SHELL \"${MONORAIL_DIR}/scripts/preview.sh\" {}")
 		if [ "${THEME}" ]; then
 			# shellcheck source=scripts/dummy.conf
-			. "${_MONORAIL_DIR}/colors/${THEME}"
+			. "${MONORAIL_DIR}/colors/${THEME}"
 			_UPDATE_CONFIG "$THEME" "$FGCOLOR" "$BGCOLOR" "$CURSORCOLOR"
 		fi
 		exit 0
 		;;
 	--list | -l)
-		cd "$_MONORAIL_DIR/colors" || {
+		cd "$MONORAIL_DIR/colors" || {
 			ERROR "missing colors directory"
 		}
 		if [ -t 1 ]; then
@@ -182,7 +182,7 @@ Examples:
 			. "$1"
 			;;
 		*)
-			cd "${_MONORAIL_DIR}"/colors || {
+			cd "${MONORAIL_DIR}"/colors || {
 				ERROR "missing colors directory"
 			}
 			# shellcheck source=scripts/dummy.conf
@@ -238,7 +238,7 @@ _UPDATE_CONFIG() {
 
 	rm "${DEST}"
 
-	cd "${_MONORAIL_DIR}"/colors || {
+	cd "${MONORAIL_DIR}"/colors || {
 		ERROR "missing colors directory"
 	}
 	# set default colors
@@ -284,7 +284,7 @@ _UPDATE_CONFIG() {
 		. "${TEMPDIR}/current.conf" >>"${DEST}"
 	fi
 
-	"${_MONORAIL_DIR}"/scripts/send_winch.sh
+	"${MONORAIL_DIR}"/scripts/send_winch.sh
 
 }
 

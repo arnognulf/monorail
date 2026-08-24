@@ -21,16 +21,16 @@
 # SOFTWARE.
 
 TEMPDIR=$(mktemp -d)
-cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
+cp "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
 touch "${TEMPDIR}"/current.conf
-DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
+DEST="${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf"
 if [ "$ZSH_NAME" ]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
 fi
 
 # shellcheck source=scripts/callbacks.inc.sh
-. "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
+. "${MONORAIL_DIR}"/scripts/callbacks.inc.sh
 
 # OKLab: https://bottosson.github.io/posts/oklab/
 # bc(1) functions: http://phodd.net/gnu-bc/code/logic.bc
@@ -105,12 +105,12 @@ _GRADIENT() {
 		#shift
 		;;
 	--help | -h)
-		cat "${_MONORAIL_DIR}"/gradients/000_README.md
+		cat "${MONORAIL_DIR}"/gradients/000_README.md
 		exit 1
 		;;
 	--list | -l)
-		cd "$_MONORAIL_DIR/gradients" || {
-			echo "error: $_MONORAIL_DIR/gradients is inaccessible"
+		cd "$MONORAIL_DIR/gradients" || {
+			echo "error: $MONORAIL_DIR/gradients is inaccessible"
 			exit 42
 		}
 		if [ -t 1 ]; then
@@ -139,7 +139,7 @@ _GRADIENT() {
 			exit 42
 		fi
 
-		THEME=$(cd "${_MONORAIL_DIR}"/gradients && fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
+		THEME=$(cd "${MONORAIL_DIR}"/gradients && fzf --preview "$PREVIEW_SHELL ${MONORAIL_DIR}/scripts/preview.sh {}")
 		if [ "${THEME}" ]; then
 
 			rm -f "${DEST}"
@@ -155,7 +155,7 @@ _GRADIENT() {
 				echo ""
 			}
 			# shellcheck source=scripts/dummy.conf
-			. "${_MONORAIL_DIR}/gradients/${THEME}" >"${DEST}"
+			. "${MONORAIL_DIR}/gradients/${THEME}" >"${DEST}"
 			RESET_CALLBACKS
 
 			# shellcheck disable=SC2329 # callback function
@@ -170,10 +170,10 @@ _GRADIENT() {
 			} >>"${DEST}"
 
 			# shellcheck source=scripts/dummy.conf
-			. "${_MONORAIL_DIR}/gradients/${THEME}" >>"${DEST}"
+			. "${MONORAIL_DIR}/gradients/${THEME}" >>"${DEST}"
 			ADD_CURRENT_COLORS
 		fi
-		"${_MONORAIL_DIR}"/scripts/send_winch.sh
+		"${MONORAIL_DIR}"/scripts/send_winch.sh
 		exit 0
 		;;
 	esac
@@ -188,7 +188,7 @@ _GRADIENT() {
 		ARGC=$((ARGC + 1))
 	done
 	if [ "$ARGC" = 1 ]; then
-		if [ -f "${_MONORAIL_DIR}/gradients/${1}.conf" ]; then
+		if [ -f "${MONORAIL_DIR}/gradients/${1}.conf" ]; then
 			RESET_CALLBACKS
 			_monorail_textgradient() {
 				printf "_monorail_textgradient"
@@ -200,7 +200,7 @@ _GRADIENT() {
 				echo ""
 			}
 			# shellcheck source=scripts/dummy.conf
-			. "${_MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
+			. "${MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
 			RESET_CALLBACKS
 			_monorail_gradient() {
 				printf "_monorail_gradient"
@@ -212,10 +212,10 @@ _GRADIENT() {
 				echo ""
 			}
 			# shellcheck source=scripts/dummy.conf
-			. "${_MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
+			. "${MONORAIL_DIR}/gradients/${1}".conf >>"${DEST}"
 
 			ADD_CURRENT_COLORS
-			"${_MONORAIL_DIR}"/scripts/send_winch.sh
+			"${MONORAIL_DIR}"/scripts/send_winch.sh
 			return 0
 		else
 			{
@@ -223,7 +223,7 @@ _GRADIENT() {
 				echo "Select any of:
 "
 				FILE
-				for FILE in "${_MONORAIL_DIR}"/gradients/*; do
+				for FILE in "${MONORAIL_DIR}"/gradients/*; do
 					FILE="${FILE##*/}"
 					FILE="${FILE%.conf}"
 					echo "${FILE}"
@@ -319,6 +319,6 @@ or \"None\" to use text color"
 	} >>"${DEST}"
 	ADD_CURRENT_COLORS
 
-	"${_MONORAIL_DIR}"/scripts/send_winch.sh
+	"${MONORAIL_DIR}"/scripts/send_winch.sh
 }
 _GRADIENT "$@"

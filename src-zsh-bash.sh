@@ -28,42 +28,42 @@ const_color_background=17 #discard_for_all
 const_color_cursor=21     #discard_for_all
 {
 	# the monorail dir is hardcoded to simplify installation instructions
-	# for XDG compliance, the user may set _MONORAIL_DIR=$XDG_LOCAL_SHARE/monorail and _MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
-	[[ $_MONORAIL_DIR ]] || _MONORAIL_DIR=$HOME/.local/share/monorail
+	# for XDG compliance, the user may set MONORAIL_DIR=$XDG_LOCAL_SHARE/monorail and MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
+	[[ $MONORAIL_DIR ]] || MONORAIL_DIR=$HOME/.local/share/monorail
 	[[ $HOSTNAME ]] || HOSTNAME=$(hostname)
 	if [[ $CRAFT_STATE_DIR ]]; then
-		_MONORAIL_SHORT_HOSTNAME=snapcraft
+		_MONORAIL_HOSTNAME=snapcraft
 		_MONORAIL_HAS_SUFFIX=1
 		_MONORAIL_SUFFIX() {
-			_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+			_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_HOSTNAME"
 		}
 	elif [[ $SSH_CLIENT ]] || [[ $TMUX ]]; then
 		_MONORAIL_HAS_SUFFIX=1
 		_MONORAIL_SUFFIX() {
-			_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+			_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_HOSTNAME"
 		}
-		_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+		_MONORAIL_HOSTNAME=${HOSTNAME%%.*}
 	elif [[ -e /.dockerenv ]]; then
-		_MONORAIL_SHORT_HOSTNAME=docker
+		_MONORAIL_HOSTNAME=docker
 		_MONORAIL_HAS_SUFFIX=1
 		_MONORAIL_SUFFIX() {
-			_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+			_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_HOSTNAME"
 		}
 	elif [[ -e /run/containerenv ]]; then
 		_MONORAIL_HAS_SUFFIX=1
-		_MONORAIL_SHORT_HOSTNAME=podman
+		_MONORAIL_HOSTNAME=podman
 		_MONORAIL_SUFFIX() {
-			_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_SHORT_HOSTNAME"
+			_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_HOSTNAME"
 		}
 	else
-		_MONORAIL_SHORT_HOSTNAME=${HOSTNAME%%.*}
+		_MONORAIL_HOSTNAME=${HOSTNAME%%.*}
 	fi
-	setopt KSH_ARRAYS                                      #keep_for_zsh
-	setopt prompt_subst                                    #keep_for_zsh
-	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME:l} #keep_for_zsh
+	setopt KSH_ARRAYS                          #keep_for_zsh
+	setopt prompt_subst                        #keep_for_zsh
+	_MONORAIL_HOSTNAME=${_MONORAIL_HOSTNAME:l} #keep_for_zsh
 	# brush 0.4.0 needs to run posix version
-	[[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1             #keep_for_bash
-	_MONORAIL_SHORT_HOSTNAME=${_MONORAIL_SHORT_HOSTNAME,,} #keep_for_bash
+	[[ $BRUSH_VERSION ]] && _MONORAIL_COMPAT=1 #keep_for_bash
+	_MONORAIL_HOSTNAME=${_MONORAIL_HOSTNAME,,} #keep_for_bash
 	# this is a rather hackish method of enabling `preexec()` on first command
 	__bp_preexec_enabled=                                   #keep_for_bash
 	unset __bp_inside_preexec                               #keep_for_bash
@@ -265,26 +265,23 @@ const_color_cursor=21     #discard_for_all
 	_monorail_colors() {
 		_COLORS=("$@")
 	}
-	_MONORAIL_SET_TITLE() {
+	monorail_title() {
 		unset _MONORAIL_TITLE_OVERRIDE
 		[[ $1 ]] && _MONORAIL_TITLE_OVERRIDE="$*"
 	}
-	alias title=_MONORAIL_SET_TITLE
-	_MONORAIL_SET_ICON() {
+	monorail_icon() {
 		unset _MONORAIL_ICON_OVERRIDE
 		[[ $1 ]] && _MONORAIL_ICON_OVERRIDE="$*"
 	}
-	alias icon=_MONORAIL_SET_ICON
 	_TITLE_RAW() {
 		[[ $_MONORAIL_NOSTYLING ]] && return 0
 		printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 	}
-	[[ $_MONORAIL_CONFIG ]] || _MONORAIL_CONFIG=$HOME/.config/monorail
-	_MONORAIL_NAME() {
+	[[ $MONORAIL_CONFIG ]] || MONORAIL_CONFIG=$HOME/.config/monorail
+	monorail_name() {
 		unset NAME
 		[[ $1 ]] && NAME="$*"
 	}
-	alias name=_MONORAIL_NAME
 	precmd() {
 		if [[ $_MONORAIL_LAUNCHED ]]; then
 			# bash line editor (ble.sh) do not like others messing with the tty
@@ -397,8 +394,8 @@ const_color_cursor=21     #discard_for_all
 				)
 				;;
 			esac
-			local var__icon TITLE_BASE
-			TITLE_BASE=${PWD##*/}
+			local var__icon var__title_base
+			var__title_base=${PWD##*/}
 			if [[ $var__monorail_repo ]]; then
 				var__icon=${_MONORAIL_ICON[const_repo]}
 			elif [[ $_MONORAIL_GIT_PS1 ]]; then
@@ -408,7 +405,7 @@ const_color_cursor=21     #discard_for_all
 				"$HOME/Trash"* | "$HOME/.local/share/Trash/files"*) var__icon=${_MONORAIL_ICON[const_trash]} ;;
 				/)
 					var__icon=${_MONORAIL_ICON[const_computer]}
-					TITLE_BASE=/
+					var__title_base=/
 					;;
 				/media/*) var__icon=${_MONORAIL_ICON[const_media]} ;;
 				/proc/* | /sys/* | /dev/* | /proc | /sys | /dev) var__icon=${_MONORAIL_ICON[const_system]} ;;
@@ -421,7 +418,7 @@ const_color_cursor=21     #discard_for_all
 				esac
 				case $PWD in
 				"$HOME")
-					TITLE_BASE=$_MONORAIL_SHORT_HOSTNAME
+					var__title_base=$_MONORAIL_HOSTNAME
 					if [[ $CRAFT_STATE_DIR ]]; then
 						var__icon=${_MONORAIL_ICON[const_snapcraft]}
 					elif [[ $SSH_CLIENT ]]; then
@@ -437,7 +434,7 @@ const_color_cursor=21     #discard_for_all
 				*) ;;
 				esac
 			fi
-			_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${var__icon}}  ${_MONORAIL_TITLE_OVERRIDE-${TITLE_BASE}}"
+			_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-${var__icon}}  ${_MONORAIL_TITLE_OVERRIDE-${var__title_base}}"
 			[[ $PWD != "$HOME" ]] && [[ $_MONORAIL_HAS_SUFFIX ]] && _MONORAIL_SUFFIX
 		fi
 		local var__pwd_basename="${PWD##*/}"
@@ -463,21 +460,21 @@ const_color_cursor=21     #discard_for_all
 		local var__rgb_cur_color var__rgb_cur_r var__rgb_cur_gb var__rgb_cur_g var__rgb_cur_b
 		if [[ $_MONORAIL_CACHE != "$COLUMNS$var__monorail_text" ]]; then
 			unset _MONORAIL_CACHE _MEASURE
-			if [[ ! -f "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]]; then
-				mkdir -p "$_MONORAIL_CONFIG"
-				if [[ -f "$_MONORAIL_DIR/gradients/Default.conf" ]]; then
+			if [[ ! -f "$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf ]]; then
+				mkdir -p "$MONORAIL_CONFIG"
+				if [[ -f "$MONORAIL_DIR/gradients/Default.conf" ]]; then
 					if [[ $(gsettings get org.gnome.desktop.interface color-scheme) = prefer-dark ]]; then
-						LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/DefaultDark.conf "$_MONORAIL_DIR"/gradients/Default.conf >"$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
+						LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf 2>&-
 					else
-						LC_ALL=C LC_MESSAGES=C \cat "$_MONORAIL_DIR"/colors/Default.conf "$_MONORAIL_DIR"/gradients/Default.conf >"$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf 2>&-
+						LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/Default.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf 2>&-
 					fi
 				else
 					# shellcheck disable=SC2059 # keep printf compact
 					printf "\
-monorail: warning: Monorail was not found in $_MONORAIL_DIR.
+monorail: warning: Monorail was not found in $MONORAIL_DIR.
                    Do this to make colors and gradients work:
-                     1. Move monorail directory to $_MONORAIL_DIR
-                     2. rm -rf $_MONORAIL_CONFIG
+                     1. Move monorail directory to $MONORAIL_DIR
+                     2. rm -rf $MONORAIL_CONFIG
                      3. Restart terminal." >/dev/tty
 				fi
 			fi
@@ -486,7 +483,7 @@ monorail: warning: Monorail was not found in $_MONORAIL_DIR.
 			local var__monorail_line=
 			# here _monorail_gradient _monorail_textgradient _monorail_colors are called
 			# shellcheck source=scripts/dummy.conf
-			. "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf
+			. "$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf
 
 			_MONORAIL_CACHE="$COLUMNS$var__monorail_text"
 			# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
@@ -604,9 +601,9 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	_monorail_cmd_ignored() {
 		_MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
 	}
-	[[ -e $_MONORAIL_CONFIG/settings-${_MONORAIL_SHORT_HOSTNAME}.conf ]] || cat "$_MONORAIL_DIR/default_settings.conf" >"$_MONORAIL_CONFIG/settings-${_MONORAIL_SHORT_HOSTNAME}.conf"
+	[[ -e $MONORAIL_CONFIG/settings-${_MONORAIL_HOSTNAME}.conf ]] || cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-${_MONORAIL_HOSTNAME}.conf"
 	# shellcheck source=scripts/dummy.conf
-	. "$_MONORAIL_CONFIG/settings-${_MONORAIL_SHORT_HOSTNAME}.conf"
+	. "$MONORAIL_CONFIG/settings-${_MONORAIL_HOSTNAME}.conf"
 	__git_ps1() { :; }
 	_MONORAIL_MAGIC_SHELLBALL() {
 		local var__answer var__spaces i
@@ -681,16 +678,16 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	fi
 	[[ $_MONORAIL_COMPAT ]] && if [[ ! $_MONORAIL_DISABLE_COMPAT ]]; then
 		unalias git >/dev/null 2>/dev/null
-		. "$_MONORAIL_DIR/monorail.sh"
+		. "$MONORAIL_DIR/monorail.sh"
 	fi
 	# shellcheck disable=SC2139
-	alias monorail_color="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/color.sh"
+	alias monorail_color="_MONORAIL_HOSTNAME=$_MONORAIL_HOSTNAME MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/color.sh"
 	# shellcheck disable=SC2139
-	alias monorail_gradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/gradient.sh"
+	alias monorail_gradient="_MONORAIL_HOSTNAME=$_MONORAIL_HOSTNAME MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh"
 	# shellcheck disable=SC2139
-	alias monorail_image="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/image.sh"
+	alias monorail_image="_MONORAIL_HOSTNAME=$_MONORAIL_HOSTNAME MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/image.sh"
 	# shellcheck disable=SC2139
-	alias monorail_textgradient="_MONORAIL_SHORT_HOSTNAME=$_MONORAIL_SHORT_HOSTNAME _MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh $_MONORAIL_DIR/scripts/gradient.sh --text"
+	alias monorail_textgradient="_MONORAIL_HOSTNAME=$_MONORAIL_HOSTNAME MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh --text"
 	# shellcheck disable=SC2139
-	alias rgb="sh $_MONORAIL_DIR/scripts/rgb.sh"
+	alias rgb="sh $MONORAIL_DIR/scripts/rgb.sh"
 } >&- 2>&-

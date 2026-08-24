@@ -2,12 +2,12 @@
 # Copyright (c) 2025 Thomas Eriksson
 # SPDX-License-Identifier: BSD-3-Clause
 TEMPDIR=$(mktemp -d)
-cp "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
+cp "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
 touch "${TEMPDIR}"/current.conf
 # shellcheck source=scripts/callbacks.inc.sh
-. "${_MONORAIL_DIR}"/scripts/callbacks.inc.sh
+. "${MONORAIL_DIR}"/scripts/callbacks.inc.sh
 # shellcheck source=scripts/sandbox.inc.sh
-. "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
+. "${MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 _MAIN() {
 	if [ "$ZSH_NAME" ]; then
@@ -38,7 +38,7 @@ Examples:
 	fi
 
 	if [ -z "$DEST" ]; then
-		DEST="${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
+		DEST="${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf"
 	fi
 
 	if [ -z "$1" ]; then
@@ -63,7 +63,7 @@ Examples:
 			_MONORAIL_IMAGE_DIR=$XDG_PICTURES_DIR
 		fi
 
-		THEME=$(cd "${_MONORAIL_IMAGE_DIR}" && fzf --preview "$PREVIEW_SHELL ${_MONORAIL_DIR}/scripts/preview.sh {}")
+		THEME=$(cd "${_MONORAIL_IMAGE_DIR}" && fzf --preview "$PREVIEW_SHELL ${MONORAIL_DIR}/scripts/preview.sh {}")
 
 		if [ -n "$THEME" ]; then
 			THEME="${_MONORAIL_IMAGE_DIR}/$THEME"
@@ -104,6 +104,6 @@ Examples:
 	} >>"${DEST}"
 
 	ADD_CURRENT_COLORS
-	"${_MONORAIL_DIR}"/scripts/send_winch.sh
+	"${MONORAIL_DIR}"/scripts/send_winch.sh
 }
 _MAIN "$@"

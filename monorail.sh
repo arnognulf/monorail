@@ -10,11 +10,11 @@ BEL=$(printf '\007')
 US=$(printf '\037')
 unset _MONORAIL_UPDATING
 
-if [ -z "$_MONORAIL_DIR" ]; then
-	_MONORAIL_DIR="$HOME/.local/share/data/monorail"
+if [ -z "$MONORAIL_DIR" ]; then
+	MONORAIL_DIR="$HOME/.local/share/data/monorail"
 fi
-if [ -z "$_MONORAIL_CONFIG" ]; then
-	_MONORAIL_CONFIG="$HOME/.config/monorail"
+if [ -z "$MONORAIL_CONFIG" ]; then
+	MONORAIL_CONFIG="$HOME/.config/monorail"
 fi
 # some terminals cannot display UTF-8 despite locale being set
 case $TERM in
@@ -233,11 +233,11 @@ if [ "$(command -v freebsd_wordexp 2>/dev/null)" = "freebsd_wordexp" ]; then
 	_MONORAIL_ELIPSIS=...
 
 fi
-_MONORAIL_SHORT_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
-# if colors-hostname.conf is not  nonzero sized regular file: recreate it
-if [ ! -s "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf ]; then
-	mkdir -p "$_MONORAIL_CONFIG"
-	[ -s "$_MONORAIL_DIR"/gradients/Default.conf ] && [ -s "$_MONORAIL_DIR"/colors/Default.conf ] && cat "$_MONORAIL_DIR"/gradients/Default.conf "$_MONORAIL_DIR"/colors/Default.conf >"$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf 2>/dev/null
+_MONORAIL_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+# colors-*.conf must exist but may be empty if no color settings are wanted
+if [ ! -e "$MONORAIL_CONFIG"/colors-"$_MONORAIL_HOSTNAME".conf ]; then
+	mkdir -p "$MONORAIL_CONFIG"
+	[ -s "$MONORAIL_DIR"/gradients/Default.conf ] && [ -s "$MONORAIL_DIR"/colors/Default.conf ] && cat "$MONORAIL_DIR"/gradients/Default.conf "$MONORAIL_DIR"/colors/Default.conf >"$MONORAIL_CONFIG"/colors-"$_MONORAIL_HOSTNAME".conf 2>/dev/null
 fi
 if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
 	# vscode does not support disabling line wrap
@@ -405,7 +405,7 @@ _MONORAIL_UPDATE() {
 	"$HOME") _MONORAIL_PWD_BASENAME="~" ;;
 	esac
 	if [ "$HOME" = "$PWD" ]; then
-		TITLE=$_MONORAIL_SHORT_HOSTNAME
+		TITLE=$_MONORAIL_HOSTNAME
 	else
 		TITLE=$_MONORAIL_PWD_BASENAME
 	fi
@@ -442,9 +442,9 @@ _MONORAIL_UPDATE() {
 		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c | tr -d ' ')
 	fi
 
-	if [ -s "$_MONORAIL_CONFIG/colors-$_MONORAIL_SHORT_HOSTNAME".conf ]; then
+	if [ -s "$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf ]; then
 		# shellcheck source=scripts/dummy.conf
-		. "$_MONORAIL_CONFIG"/colors-"$_MONORAIL_SHORT_HOSTNAME".conf 2>/dev/null
+		. "$MONORAIL_CONFIG"/colors-"$_MONORAIL_HOSTNAME".conf 2>/dev/null
 	else
 		# shellcheck disable=SC2119 # called without arguments
 		_monorail_textgradient
@@ -558,25 +558,25 @@ trap "_MONORAIL_UPDATE" WINCH
 unalias monorail_color 2>/dev/null
 monorail_color() {
 	# shellcheck disable=SC2097,SC2098 # don't export variables only needed for monorail
-	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh "$_MONORAIL_DIR/scripts/color.sh"
+	MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh "$MONORAIL_DIR/scripts/color.sh"
 }
 unalias monorail_gradient 2>/dev/null
 monorail_gradient() {
 	# shellcheck disable=SC2097,SC2098 # don't export variables only needed for monorail
-	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh "$_MONORAIL_DIR/scripts/gradient.sh"
+	MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh "$MONORAIL_DIR/scripts/gradient.sh"
 }
 unalias monorail_image 2>/dev/null
 monorail_image() {
 	# shellcheck disable=SC2097,SC2098 # don't export variables only needed for monorail
-	_MONORAIL_CONFIG=$_MONORAIL_CONFIG _MONORAIL_DIR=$_MONORAIL_DIR sh "$_MONORAIL_DIR/scripts/image.sh"
+	MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh "$MONORAIL_DIR/scripts/image.sh"
 }
 unalias rgb 2>/dev/null
 rgb() {
-	"$0" "$_MONORAIL_DIR/scripts/rgb.sh"
+	"$0" "$MONORAIL_DIR/scripts/rgb.sh"
 }
 unalias monorail_rgb 2>/dev/null
 monorail_rgb() {
-	"$0" "$_MONORAIL_DIR/scripts/rgb.sh"
+	"$0" "$MONORAIL_DIR/scripts/rgb.sh"
 }
 
 if [ "$_MONORAIL_XTERM_TERMINAL" ]; then

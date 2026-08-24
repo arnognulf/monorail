@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-. "${_MONORAIL_DIR}"/scripts/sandbox.inc.sh
+. "${MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
@@ -65,16 +65,16 @@ _monorail_colors() {
 PREVIEW=$1
 
 if [[ $XDG_CONFIG_HOME ]]; then
-	_MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
+	MONORAIL_CONFIG="$XDG_CONFIG_HOME/monorail"
 else
-	_MONORAIL_CONFIG="$HOME/.config/monorail"
+	MONORAIL_CONFIG="$HOME/.config/monorail"
 fi
 # shellcheck source=scripts/dummy.conf
-. "${_MONORAIL_CONFIG}/colors-${_MONORAIL_SHORT_HOSTNAME}.conf"
+. "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf"
 case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.conf)
 	case "${PWD}" in
-	"${_MONORAIL_DIR}/gradients")
+	"${MONORAIL_DIR}/gradients")
 		I=0
 		while [[ $I -lt 200 ]]; do
 			unset "_PROMPT_LUT[I]"
@@ -82,7 +82,7 @@ case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 			I=$((I + 1))
 		done
 		;;
-	"${_MONORAIL_DIR}/colors")
+	"${MONORAIL_DIR}/colors")
 		:
 		;;
 	*)

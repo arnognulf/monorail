@@ -270,11 +270,9 @@ https://vtdn.dev/docs/osc/osc10
 https://vtdn.dev/docs/osc/osc11
 https://vtdn.dev/docs/osc/osc12
 
-Serial port size
-----------------
-Monorail automatically detects serial terminal size and sets COLUMNS and LINES so your editor works even in a non-80x24 window.
-
-Colors are inactivated for serial terminals since prompt updates would be slowed down by truecolor as well as serial terminals cannot be distinguished from your old rusty VT220.
+Automatically detect columns and lines on serial terminals
+----------------------------------------------------------
+Monorail automatically detects size on serial terminals and sets COLUMNS and LINES so your editor works even in a non-80x24 window.
 
 Contributions
 =============
