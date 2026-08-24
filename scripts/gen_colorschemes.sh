@@ -27,7 +27,7 @@
 #
 # echo -e "\033]Pg4040ff\033\\"
 #
-_MONORAIL_HOSTNAME=${HOSTNAME%%.*}
+_mr_hostname=${HOSTNAME%%.*}
 if [[ $ZSH_NAME ]]; then
 	setopt KSH_ARRAYS
 	setopt prompt_subst
@@ -60,7 +60,7 @@ _COLORS() {
 }
 for file in "iTerm2-Color-Schemes/iterm-dynamic-colors/"*; do
 	# shellcheck disable=SC1090 # file will be available
-	. "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.sh"
+	. "${MONORAIL_CONFIG}/colors-${_mr_hostname}.sh"
 	# shellcheck disable=SC2046 # word splitting is expected here
 	eval $(
 		printf "_COLORS=( "

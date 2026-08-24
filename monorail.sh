@@ -233,11 +233,11 @@ if [ "$(command -v freebsd_wordexp 2>/dev/null)" = "freebsd_wordexp" ]; then
 	_MONORAIL_ELIPSIS=...
 
 fi
-_MONORAIL_HOSTNAME=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
+_mr_hostname=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 # colors-*.conf must exist but may be empty if no color settings are wanted
-if [ ! -e "$MONORAIL_CONFIG"/colors-"$_MONORAIL_HOSTNAME".conf ]; then
+if [ ! -e "$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf ]; then
 	mkdir -p "$MONORAIL_CONFIG"
-	[ -s "$MONORAIL_DIR"/gradients/Default.conf ] && [ -s "$MONORAIL_DIR"/colors/Default.conf ] && cat "$MONORAIL_DIR"/gradients/Default.conf "$MONORAIL_DIR"/colors/Default.conf >"$MONORAIL_CONFIG"/colors-"$_MONORAIL_HOSTNAME".conf 2>/dev/null
+	[ -s "$MONORAIL_DIR"/gradients/Default.conf ] && [ -s "$MONORAIL_DIR"/colors/Default.conf ] && cat "$MONORAIL_DIR"/gradients/Default.conf "$MONORAIL_DIR"/colors/Default.conf >"$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf 2>/dev/null
 fi
 if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
 	# vscode does not support disabling line wrap
@@ -405,7 +405,7 @@ _MONORAIL_UPDATE() {
 	"$HOME") _MONORAIL_PWD_BASENAME="~" ;;
 	esac
 	if [ "$HOME" = "$PWD" ]; then
-		TITLE=$_MONORAIL_HOSTNAME
+		TITLE=$_mr_hostname
 	else
 		TITLE=$_MONORAIL_PWD_BASENAME
 	fi
@@ -442,9 +442,9 @@ _MONORAIL_UPDATE() {
 		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c | tr -d ' ')
 	fi
 
-	if [ -s "$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf ]; then
+	if [ -s "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]; then
 		# shellcheck source=scripts/dummy.conf
-		. "$MONORAIL_CONFIG"/colors-"$_MONORAIL_HOSTNAME".conf 2>/dev/null
+		. "$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf 2>/dev/null
 	else
 		# shellcheck disable=SC2119 # called without arguments
 		_monorail_textgradient

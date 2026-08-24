@@ -14,8 +14,8 @@ fi
 . "${MONORAIL_DIR}"/scripts/sandbox.inc.sh
 
 TEMPDIR=$(mktemp -d)
-cp -f "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf" "${TEMPDIR}"/current.conf
-DEST="${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf"
+cp -f "${MONORAIL_CONFIG}/colors-${_mr_hostname}.conf" "${TEMPDIR}"/current.conf
+DEST="${MONORAIL_CONFIG}/colors-${_mr_hostname}.conf"
 
 _MONORAIL_CONTRAST() {
 	if command -v bc >/dev/null 2>/dev/null; then
@@ -74,7 +74,7 @@ _MAIN() {
 			ERROR "preview requires bash, zsh, or ksh to be installed"
 		fi
 		# shellcheck source=scripts/dummy.conf
-		. "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf"
+		. "${MONORAIL_CONFIG}/colors-${_mr_hostname}.conf"
 		[ "${_DEFAULT_FGCOLOR}" ] || _DEFAULT_FGCOLOR=444444
 		[ "${_DEFAULT_BGCOLOR}" ] || _DEFAULT_BGCOLOR=ffffff
 		[ "${_COLORS_16}" ] || _COLORS_16=$_DEFAULT_FGCOLOR

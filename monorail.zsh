@@ -2,39 +2,39 @@
 [[ $MONORAIL_DIR ]]||MONORAIL_DIR=$HOME/.local/share/monorail
 [[ $HOSTNAME ]]||HOSTNAME=$(hostname)
 if [[ $CRAFT_STATE_DIR ]];then
-_MONORAIL_HOSTNAME=snapcraft
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_SUFFIX(){
-_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_HOSTNAME"
+_mr_hostname=snapcraft
+glob__has_suffix=1
+glob__suffix(){
+glob__title="$glob__title on $_mr_hostname"
 }
 elif [[ $SSH_CLIENT ]]||[[ $TMUX ]];then
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_SUFFIX(){
-_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_HOSTNAME"
+glob__has_suffix=1
+glob__suffix(){
+glob__title="$glob__title on $_mr_hostname"
 }
-_MONORAIL_HOSTNAME=${HOSTNAME%%.*}
+_mr_hostname=${HOSTNAME%%.*}
 elif [[ -e /.dockerenv ]];then
-_MONORAIL_HOSTNAME=docker
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_SUFFIX(){
-_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_HOSTNAME"
+_mr_hostname=docker
+glob__has_suffix=1
+glob__suffix(){
+glob__title="$glob__title on $_mr_hostname"
 }
 elif [[ -e /run/containerenv ]];then
-_MONORAIL_HAS_SUFFIX=1
-_MONORAIL_HOSTNAME=podman
-_MONORAIL_SUFFIX(){
-_MONORAIL_TITLE="$_MONORAIL_TITLE on $_MONORAIL_HOSTNAME"
+glob__has_suffix=1
+_mr_hostname=podman
+glob__suffix(){
+glob__title="$glob__title on $_mr_hostname"
 }
 else
-_MONORAIL_HOSTNAME=${HOSTNAME%%.*}
+_mr_hostname=${HOSTNAME%%.*}
 fi
 setopt KSH_ARRAYS
 setopt prompt_subst
-_MONORAIL_HOSTNAME=${_MONORAIL_HOSTNAME:l}
+_mr_hostname=${_mr_hostname:l}
 preexec(){
 {
-[[ $(fc -l -1) == "$_MONORAIL_PREV_CMD" ]]&&return
-_MONORAIL_PREV_CMD=$(fc -l -1)
+[[ $(fc -l -1) == "$glob__prev_cmd" ]]&&return
+glob__prev_cmd=$(fc -l -1)
 local C B N
 C=${1/\\\a/\\\\\a}
 C=${C/\\\b/\\\\\b}
@@ -63,29 +63,23 @@ C=${C/\\\x/\\\\\x}
 C=${C/\\\y/\\\\\y}
 C=${C/\\\z/\\\\\z}
 C=${C/\\\033/<ESC>}
-_TIMER_CMD=${C/\\\007/<BEL>}
+glob__timer_cmd=${C/\\\007/<BEL>}
 local Q l R=
-for Q in "${_MONORAIL_CMD_IGNORED[@]}";do
-[[ $Q == "${_TIMER_CMD%% *}" ]]&&R=1
+for Q in "${glob__cmd_ignored[@]}";do
+[[ $Q == "${glob__timer_cmd%% *}" ]]&&R=1
 done
-B=${_MONORAIL_ICON[15]}
-_MONORAIL_TITLE="$B  $_TIMER_CMD"
-[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-N=${_TIMER_CMD%% *}
+B=${glob__icons[15]}
+glob__title="$B  $glob__timer_cmd"
+[[ $glob__has_suffix ]]&&glob__suffix
+N=${glob__timer_cmd%% *}
 N=${N%%;*}
-unset _MONORAIL_CUSTOM_TITLE
-alias "$N" >&- 2>&-&&_MONORAIL_CUSTOM_TITLE=1
-for l in "${CUSTOM_TITLE_COMMANDS[@]}";do
-[[ $l == "${_TIMER_CMD:0:${#l}}" ]]&&_MONORAIL_CUSTOM_TITLE=1
-done
-_MEASURE=1
-_START_SECONDS=$SECONDS
-_MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+glob__measure=1
+glob__start_seconds=$SECONDS
+glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 local p=
-[[ $R ]]||p=$'\e]0;'$_MONORAIL_TITLE$'\a'
-[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-printf "$p\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]12;#${_COLORS[21]}\a\r\e[K" >/dev/tty 2>&-
-unset _MONORAIL_CUSTOM_TITLE
+[[ $R ]]||p=$'\e]0;'$glob__title$'\a'
+[[ $glob__has_suffix ]]&&glob__suffix
+printf "$p\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]12;#${glob__colors[21]}\a\r\e[K" >/dev/tty 2>&-
 } &>/dev/null
 }
 _monorail_gradient(){
@@ -105,7 +99,7 @@ j=$((1+$#*i/$((COLUMNS+1))))
 c+="%{"$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m%}${d[i]}"
 i=$((i+1))
 done
-c+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${_COLORS[17]:0:2}));$((0x${_COLORS[17]:2:2}));$((0x${_COLORS[17]:4:2}))m%}|"
+c+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${glob__colors[17]:0:2}));$((0x${glob__colors[17]:2:2}));$((0x${glob__colors[17]:4:2}))m%}|"
 else
 c=%{$'\e'"[0;7m%}"
 while [[ $i -lt $e ]];do
@@ -121,24 +115,24 @@ E=${w#*;}
 F=${E%%;*}
 G=${E##*;}
 r=$(printf "%.2x%.2x%.2x" "$D" "$F" "$G" 2>&-)
-[[ $1 ]]||r=${_COLORS[21]}
+[[ $1 ]]||r=${glob__colors[21]}
 }
 _monorail_textgradient(){
 t=("$@")
 }
 _monorail_colors(){
-_COLORS=("$@")
+glob__colors=("$@")
 }
 monorail_title(){
-unset _MONORAIL_TITLE_OVERRIDE
-[[ $1 ]]&&_MONORAIL_TITLE_OVERRIDE="$*"
+unset glob__title_override
+[[ $1 ]]&&glob__title_override="$*"
 }
 monorail_icon(){
-unset _MONORAIL_ICON_OVERRIDE
-[[ $1 ]]&&_MONORAIL_ICON_OVERRIDE="$*"
+unset glob__icon_override
+[[ $1 ]]&&glob__icon_override="$*"
 }
 _TITLE_RAW(){
-[[ $_MONORAIL_NOSTYLING ]]&&return 0
+[[ $glob__nostyling ]]&&return 0
 printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 }
 [[ $MONORAIL_CONFIG ]]||MONORAIL_CONFIG=$HOME/.config/monorail
@@ -147,79 +141,79 @@ unset NAME
 [[ $1 ]]&&NAME="$*"
 }
 precmd(){
-if [[ $_MONORAIL_LAUNCHED ]];then
+if [[ $glob__launched ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 {
-local SECONDS_M DURATION_H DURATION_M DURATION_S DURATION m
-m=$((SECONDS-_START_SECONDS))
-if [[ $_MEASURE ]]&&[[ $m -gt ${_MONORAIL_TIMEOUT-29} ]];then
-SECONDS_M=$((m%3600))
-DURATION_H=$((m/3600))
-DURATION_M=$((SECONDS_M/60))
-DURATION_S=$((SECONDS_M%60))
+local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration m
+m=$((SECONDS-glob__start_seconds))
+if [[ $glob__measure ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
+var__seconds_m=$((m%3600))
+var__duration_h=$((m/3600))
+var__duration_m=$((var__seconds_m/60))
+var__duration_s=$((var__seconds_m%60))
 printf "\n\aCommand took "
-DURATION=
-[[ $DURATION_H -gt 0 ]]&&DURATION="${DURATION_H}h "
-[[ $DURATION_M -gt 0 ]]&&DURATION+="${DURATION_M}m "
-DURATION+="${DURATION_S}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).
-echo "$DURATION"
-(exec notify-send -a "Completed $_TIMER_CMD" -i terminal "$_TIMER_CMD" "Command took $DURATION"&)
+var__duration=
+[[ $var__duration_h -gt 0 ]]&&var__duration="${var__duration_h}h "
+[[ $var__duration_m -gt 0 ]]&&var__duration+="${var__duration_m}m "
+var__duration+="${var__duration_s}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).
+echo "$var__duration"
+(exec notify-send -a "Completed $glob__timer_cmd" -i terminal "$glob__timer_cmd" "Command took $var__duration"&)
 (exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
-_MONORAIL_LONGRUNNING=1
+glob__longrunning=1
 fi
-unset _MEASURE
+unset glob__measure
 } 2>&-
 local M
 M=$?
 printf "%$((COLUMNS-1))s\\r"
 HISTCONTROL=
-_MONORAIL_HISTCMD_PREV=$(fc -l -1)
-_MONORAIL_HISTCMD_PREV=${_MONORAIL_HISTCMD_PREV%%$'[\t ]'*}
-if [[ -z $_MONORAIL_PENULTIMATE ]];then
-_MONORAIL_CR_FIRST=1
-CR_LEVEL=0
-unset _MONORAIL_CTRLC
-elif [[ $_MONORAIL_PENULTIMATE == "$_MONORAIL_HISTCMD_PREV" ]];then
-if [[ -z $_MONORAIL_CR_FIRST ]]&&[[ $M == 0 ]]&&[[ -z $_MONORAIL_CTRLC ]];then
-case "$CR_LEVEL" in
+glob__histcmd_prev=$(fc -l -1)
+glob__histcmd_prev=${glob__histcmd_prev%%$'[\t ]'*}
+if [[ -z $glob__histcmd_penultimate ]];then
+glob__cr_first=1
+glob__cr_level=0
+unset glob__ctrlc
+elif [[ $glob__histcmd_penultimate == "$glob__histcmd_prev" ]];then
+if [[ -z $glob__cr_first ]]&&[[ $M == 0 ]]&&[[ -z $glob__ctrlc ]];then
+case "$glob__cr_level" in
 0)ls
-CR_LEVEL=3
+glob__cr_level=3
 if \git status >&- 2>&-;then
-CR_LEVEL=1
+glob__cr_level=1
 else
 printf "\e[J\n\n"
 fi
 ;;
-2)CR_LEVEL=3
+2)glob__cr_level=3
 \git -c color.status=always status|\head -n$((LINES-2))|\head -n$((LINES-4))
 echo -e "        ...\n\n"
 ;;
-*)_MONORAIL_MAGIC_SHELLBALL
+*)glob__magic_shellball
 esac
-CR_LEVEL=$((CR_LEVEL+1))
+glob__cr_level=$((glob__cr_level+1))
 fi
-unset _MONORAIL_CR_FIRST
+unset glob__cr_first
 else
-unset _MONORAIL_CR_FIRST
-CR_LEVEL=0
+unset glob__cr_first
+glob__cr_level=0
 fi
-unset _MONORAIL_CTRLC
-_MONORAIL_PENULTIMATE=$_MONORAIL_HISTCMD_PREV
-trap "_MONORAIL_CTRLC=1;echo -n" INT
-trap "_MONORAIL_CTRLC=1;echo -n" ERR
+unset glob__ctrlc
+glob__histcmd_penultimate=$glob__histcmd_prev
+trap "glob__ctrlc=1;echo -n" INT
+trap "glob__ctrlc=1;echo -n" ERR
 else
-alias for='_MONORAIL_NOSTYLING=1;for'
-alias while='_MONORAIL_NOSTYLING=1;while'
-alias until='_MONORAIL_NOSTYLING=1;until'
-_MONORAIL_LAUNCHED=1
+alias for='glob__nostyling=1;for'
+alias while='glob__nostyling=1;while'
+alias until='glob__nostyling=1;until'
+glob__launched=1
 fi
-if [[ $_MONORAIL_LONGRUNNING ]];then
-_MONORAIL_TITLE="✅ Completed $_TIMER_CMD"
-[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-unset _MONORAIL_LONGRUNNING
+if [[ $glob__longrunning ]];then
+glob__title="${glob__icons[14]} Completed $glob__timer_cmd"
+[[ $glob__has_suffix ]]&&glob__suffix
+unset glob__longrunning
 else
 case $PWD in
-/run/user/*/gvfs/*)_MONORAIL_GIT_PS1=;;
+/run/user/*/gvfs/*)glob__git_ps1=;;
 *)local x y
 x=$PWD
 y=
@@ -230,18 +224,18 @@ break
 fi
 x="${x%/*}"
 done
-if [[ -z $_MONORAIL_GIT_LOADED ]];then
+if [[ -z $glob__git_loaded ]];then
 local u
 u=$PWD
 while [[ $u ]];do
 if [[ -e "$u/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
-_MONORAIL_GIT_LOADED=1
+glob__git_loaded=1
 fi
 u=${u%/*}
 done
 fi
-_MONORAIL_GIT_PS1=$(_TITLE(){
+glob__git_ps1=$(_TITLE(){
 shift
 "$@"
 }
@@ -250,43 +244,43 @@ esac
 local B S
 S=${PWD##*/}
 if [[ $y ]];then
-B=${_MONORAIL_ICON[5]}
-elif [[ $_MONORAIL_GIT_PS1 ]];then
-B=${_MONORAIL_ICON[4]}
+B=${glob__icons[5]}
+elif [[ $glob__git_ps1 ]];then
+B=${glob__icons[4]}
 else
 case $PWD in
-"$HOME/Trash"*|"$HOME/.local/share/Trash/files"*)B=${_MONORAIL_ICON[6]};;
-/)B=${_MONORAIL_ICON[16]}
+"$HOME/Trash"*|"$HOME/.local/share/Trash/files"*)B=${glob__icons[6]};;
+/)B=${glob__icons[16]}
 S=/
 ;;
-/media/*)B=${_MONORAIL_ICON[8]};;
-/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)B=${_MONORAIL_ICON[17]};;
-*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)B=${_MONORAIL_ICON[7]};;
-"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)B=${_MONORAIL_ICON[9]};;
-"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)B=${_MONORAIL_ICON[const_pictures]};;
-"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)B=${_MONORAIL_ICON[10]};;
-*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)B=${_MONORAIL_ICON[11]};;
-*)B=${_MONORAIL_ICON[13]}
+/media/*)B=${glob__icons[8]};;
+/proc/*|/sys/*|/dev/*|/proc|/sys|/dev)B=${glob__icons[17]};;
+*/Documents|*/Documents/*|*/doc|*/docs|*/doc/*|*/docs/*|"$XDG_DOCUMENTS_DIR"|"$XDG_DOCUMENTS_DIR"/*)B=${glob__icons[7]};;
+"$XDG_MUSIC_DIR"|"$XDG_MUSIC_DIR"/*)B=${glob__icons[9]};;
+"$XDG_PICTURES_DIR"|"$XDG_PICTURES_DIR"/*)B=${glob__icons[const_pictures]};;
+"$XDG_VIDEOS_DIR"|"$XDG_VIDEOS_DIR"/*)B=${glob__icons[10]};;
+*/Downloads|*/Downloads/*|"$XDG_DOWNLOAD_DIR"|"$XDG_DOWNLOAD_DIR"/*)B=${glob__icons[11]};;
+*)B=${glob__icons[13]}
 esac
 case $PWD in
-"$HOME")S=$_MONORAIL_HOSTNAME
+"$HOME")S=$_mr_hostname
 if [[ $CRAFT_STATE_DIR ]];then
-B=${_MONORAIL_ICON[const_snapcraft]}
+B=${glob__icons[const_snapcraft]}
 elif [[ $SSH_CLIENT ]];then
-B=${_MONORAIL_ICON[1]}
+B=${glob__icons[1]}
 elif [[ -e /.dockerenv ]];then
-B=${_MONORAIL_ICON[2]}
+B=${glob__icons[2]}
 elif [[ -e /run/containerenv ]];then
-B=${_MONORAIL_ICON[3]}
+B=${glob__icons[3]}
 else
-B=${_MONORAIL_ICON[0]}
+B=${glob__icons[0]}
 fi
 ;;
 *)
 esac
 fi
-_MONORAIL_TITLE="${_MONORAIL_ICON_OVERRIDE-$B}  ${_MONORAIL_TITLE_OVERRIDE-$S}"
-[[ $PWD != "$HOME" ]]&&[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
+glob__title="${glob__icon_override-$B}  ${glob__title_override-$S}"
+[[ $PWD != "$HOME" ]]&&[[ $glob__has_suffix ]]&&glob__suffix
 fi
 local z="${PWD##*/}"
 [[ $z ]]||z=/
@@ -294,7 +288,7 @@ case $PWD in
 "$HOME")z="~";;
 *)z="${NAME-$z}"
 esac
-local b=" $z$_MONORAIL_GIT_PS1 "
+local b=" $z$glob__git_ps1 "
 b=${b//\.\.\./$'\xe2\x80\xa6'}
 [[ ${#b} -gt $((COLUMNS/3)) ]]&&b=$' \xe2\x80\xa6'"${b:$((${#b}-$((COLUMNS/3))))}"
 local d=()
@@ -303,15 +297,15 @@ d[I]=${b[I]}
 done
 e=${#d[@]}
 local w D E F G
-if [[ $_MONORAIL_CACHE != "$COLUMNS$b" ]];then
-unset _MONORAIL_CACHE _MEASURE
-if [[ ! -f "$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf ]];then
+if [[ $glob__cache != "$COLUMNS$b" ]];then
+unset glob__cache glob__measure
+if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]];then
 mkdir -p "$MONORAIL_CONFIG"
 if [[ -f "$MONORAIL_DIR/gradients/Default.conf" ]];then
 if [[ $(gsettings get org.gnome.desktop.interface color-scheme) == prefer-dark ]];then
-LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf 2>&-
+LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf 2>&-
 else
-LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/Default.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf 2>&-
+LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/Default.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf 2>&-
 fi
 else
 printf "\
@@ -322,31 +316,31 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
                      3. Restart terminal." >/dev/tty
 fi
 fi
-_COLORS=()
+glob__colors=()
 local I=0
 local v=
-. "$MONORAIL_CONFIG/colors-$_MONORAIL_HOSTNAME".conf
-_MONORAIL_CACHE="$COLUMNS$b"
-PS1=$'\e[?7l\e]0;''$_MONORAIL_TITLE''\a\e[0m\r'"$v
+. "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
+glob__cache="$COLUMNS$b"
+PS1=$'\e[?7l\e]0;''$glob__title''\a\e[0m\r'"$v
 $c%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$r\a\e[0m'"%}"
 fi
-unset _MONORAIL_NOSTYLING
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_COLORS[17]}\a\e]10;#${_COLORS[16]}\a\e]4;0;#${_COLORS[0]}\a\e]4;1;#${_COLORS[1]}\a\e]4;2;#${_COLORS[2]}\a\e]4;3;#${_COLORS[3]}\a\e]4;4;#${_COLORS[4]}\a\e]4;5;#${_COLORS[5]}\a\e]4;6;#${_COLORS[6]}\a\e]4;7;#${_COLORS[7]}\a\e]4;8;#${_COLORS[8]}\a\e]4;9;#${_COLORS[9]}\a\e]4;10;#${_COLORS[10]}\a\e]4;11;#${_COLORS[11]}\a\e]4;12;#${_COLORS[12]}\a\e]4;13;#${_COLORS[13]}\a\e]4;14;#${_COLORS[14]}\a\e]4;15;#${_COLORS[15]}\a\r"
+unset glob__nostyling
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;10;#${glob__colors[10]}\a\e]4;11;#${glob__colors[11]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r"
 }
 _TITLE(){
-local _MONORAIL_TITLE="$*"
-if [[ $_MEASURE ]];then
-_MONORAIL_TITLE+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
+local glob__title="$*"
+if [[ $glob__measure ]];then
+glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 elif [[ $PWD == "$HOME" ]];then
 :
 else
-_MONORAIL_TITLE+=" in ${PWD##*/}"
+glob__title+=" in ${PWD##*/}"
 fi
-[[ $_MONORAIL_HAS_SUFFIX ]]&&_MONORAIL_SUFFIX
-_TITLE_RAW "$_MONORAIL_TITLE"
+[[ $glob__has_suffix ]]&&glob__suffix
+_TITLE_RAW "$glob__title"
 }
 _NO_MEASURE(){
-unset _MEASURE
+unset glob__measure
 "$@"
 }
 _ICON(){
@@ -368,15 +362,15 @@ fi
 FIRST_NON_OPTION="$2"
 done
 [[ $B ]]&&if [[ -z $FIRST_NON_OPTION ]];then
-_TITLE "${_MONORAIL_ICON_OVERRIDE-$B}  ${FIRST_ARG##*/}"
+_TITLE "${glob__icon_override-$B}  ${FIRST_ARG##*/}"
 else
-_TITLE "${_MONORAIL_ICON_OVERRIDE-$B}  ${FIRST_NON_OPTION##*/}"
+_TITLE "${glob__icon_override-$B}  ${FIRST_NON_OPTION##*/}"
 fi) >& \
 - 2>&-
 fi
 "$@"
 }
-trap "unset _MONORAIL_CACHE" WINCH
+trap "unset glob__cache" WINCH
 _LOW_PRIO(){
 if type -P chrt&&type -P ionice&&type -P ionice;then
 _LOW_PRIO(){
@@ -391,24 +385,24 @@ _LOW_PRIO "$@"
 }
 _monorail_icon(){
 case "$2" in
-home)_MONORAIL_ICON[0]=$1;;
-ssh)_MONORAIL_ICON[1]=$1;;
-docker)_MONORAIL_ICON[2]=$1;;
-podman)_MONORAIL_ICON[3]=$1;;
-git)_MONORAIL_ICON[4]=$1;;
-repo)_MONORAIL_ICON[5]=$1;;
-trash)_MONORAIL_ICON[6]=$1;;
-documents)_MONORAIL_ICON[7]=$1;;
-media)_MONORAIL_ICON[8]=$1;;
-music)_MONORAIL_ICON[9]=$1;;
-videos)_MONORAIL_ICON[10]=$1;;
-downloads)_MONORAIL_ICON[11]=$1;;
-settings)_MONORAIL_ICON[12]=$1;;
-folder)_MONORAIL_ICON[13]=$1;;
-completed)_MONORAIL_ICON[14]=$1;;
-command)_MONORAIL_ICON[15]=$1;;
-computer)_MONORAIL_ICON[16]=$1;;
-system)_MONORAIL_ICON[17]=$1;;
+home)glob__icons[0]=$1;;
+ssh)glob__icons[1]=$1;;
+docker)glob__icons[2]=$1;;
+podman)glob__icons[3]=$1;;
+git)glob__icons[4]=$1;;
+repo)glob__icons[5]=$1;;
+trash)glob__icons[6]=$1;;
+documents)glob__icons[7]=$1;;
+media)glob__icons[8]=$1;;
+music)glob__icons[9]=$1;;
+videos)glob__icons[10]=$1;;
+downloads)glob__icons[11]=$1;;
+settings)glob__icons[12]=$1;;
+folder)glob__icons[13]=$1;;
+completed)glob__icons[14]=$1;;
+command)glob__icons[15]=$1;;
+computer)glob__icons[16]=$1;;
+system)glob__icons[17]=$1;;
 *)echo "not supported value: $2"
 esac
 }
@@ -418,14 +412,14 @@ command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 _monorail_cmd_batch(){
 command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
 }
-_MONORAIL_CMD_IGNORED=()
+glob__cmd_ignored=()
 _monorail_cmd_ignored(){
-_MONORAIL_CMD_IGNORED[${#_MONORAIL_CMD_IGNORED[@]}]=$1
+glob__cmd_ignored[${#glob__cmd_ignored[@]}]=$1
 }
-[[ -e $MONORAIL_CONFIG/settings-$_MONORAIL_HOSTNAME.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_MONORAIL_HOSTNAME.conf"
-. "$MONORAIL_CONFIG/settings-$_MONORAIL_HOSTNAME.conf"
+[[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
+. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
 __git_ps1(){ :;}
-_MONORAIL_MAGIC_SHELLBALL(){
+glob__magic_shellball(){
 local s A i
 A=
 i=0
@@ -463,33 +457,33 @@ done
 echo -e "\e[?25l\e[3A\r\e[K$A$s"
 }
 if [[ $TERM == xterm-256color ]];then
-[[ $ZUTTY_VERSION ]]&&_MONORAIL_COMPAT=1
-[[ $TERM_PROGRAM == vscode ]]&&_MONORAIL_COMPAT=1
+[[ $ZUTTY_VERSION ]]&&MONORAIL_COMPAT=1
+[[ $TERM_PROGRAM == vscode ]]&&MONORAIL_COMPAT=1
 elif [[ $MC_TMPDIR ]];then
-_MONORAIL_COMPAT=1
+MONORAIL_COMPAT=1
 else
 case $TERM in
-xterm-color|xterm-16color)_MONORAIL_COMPAT=1
+xterm-color|xterm-16color)MONORAIL_COMPAT=1
 ;;
 xterm*|alacritty|rio|rxvt-unicode-256color|mlterm|st-256color|foot)printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "$COLUMNS" >/dev/tty 2>&-
 [[ $TERM == xterm-ghostty ]]&&unalias ssh 2>/dev/null
-[[ $(tty) =~ "/dev/ttyv"* ]]&&_MONORAIL_COMPAT=1
-[[ $WINDOWID == 0 ]]&&_MONORAIL_COMPAT=1
+[[ $(tty) =~ "/dev/ttyv"* ]]&&MONORAIL_COMPAT=1
+[[ $WINDOWID == 0 ]]&&MONORAIL_COMPAT=1
 case $XTERM_LOCALE in
 ""|*.UTF-8):;;
-*)_MONORAIL_COMPAT=1
+*)MONORAIL_COMPAT=1
 esac
 ;;
-*)_MONORAIL_COMPAT=1
+*)MONORAIL_COMPAT=1
 esac
 fi
-[[ $_MONORAIL_COMPAT ]]&&if [[ ! $_MONORAIL_DISABLE_COMPAT ]];then
+[[ $MONORAIL_COMPAT ]]&&if [[ ! $MONORAIL_DISABLE_COMPAT ]];then
 unalias git >/dev/null 2>/dev/null
 . "$MONORAIL_DIR/monorail.sh"
 fi
-alias monorail_color="_MONORAIL_HOSTNAME=$_MONORAIL_HOSTNAME MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/color.sh"
-alias monorail_gradient="_MONORAIL_HOSTNAME=$_MONORAIL_HOSTNAME MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh"
-alias monorail_image="_MONORAIL_HOSTNAME=$_MONORAIL_HOSTNAME MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/image.sh"
-alias monorail_textgradient="_MONORAIL_HOSTNAME=$_MONORAIL_HOSTNAME MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh --text"
+alias monorail_color="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/color.sh"
+alias monorail_gradient="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh"
+alias monorail_image="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/image.sh"
+alias monorail_textgradient="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh --text"
 alias rgb="sh $MONORAIL_DIR/scripts/rgb.sh"
 } >&- 2>&-

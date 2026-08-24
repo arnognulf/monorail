@@ -274,6 +274,55 @@ Automatically detect columns and lines on serial terminals
 ----------------------------------------------------------
 Monorail automatically detects size on serial terminals and sets COLUMNS and LINES so your editor works even in a non-80x24 window.
 
+Customization variables
+=======================
+
+`MONORAIL_DIR` set installation dir
+-----------------------------------
+MONORAIL_DIR can be set to a custom directory.
+
+Examples (sh):
+
+`MONORAIL_DIR=${XDG_DATA_HOME}/monorail`
+
+or as a submodule to dotfiles:
+
+`MONORAIL_DIR=${MY_DOTFILESDIR}/monorail`
+
+`MONORAIL_CONFIG` set configuration dir
+---------------------------------------
+Examples (sh):
+
+`MONORAIL_CONFIG=${XDG_CONFIG_HOME}/monorail`
+
+`MONORAIL_TIMEOUT=n` configure duration until command notification/statistics is shown
+--------------------------------------------------------------------------------------
+After 30s monorail displays a longrunning command notification.
+
+The timeout can be configured to a custom value of _n_ seconds.
+
+
+`MONORAIL_COMPAT=1` force use of compat mode
+--------------------------------------------
+Override monorails terminal detection and go to posix sh compat mode.
+Please report when this is needed.
+
+`MONORAIL_DISABLE_COMPAT=1` disable compat
+------------------------------------------
+Override monorails terminal detection and use bash/zsh mode - overrides MONORAIL_COMPAT.
+Please report when this is needed.
+
+FAQ
+===
+Q: Why is prompt icon not working in ghostty?
+
+A: Ghostty overrides the title set by monorail.
+Add the following to ~/.config/ghostty/config:
+```
+shell-integration-features = no-title
+```
+
+
 Contributions
 =============
 Contributing themes

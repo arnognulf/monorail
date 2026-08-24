@@ -70,7 +70,7 @@ else
 	MONORAIL_CONFIG="$HOME/.config/monorail"
 fi
 # shellcheck source=scripts/dummy.conf
-. "${MONORAIL_CONFIG}/colors-${_MONORAIL_HOSTNAME}.conf"
+. "${MONORAIL_CONFIG}/colors-${_mr_hostname}.conf"
 case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.conf)
 	case "${PWD}" in
