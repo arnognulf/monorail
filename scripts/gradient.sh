@@ -155,7 +155,12 @@ _GRADIENT() {
 				echo ""
 			}
 			# shellcheck source=scripts/dummy.conf
-			. "${MONORAIL_DIR}/gradients/${THEME}" >"${DEST}"
+			. "${MONORAIL_DIR}/gradients/${THEME}" >"${DEST}" 2>/dev/null || {
+				cat "${MONORAIL_DIR}/gradients/${THEME}" >"${DEST}"
+				"${MONORAIL_DIR}"/scripts/send_winch.sh
+				exit 0
+			}
+
 			RESET_CALLBACKS
 
 			# shellcheck disable=SC2329 # callback function

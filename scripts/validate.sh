@@ -69,6 +69,7 @@ cat "$SRC" |
 		-e 's/glob__title/_mr_E/g' \
 		-e 's/glob__icon_override/_mr_F/g' \
 		-e 's/glob__nostyling/_mr_G/g' \
+		-e 's/glob__sanitized/_mr_H/g' \
 		-e 's/var__this_command/a/g' \
 		-e 's/var__monorail_text_formatted/c/g' \
 		-e 's/var__monorail_text_array_len/e/g' \
@@ -77,7 +78,6 @@ cat "$SRC" |
 		-e 's/var__existing_prompt_command/f/g' \
 		-e 's/var__trimmed_command/g/g' \
 		-e 's/var__trimmed_arg/h/g' \
-		-e 's/var__sanitized/k/g' \
 		-e 's/var__histcontrol/k/g' \
 		-e 's/var__command/l/g' \
 		-e 's/var__diff/m/g' \

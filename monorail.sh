@@ -62,6 +62,7 @@ export COLUMNS
 export LINES
 
 case $TERM in
+"ansi") _MONORAIL_ANSI_TERMINAL=1 ;;
 "vt"???)
 	[ "$BASH_VERSION" ] && bind 'set enable-bracketed-paste off'
 	_MONORAIL_ANSI_TERMINAL=1
@@ -237,7 +238,7 @@ _mr_hostname=$(hostname | cut -d. -f1 | awk '{print tolower($0)}')
 # colors-*.conf must exist but may be empty if no color settings are wanted
 if [ ! -e "$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf ]; then
 	mkdir -p "$MONORAIL_CONFIG"
-	[ -s "$MONORAIL_DIR"/gradients/Default.conf ] && [ -s "$MONORAIL_DIR"/colors/Default.conf ] && cat "$MONORAIL_DIR"/gradients/Default.conf "$MONORAIL_DIR"/colors/Default.conf >"$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf 2>/dev/null
+	cat "$MONORAIL_DIR"/gradients/Default.conf "$MONORAIL_DIR"/colors/Default.conf >"$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf 2>/dev/null
 fi
 if [ "$_MONORAIL_XTERM_TERMINAL" ] || [ "$_MONORAIL_ANSI_TERMINAL" ]; then
 	# vscode does not support disabling line wrap
@@ -251,7 +252,28 @@ fi
 if [ "$ZSH_NAME" ]; then
 	setopt prompt_subst
 fi
+_monorail_fallback() {
+	if [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
+		_MONORAIL_LINE="${ESC}[0m"
+	fi
+	while [ "$I" -lt "$LINE_WIDTH" ]; do
+		_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
+		I=$((I + 1))
+	done
+	# shellcheck disable=SC1078,SC1079 # deliberate newline needed for line calculation
+	CURSOR_POSITION_FIXUP="${ESC}[A
+${ESC}["$(printf "%0$((_MONORAIL_TEXT_LEN - 3))d" "$_MONORAIL_TEXT_LEN")C
 
+	if [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
+		_MONORAIL_LINE="$ESC(0${ESC}#5$_MONORAIL_LINE${ESC}(B${ESC}#6
+$_MONORAIL_REVERSE$_MONORAIL_TEXT$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
+	elif [ "$_MONORAIL_ANSI_TERMINAL" ]; then
+		_MONORAIL_LINE="${ESC}[4m$_MONORAIL_LINE${ESC}[0m$_MONORAIL_REVERSE$_MONORAIL_TEXT$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
+	else
+		_MONORAIL_LINE="$_MONORAIL_LINE
+$_MONORAIL_TEXT"
+	fi
+}
 if [ "$_MONORAIL_TRUECOLOR_TERMINAL" ]; then
 
 	# shellcheck disable=SC2120 # callback function, arguments passed in separate file
@@ -336,37 +358,9 @@ ${_MONORAIL_TEXT_LINE_INIT}$_MONORAIL_TEXT_LINE"
 		RGB_CUR_R=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f1)
 		RGB_CUR_G=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f2)
 		RGB_CUR_B=$(echo "${RGB_CUR_COLOR}" | cut -d';' -f3)
+
 		HEX_CURSOR_COLOR=$(printf "%.2x%.2x%.2x" "$RGB_CUR_R" "$RGB_CUR_G" "$RGB_CUR_B")
 		_MONORAIL_CURSOR="${ESC}]12;#${HEX_CURSOR_COLOR}${BEL}"
-	}
-else
-	_monorail_colors() {
-		:
-	}
-	_monorail_gradient() {
-		:
-	}
-	_monorail_textgradient() {
-		if [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
-			_MONORAIL_LINE="${ESC}[0m"
-		fi
-		while [ "$I" -lt "$LINE_WIDTH" ]; do
-			_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
-			I=$((I + 1))
-		done
-		# shellcheck disable=SC1078,SC1079 # deliberate newline needed for line calculation
-		CURSOR_POSITION_FIXUP="${ESC}[A
-${ESC}["$(printf "%0$((_MONORAIL_TEXT_LEN - 3))d" "$_MONORAIL_TEXT_LEN")C
-
-		if [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
-			_MONORAIL_LINE="$ESC(0${ESC}#5$_MONORAIL_LINE${ESC}(B${ESC}#6
-$_MONORAIL_REVERSE$_MONORAIL_TEXT$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
-		elif [ "$_MONORAIL_ANSI_TERMINAL" ]; then
-			_MONORAIL_LINE="${ESC}[4m$_MONORAIL_LINE${ESC}[0m$_MONORAIL_REVERSE$_MONORAIL_TEXT$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
-		else
-			_MONORAIL_LINE="$_MONORAIL_LINE
-$_MONORAIL_TEXT"
-		fi
 	}
 fi
 
@@ -443,16 +437,10 @@ _MONORAIL_UPDATE() {
 		_MONORAIL_TEXT_LEN=$(echo "${_MONORAIL_TEXT}" | wc -c | tr -d ' ')
 	fi
 
-	if [ -s "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]; then
-		# shellcheck source=scripts/dummy.conf
-		. "$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf 2>/dev/null
-	else
-		# shellcheck disable=SC2119 # called without arguments
-		_monorail_textgradient
-		# shellcheck disable=SC2119 # called without arguments
-		_monorail_gradient
-		# shellcheck disable=SC2119 # called without arguments
-		_monorail_colors
+	# shellcheck source=scripts/dummy.conf
+	. "$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf 2>/dev/null
+	if [ -z "$_MONORAIL_LINE" ]; then
+		_monorail_fallback
 	fi
 	if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
 		_MONORAIL_LINE="$_MONORAIL_LINE$ESC(1"
@@ -466,11 +454,10 @@ _MONORAIL_UPDATE() {
 		# shellcheck disable=SC1078,SC1079 # deliberate newline needed for line calculation
 		CURSOR_POSITION_FIXUP="${ESC}[A
 ${ESC}["$(printf "%0$((_MONORAIL_TEXT_LEN - 3))d" "$_MONORAIL_TEXT_LEN")C
-else
+	else
 		unset CURSOR_POSITION_FIXUP
-
 	fi
-	PS1="$_MONORAIL_COLORS$_MONORAIL_TITLE$_MONORAIL_CURSOR$_MONORAIL_LINE$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
+	PS1="\r$_MONORAIL_COLORS$_MONORAIL_TITLE$_MONORAIL_CURSOR$_MONORAIL_LINE$_MONORAIL_NORMAL $CURSOR_POSITION_FIXUP"
 	# shellcheck disable=SC2262 # cd needs to be aliased for ksh/bash/zsh
 	if alias cd=_MONORAIL_CD >/dev/null 2>/dev/null; then
 		# shellcheck disable=SC2329 # function is for interactive use
@@ -523,11 +510,15 @@ git() {
 
 # __git_ps1 posix sh compatible with version shipped in git
 __git_ps1() {
-	__GIT_PS1_REV=$(basename "$($(
+	__GIT_PS1_REV="$($(
 		unset -f git >/dev/null 2>/dev/null
 		unalias git >/dev/null 2>/dev/null
 		command -v git
-	) symbolic-ref HEAD 2>/dev/null)")
+	) symbolic-ref HEAD 2>/dev/null | cut -d/ -f3-1024 || $(
+		unset -f git >/dev/null 2>/dev/null
+		unalias git >/dev/null 2>/dev/null
+		command -v git
+	) describe HEAD 2>/dev/null)"
 	if [ "$__GIT_PS1_REV" ]; then
 		echo " ($__GIT_PS1_REV)"
 	else

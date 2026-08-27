@@ -101,12 +101,13 @@ preexec_functions+=(preexec)
 _mr_z=1 precmd
 _mr_w=1
 }
-k="${PROMPT_COMMAND:-}"
-k="${k#"${k%%[![:space:]]*}"}"
-k="${k%"${k##*[![:space:]]}"}"
-k=${k%;}
-k=${k#;}
-[[ $k ]]&&PROMPT_COMMAND=("$k")
+_mr_H="${PROMPT_COMMAND:-}"
+_mr_H="${_mr_H#"${_mr_H%%[![:space:]]*}"}"
+_mr_H="${_mr_H%"${_mr_H##*[![:space:]]}"}"
+_mr_H=${_mr_H%;}
+_mr_H=${_mr_H#;}
+_mr_t=
+[[ $_mr_H ]]&&PROMPT_COMMAND=("$_mr_H")
 PROMPT_COMMAND+=($'_mr_D="$(trap -p DEBUG)"\ntrap - DEBUG\n_mr_C')
 preexec(){
 {
@@ -153,10 +154,12 @@ N=${N%%;*}
 _mr_r=1
 _mr_s=$SECONDS
 _mr_E+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-local p=
 [[ $R ]]||p=$'\e]0;'$_mr_E$'\a'
 [[ $_mr_b ]]&&_mr_c
-printf "$p\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]12;#${_mr_e[21]}\a\r\e[K" >/dev/tty 2>&-
+{
+printf "$p"
+[[ ${_mr_e[17]} ]]&&printf "\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]12;#${_mr_e[21]}\a\r\e[K"
+} >/dev/tty
 } >&- 2>&-
 }
 _monorail_gradient(){
@@ -168,31 +171,20 @@ v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-if [[ $1 ]];then
-c=
 [[ ${t[*]} ]]||t[0]="255;255;255"
 while [[ $i -lt $e ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
-c+="\["$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m\]${d[i]}"
+c+="\["$'\e['$((e+1))C$'\e'["$((e+1))"D$'\e[48;2;'${!j}m$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m\]${d[i]}"
 i=$((i+1))
 done
 c+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_mr_e[17]:0:2}));$((0x${_mr_e[17]:2:2}));$((0x${_mr_e[17]:4:2}))m\]|"
-else
-c=\[$'\e'"[0;7m\]"
-while [[ $i -lt $e ]];do
-c+=${d[i]}
-i=$((i+1))
-done
-c+=\[$'\e[0;8m'"\]|"
-fi
 j=$(($#*$((e+1))/$((COLUMNS+1))))
 w=${!j}
 D=${w%%;*}
 E=${w#*;}
 F=${E%%;*}
 G=${E##*;}
-r=$(printf "%.2x%.2x%.2x" "$D" "$F" "$G" 2>&-)
-[[ $1 ]]||r=${_mr_e[21]}
+r=$(printf "%.2x%.2x%.2x" "$D" "$F" "$G")
 }
 _monorail_textgradient(){
 t=("$@")
@@ -218,9 +210,9 @@ unset NAME
 [[ $1 ]]&&NAME="$*"
 }
 precmd(){
-if [[ $_mr_u ]];then
-[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 {
+if [[ $_mr_u ]];then
+[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
 local T U V W X m
 m=$((SECONDS-_mr_s))
 if [[ $_mr_r ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
@@ -235,11 +227,10 @@ X=
 X+="${W}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).
 echo "$X"
 (exec notify-send -a "Completed $_mr_i" -i terminal "$_mr_i" "Command took $X"&)
-(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
+(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&-&)
 _mr_m=1
 fi
 unset _mr_r
-} 2>&-
 local M
 M=$?
 printf "%$((COLUMNS-1))s\\r"
@@ -255,7 +246,7 @@ if [[ -z $_mr_g ]]&&[[ $M == 0 ]]&&[[ -z $_mr_n ]];then
 case "$_mr_h" in
 0)ls
 _mr_h=3
-if \git status >&- 2>&-;then
+if \git status >&-;then
 _mr_h=1
 else
 printf "\e[J\n\n"
@@ -278,7 +269,7 @@ unset _mr_n
 _mr_j=$_mr_k
 trap "_mr_n=1;echo -n" INT
 trap "_mr_n=1;echo -n" ERR
-[[ $BASH_VERSION ]]&&history -a >&- 2>&-
+[[ $BASH_VERSION ]]&&history -a >&-
 else
 alias for='_mr_G=1;for'
 alias while='_mr_G=1;while'
@@ -373,7 +364,7 @@ local d=()
 for ((I=0; I<${#b}; I++));do
 d[I]=${b:I:1}
 done
-e=${#d[@]}
+local e=${#d[@]}
 local w D E F G
 if [[ $_mr_o != "$COLUMNS$b" ]];then
 unset _mr_o _mr_r
@@ -381,9 +372,9 @@ if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]];then
 mkdir -p "$MONORAIL_CONFIG"
 if [[ -f "$MONORAIL_DIR/gradients/Default.conf" ]];then
 if [[ $(gsettings get org.gnome.desktop.interface color-scheme) == prefer-dark ]];then
-LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf 2>&-
+LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf
 else
-LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/Default.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf 2>&-
+LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/Default.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf
 fi
 else
 printf "\
@@ -395,15 +386,27 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 fi
 fi
 _mr_e=()
-local I=0
+local i=0
 local v=
+local p=
+local r
+local c=
 . "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
+if [[ -z $c ]];then
+v=$'\e[4m'
+while [[ $i -lt $COLUMNS ]];do
+v+=' '
+i=$((i+1))
+done
+c=$'\e[0;7m'$b$'\e[0m'
+fi
 _mr_o="$COLUMNS$b"
 PS1=$'\e[?7l\e]0;''$_mr_E''\a\e[0m\r'"$v
-$c\["$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$r\a\e[0m'"\]"
+$c\["$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;'"#$r"$'\a\e[0m'"\]"
 fi
 unset _mr_G
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]4;0;#${_mr_e[0]}\a\e]4;1;#${_mr_e[1]}\a\e]4;2;#${_mr_e[2]}\a\e]4;3;#${_mr_e[3]}\a\e]4;4;#${_mr_e[4]}\a\e]4;5;#${_mr_e[5]}\a\e]4;6;#${_mr_e[6]}\a\e]4;7;#${_mr_e[7]}\a\e]4;8;#${_mr_e[8]}\a\e]4;9;#${_mr_e[9]}\a\e]4;10;#${_mr_e[10]}\a\e]4;11;#${_mr_e[11]}\a\e]4;12;#${_mr_e[12]}\a\e]4;13;#${_mr_e[13]}\a\e]4;14;#${_mr_e[14]}\a\e]4;15;#${_mr_e[15]}\a\r"
+[[ ${_mr_e[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]4;0;#${_mr_e[0]}\a\e]4;1;#${_mr_e[1]}\a\e]4;2;#${_mr_e[2]}\a\e]4;3;#${_mr_e[3]}\a\e]4;4;#${_mr_e[4]}\a\e]4;5;#${_mr_e[5]}\a\e]4;6;#${_mr_e[6]}\a\e]4;7;#${_mr_e[7]}\a\e]4;8;#${_mr_e[8]}\a\e]4;9;#${_mr_e[9]}\a\e]4;12;#${_mr_e[12]}\a\e]4;13;#${_mr_e[13]}\a\e]4;14;#${_mr_e[14]}\a\e]4;15;#${_mr_e[15]}\a"
+} 2>&-
 }
 _TITLE(){
 local _mr_E="$*"
@@ -495,7 +498,11 @@ _monorail_cmd_ignored(){
 _mr_l[${#_mr_l[@]}]=$1
 }
 [[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
-. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
+. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"||{
+. "$MONORAIL_DIR"/monorail.sh
+_MONORAIL_UPDATE
+return
+}
 __git_ps1(){ :;}
 _mr_q(){
 local s A i
@@ -541,9 +548,9 @@ elif [[ $MC_TMPDIR ]];then
 MONORAIL_COMPAT=1
 else
 case $TERM in
-xterm-color|xterm-16color)MONORAIL_COMPAT=1
+xterm-color|xterm-16color|rio|rxvt-unicode-256color|mlterm|st-256color|foot|alacritty)MONORAIL_COMPAT=1
 ;;
-xterm*|alacritty|rio|rxvt-unicode-256color|mlterm|st-256color|foot)printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "$COLUMNS" >/dev/tty 2>&-
+xterm*)printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "$COLUMNS" >/dev/tty 2>&-
 [[ $TERM == xterm-ghostty ]]&&unalias ssh 2>/dev/null
 [[ $(tty) =~ "/dev/ttyv"* ]]&&MONORAIL_COMPAT=1
 [[ $WINDOWID == 0 ]]&&MONORAIL_COMPAT=1

@@ -31,6 +31,7 @@ fi
 setopt KSH_ARRAYS
 setopt prompt_subst
 _mr_hostname=${_mr_hostname:l}
+glob__prev_cmd=
 preexec(){
 {
 [[ $(fc -l -1) == "$glob__prev_cmd" ]]&&return
@@ -76,10 +77,12 @@ N=${N%%;*}
 glob__measure=1
 glob__start_seconds=$SECONDS
 glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-local p=
 [[ $R ]]||p=$'\e]0;'$glob__title$'\a'
 [[ $glob__has_suffix ]]&&glob__suffix
-printf "$p\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]12;#${glob__colors[21]}\a\r\e[K" >/dev/tty 2>&-
+{
+printf "$p"
+[[ ${glob__colors[17]} ]]&&printf "\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]12;#${glob__colors[21]}\a\r\e[K"
+} >/dev/tty
 } &>/dev/null
 }
 _monorail_gradient(){
@@ -91,31 +94,20 @@ v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-if [[ $1 ]];then
-c=
 [[ ${t[*]} ]]||t[0]="255;255;255"
 while [[ $i -lt $e ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
-c+="%{"$'\e['"$((e+1))C"$'\e'["$((e+1))"D$'\e'"[48;2;${!j}m"$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m%}${d[i]}"
+c+="%{"$'\e['$((e+1))C$'\e'["$((e+1))"D$'\e[48;2;'${!j}m$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m%}${d[i]}"
 i=$((i+1))
 done
 c+="%{"$'\e'"[0;8m"$'\e'"[38;2;$((0x${glob__colors[17]:0:2}));$((0x${glob__colors[17]:2:2}));$((0x${glob__colors[17]:4:2}))m%}|"
-else
-c=%{$'\e'"[0;7m%}"
-while [[ $i -lt $e ]];do
-c+=${d[i]}
-i=$((i+1))
-done
-c+=%{$'\e[0;8m'"%}|"
-fi
 j=$(($#*$((e+1))/$((COLUMNS+1))))
 w=${!j}
 D=${w%%;*}
 E=${w#*;}
 F=${E%%;*}
 G=${E##*;}
-r=$(printf "%.2x%.2x%.2x" "$D" "$F" "$G" 2>&-)
-[[ $1 ]]||r=${glob__colors[21]}
+r=$(printf "%.2x%.2x%.2x" "$D" "$F" "$G")
 }
 _monorail_textgradient(){
 t=("$@")
@@ -141,9 +133,9 @@ unset NAME
 [[ $1 ]]&&NAME="$*"
 }
 precmd(){
-if [[ $glob__launched ]];then
-[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo 2>&-
 {
+if [[ $glob__launched ]];then
+[[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
 local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration m
 m=$((SECONDS-glob__start_seconds))
 if [[ $glob__measure ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
@@ -158,11 +150,10 @@ var__duration=
 var__duration+="${var__duration_s}s, finished at "$(LC_MESSAGES=C LC_ALL=C date +%H:%M).
 echo "$var__duration"
 (exec notify-send -a "Completed $glob__timer_cmd" -i terminal "$glob__timer_cmd" "Command took $var__duration"&)
-(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&- 2>&-&)
+(exec mplayer -quiet /usr/share/sounds/gnome/default/alerts/glass.ogg >&-&)
 glob__longrunning=1
 fi
 unset glob__measure
-} 2>&-
 local M
 M=$?
 printf "%$((COLUMNS-1))s\\r"
@@ -178,7 +169,7 @@ if [[ -z $glob__cr_first ]]&&[[ $M == 0 ]]&&[[ -z $glob__ctrlc ]];then
 case "$glob__cr_level" in
 0)ls
 glob__cr_level=3
-if \git status >&- 2>&-;then
+if \git status >&-;then
 glob__cr_level=1
 else
 printf "\e[J\n\n"
@@ -295,7 +286,7 @@ local d=()
 for ((I=0; I<${#b}; I++));do
 d[I]=${b[I]}
 done
-e=${#d[@]}
+local e=${#d[@]}
 local w D E F G
 if [[ $glob__cache != "$COLUMNS$b" ]];then
 unset glob__cache glob__measure
@@ -303,9 +294,9 @@ if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]];then
 mkdir -p "$MONORAIL_CONFIG"
 if [[ -f "$MONORAIL_DIR/gradients/Default.conf" ]];then
 if [[ $(gsettings get org.gnome.desktop.interface color-scheme) == prefer-dark ]];then
-LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf 2>&-
+LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf
 else
-LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/Default.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf 2>&-
+LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/Default.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf
 fi
 else
 printf "\
@@ -317,15 +308,27 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 fi
 fi
 glob__colors=()
-local I=0
+local i=0
 local v=
+local p=
+local r
+local c=
 . "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
+if [[ -z $c ]];then
+v=$'\e[4m'
+while [[ $i -lt $COLUMNS ]];do
+v+=' '
+i=$((i+1))
+done
+c=$'\e[0;7m'$b$'\e[0m'
+fi
 glob__cache="$COLUMNS$b"
 PS1=$'\e[?7l\e]0;''$glob__title''\a\e[0m\r'"$v
-$c%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;#$r\a\e[0m'"%}"
+$c%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e]12;'"#$r"$'\a\e[0m'"%}"
 fi
 unset glob__nostyling
-printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;10;#${glob__colors[10]}\a\e]4;11;#${glob__colors[11]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r"
+[[ ${glob__colors[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a"
+} 2>/dev/null
 }
 _TITLE(){
 local glob__title="$*"
@@ -417,7 +420,11 @@ _monorail_cmd_ignored(){
 glob__cmd_ignored[${#glob__cmd_ignored[@]}]=$1
 }
 [[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
-. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
+. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"||{
+. "$MONORAIL_DIR"/monorail.sh
+_MONORAIL_UPDATE
+return
+}
 __git_ps1(){ :;}
 glob__magic_shellball(){
 local s A i
@@ -463,9 +470,9 @@ elif [[ $MC_TMPDIR ]];then
 MONORAIL_COMPAT=1
 else
 case $TERM in
-xterm-color|xterm-16color)MONORAIL_COMPAT=1
+xterm-color|xterm-16color|rio|rxvt-unicode-256color|mlterm|st-256color|foot|alacritty)MONORAIL_COMPAT=1
 ;;
-xterm*|alacritty|rio|rxvt-unicode-256color|mlterm|st-256color|foot)printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "$COLUMNS" >/dev/tty 2>&-
+xterm*)printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "$COLUMNS" >/dev/tty 2>&-
 [[ $TERM == xterm-ghostty ]]&&unalias ssh 2>/dev/null
 [[ $(tty) =~ "/dev/ttyv"* ]]&&MONORAIL_COMPAT=1
 [[ $WINDOWID == 0 ]]&&MONORAIL_COMPAT=1

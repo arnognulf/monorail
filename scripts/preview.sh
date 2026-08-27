@@ -71,6 +71,10 @@ else
 fi
 # shellcheck source=scripts/dummy.conf
 . "${MONORAIL_CONFIG}/colors-${_mr_hostname}.conf"
+if [ -z "${_COLORS[16]}" ]; then
+	. "${MONORAIL_DIR}"/colors/Default.conf
+fi
+
 case $(echo "$PREVIEW" | awk '{print tolower($0)}') in
 *.conf)
 	case "${PWD}" in
@@ -163,10 +167,7 @@ _monorail_colors() {
 }
 FGCOLOR=${_COLORS[16]}
 BGCOLOR=${_COLORS[17]}
-if [ -z "$FGCOLOR" ]; then
-	echo "MISSING FGCOLOR"
-	sleep 3
-fi
+
 FGCOLOR_RGB=$((0x$(echo "$FGCOLOR" | cut -c1-2)))";"$((0x$(echo "$FGCOLOR" | cut -c3-4)))";"$((0x$(echo "$FGCOLOR" | cut -c5-6)))
 BGCOLOR_RGB=$((0x$(echo "$BGCOLOR" | cut -c1-2)))";"$((0x$(echo "$BGCOLOR" | cut -c3-4)))";"$((0x$(echo "$BGCOLOR" | cut -c5-6)))
 

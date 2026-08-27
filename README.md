@@ -127,8 +127,6 @@ Use `monorail_image` with an image as argument to set the image as gradient.
 
 Changing colors
 ---------------
-*Note: many terminals do not support color setting despite colors showing up in the preview. This is not a bug in monorail*
-
 Run `monorail_color` to change foreground
 ```
 monorail_color fffaf1
@@ -146,6 +144,15 @@ monorail_color  $(rgb 231,67,42) $(rgb 16,00,163)
 
 `monorail_color` without arguments brings up an fzf selection of colors.
 
+Disabling colors
+================
+On terminals where you want to use the built-in color setting functionality, the monorail color scheme can be disabled with:
+`monorail_color None`
+
+Note: the terminal needs to be restarted since monorail cannot restore the original color.
+
+If you'd like to disable gradients for aestetic reasons or bandwidth reasons - prompt is ~290bytes without gradients, ~830 with- they may disabled with:
+`monorail_gradient None`
 
 Favicon titles
 ==============
