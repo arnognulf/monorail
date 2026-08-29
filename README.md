@@ -154,7 +154,7 @@ monorail_color None
 
 Note: the terminal needs to be restarted since monorail cannot restore the original color.
 
-If you'd like to disable gradients for aestetic reasons or bandwidth reasons - prompt is ~290bytes without gradients, ~3Kbyte with- they may disabled with:
+On slow network links (ssh, mosh), prompt rendering speed can be increased by disabling gradients:
 ```
 monorail_gradient None
 ```

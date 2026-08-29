@@ -406,7 +406,9 @@ completed)glob__icons[14]=$1;;
 command)glob__icons[15]=$1;;
 computer)glob__icons[16]=$1;;
 system)glob__icons[17]=$1;;
-*)echo "not supported value: $2"
+snapcraft)glob__icons[const_snapcraft]=$1;;
+pictures)glob__icons[const_pictures]=$1;;
+*)echo "ERROR: not supported value: $2" >/dev/tty
 esac
 }
 _monorail_cmd_interactive(){

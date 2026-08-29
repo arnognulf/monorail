@@ -23,6 +23,8 @@ const_completed=14        #discard_for_all
 const_command=15          #discard_for_all
 const_computer=16         #discard_for_all
 const_system=17           #discard_for_all
+const_snapcraft=18        #discard_for_all
+const_pictures=19         #discard_for_all
 const_color_foreground=16 #discard_for_all
 const_color_background=17 #discard_for_all
 const_color_cursor=21     #discard_for_all
@@ -584,7 +586,9 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		command) glob__icons[const_command]=$1 ;;
 		computer) glob__icons[const_computer]=$1 ;;
 		system) glob__icons[const_system]=$1 ;;
-		*) echo "not supported value: $2" ;;
+		snapcraft) glob__icons[const_snapcraft]=$1 ;;
+		pictures) glob__icons[const_pictures]=$1 ;;
+		*) echo "ERROR: not supported value: $2" >/dev/tty ;;
 		esac
 	}
 	# shellcheck disable=SC2329

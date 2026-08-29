@@ -484,7 +484,9 @@ completed)_mr_f[14]=$1;;
 command)_mr_f[15]=$1;;
 computer)_mr_f[16]=$1;;
 system)_mr_f[17]=$1;;
-*)echo "not supported value: $2"
+snapcraft)_mr_f[18]=$1;;
+pictures)_mr_f[19]=$1;;
+*)echo "ERROR: not supported value: $2" >/dev/tty
 esac
 }
 _monorail_cmd_interactive(){
