@@ -147,12 +147,17 @@ monorail_color  $(rgb 231,67,42) $(rgb 16,00,163)
 Disabling colors
 ================
 On terminals where you want to use the built-in color setting functionality, the monorail color scheme can be disabled with:
-`monorail_color None`
+
+```
+monorail_color None
+```
 
 Note: the terminal needs to be restarted since monorail cannot restore the original color.
 
-If you'd like to disable gradients for aestetic reasons or bandwidth reasons - prompt is ~290bytes without gradients, ~830 with- they may disabled with:
-`monorail_gradient None`
+If you'd like to disable gradients for aestetic reasons or bandwidth reasons - prompt is ~290bytes without gradients, ~3Kbyte with- they may disabled with:
+```
+monorail_gradient None
+```
 
 Favicon titles
 ==============
@@ -342,6 +347,12 @@ I do not wish to infringe trademarks, nor do I want to endorse organizations tha
 
 Also, please keep gradients look-up-tables at up to 200 elements to conserve space.
 
+License
+-------
+Monorail is availible under the MIT license.
+
+Colorthemes in colors/ are available under various OSS licenses. See each colorscheme for details.
+
 Credits
 -------
 Oklab: A perceptual color space for image processing: https://bottosson.github.io/posts/oklab/
@@ -362,3 +373,6 @@ StackExchange discussion on how to differentiate if user pressed ENTER or entere
 ghosh uiGradients for the large collection of beautiful uiGradients that many monorail themes are based upon: https://github.com/ghosh/uiGradients
 
 iTerm2 color schemes: https://github.com/mbadolato/iTerm2-Color-Schemes
+
+licensing discussion in iTerm2 color themes which are used to filter out OSS themes: https://github.com/mbadolato/iTerm2-Color-Schemes/issues/638
+
