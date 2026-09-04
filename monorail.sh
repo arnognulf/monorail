@@ -439,7 +439,7 @@ _MONORAIL_UPDATE() {
 
 	# shellcheck source=scripts/dummy.conf
 	. "$MONORAIL_CONFIG"/colors-"$_mr_hostname".conf 2>/dev/null
-	if [ -z "$_MONORAIL_LINE" ]; then
+	if [ -z "$_MONORAIL_LINE" ] || [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
 		_monorail_fallback
 	fi
 	if [ "$_MONORAIL_XTERM_TERMINAL" ]; then
