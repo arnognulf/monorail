@@ -479,18 +479,24 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 				fi
 
 				glob__cache="$COLUMNS$var__monorail_text"
+				if [[ $var__hex_cursor_color ]]; then
+					PS1="\e]12;#$var__hex_cursor_color\a"
+				else
+					PS1=""
+				fi
 				# DECAWN: Set autowrap off: CSI ? 7 l: https://vt100.net/docs/vt220-rm/chapter4.html
 				# DECAWN: Set autowrap on: CSI ? 7 h: https://vt100.net/docs/vt220-rm/chapter4.html
 				# DECTCEM Text cursor enable On CSI ? 25 h
 				# DECTCEM Text cursor enable Off CSI ? 25 l
 				# \r to move cursor back and overwrite previous output or if the terminal did not accept title setting
 				# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-				PS1=$'\e[?7l\e]0;''$glob__title''\a\e[0m\r'"$var__monorail_line
+				PS1+=$'\e[?7l\e]0;''$glob__title''\a\e[0m\r'"$var__monorail_line
 $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e[0m'"@PROMPT_POSTHIDE@"
+
 			fi
 			unset glob__nostyling
 			# shellcheck disable=SC2059 # keep printf compact
-			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]12;#$var__hex_cursor_color\a\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a"
+			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a"
 			{             #discard_for_all
 				:            #discard_for_all
 			} 2>/dev/null #keep_for_zsh

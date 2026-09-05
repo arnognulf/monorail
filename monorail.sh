@@ -253,8 +253,9 @@ if [ "$ZSH_NAME" ]; then
 	setopt prompt_subst
 fi
 _monorail_fallback() {
+	_MONORAIL_LINE="$CR"
 	if [ "$_MONORAIL_VT1XX_TERMINAL" ]; then
-		_MONORAIL_LINE="${ESC}[0m"
+		_MONORAIL_LINE="${_MONORAIL_LINE}${ESC}[0m"
 	fi
 	while [ "$I" -lt "$LINE_WIDTH" ]; do
 		_MONORAIL_LINE="$_MONORAIL_LINE$_MONORAIL_LINE_SEGMENT"
