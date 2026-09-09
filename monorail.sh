@@ -535,20 +535,34 @@ __git_ps1() {
 	return 0
 }
 
-_ICON() {
-	ICON="$1"
-	shift
-	case "$_MONORAIL_LANG" in *.UTF-8)
-		# shellcheck disable=SC2086 # shellcheck incorrectly misses qoutes
-		_TITLE "$ICON  $(basename \"$1\")"
-		;;
-	*)
-		# shellcheck disable=SC2086 # shellcheck incorrectly misses qoutes
-		_TITLE "$(basename \"$1\")"
-		;;
-	esac
-	"$@"
+_ICON () 
+{ 
+    local B="$1";
+    shift;
+        FIRST_ARG="$1";
+        ( case "$FIRST_ARG" in 
+            _*)
+                shift
+            ;;
+        esac;
+        FIRST_ARG="$1";
+        FIRST_NON_OPTION="$2";
+        while [[ ${FIRST_NON_OPTION:0:1} == '-' ]] || [ "${FIRST_NON_OPTION:0:1}" = '_' ] || [ "$FIRST_NON_OPTION" = '.' ]; do
+            if [ "$FIRST_NON_OPTION" = '-u' ]; then
+                shift 2;
+            else
+                shift;
+            fi;
+            FIRST_NON_OPTION="$2";
+        done;
+        [[ -n $B ]] && if [[ -z $FIRST_NON_OPTION ]]; then
+            _TITLE "${FIRST_ARG##*/}";
+        else
+            _TITLE "${FIRST_NON_OPTION##*/}";
+        fi ) 1>&- 2>&-;
+    "$@"
 }
+
 # update monorail on window resizing
 trap "_MONORAIL_UPDATE" WINCH
 unalias monorail_color 2>/dev/null

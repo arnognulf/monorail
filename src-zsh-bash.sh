@@ -225,14 +225,21 @@ const_color_cursor=21     #discard_for_all
 		[[ ${var__prompt_text_lut[*]} ]] || var__prompt_text_lut[0]="255;255;255"
 		while [[ $i -lt ${var__monorail_text_array_len} ]]; do
 			j=$((1 + $# * i / $((COLUMNS + 1))))
-			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e['$((var__monorail_text_array_len + 1))C$'\e'["$((var__monorail_text_array_len + 1))"D$'\e[48;2;'${!j}m$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * i / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[i]}"
+			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e[48;2;'${!j}m$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * i / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[i]}"
 			i=$((i + 1))
 		done
 		# The invisible vertical bar is added to make the prompt more readable when copied to a chat or text doc.
 		# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
 		# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
 		# In this case the horizontal bar is colored with background color.
-		var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m"$'\e'"[38;2;$((0x${glob__colors[const_color_background]:0:2}));$((0x${glob__colors[const_color_background]:2:2}));$((0x${glob__colors[const_color_background]:4:2}))m@PROMPT_POSTHIDE@|"
+		case $TERM in
+		xterm | xterm-kitty | rxvt*)
+			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0m@PROMPT_POSTHIDE@ "
+			;;
+		*)
+			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m@PROMPT_POSTHIDE@|"
+			;;
+		esac
 		j=$(($# * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))
 		var__rgb_cur_color=${!j}
 		var__rgb_cur_r=${var__rgb_cur_color%%;*}
@@ -486,9 +493,16 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 				fi
 				# DECAWN: Set autowrap off: CSI ? 7 l: https://vt100.net/docs/vt220-rm/chapter4.html
 				# DECAWN: Set autowrap on: CSI ? 7 h: https://vt100.net/docs/vt220-rm/chapter4.html
+				# The prompt uses DECAWN as well as absolute cursor movement to render a usable (but not pretty prompt) in case of a misconfigured terminal if UTF-8 and truecolor is not available.
+				# By disabling line-wrap (DECAWN), the monorail line will not wrap and fill the screen with control sequencies and decomposed UTF-8 bytes.
+				# At the second line, the cursor is moved to leftmost column with a CR (\r)
+				# then, cursor is moved to the absolute position where the cursor should be
+				# if the terminal would render correctly.
+				# This fallback solution is very slow on a serial terminal
+				# but the user can at least reconfigure the system.
+				# this is tested by setting TERM=xterm on the accurate vt420 terminal emulator '`blaze`: https://mmastrac.github.io/blaze/
 				# DECTCEM Text cursor enable On CSI ? 25 h
 				# DECTCEM Text cursor enable Off CSI ? 25 l
-				# \r to move cursor back and overwrite previous output or if the terminal did not accept title setting
 				# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
 				PS1+=$'\e[?7l\e]0;''$glob__title''\a\e[0m\r'"$var__monorail_line
 $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e[0m'"@PROMPT_POSTHIDE@"
@@ -668,8 +682,10 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		MONORAIL_COMPAT=1
 	else
 		case $TERM in
-		xterm-color | xterm-16color | rio | rxvt-unicode-256color | mlterm | st-256color | foot | alacritty)
+		xterm-color | xterm-16color)
 			MONORAIL_COMPAT=1
+			;;
+		kmscon | foot | st-256color | rio | alacritty | rxvt-unicode-256color | mlterm)
 			;;
 		xterm*)
 			printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "${COLUMNS}" >/dev/tty 2>&-
@@ -677,8 +693,6 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 			[[ $TERM = xterm-ghostty ]] && unalias ssh 2>/dev/null
 			# FreeBSD console lacks UTF-8 and truecolor
 			[[ $(tty) =~ "/dev/ttyv"* ]] && MONORAIL_COMPAT=1
-			# cool-retro-term does not support invisible SGR8
-			[[ $WINDOWID = 0 ]] && MONORAIL_COMPAT=1
 			# if not using UTF-8 locale in xterm or not using xterm use compat
 			case $XTERM_LOCALE in
 			"" | *.UTF-8) : ;;

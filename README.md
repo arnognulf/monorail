@@ -331,7 +331,7 @@ Q: Why is prompt icon not working in ghostty?
 A: Ghostty overrides the title set by monorail.
 Add the following to ~/.config/ghostty/config:
 ```
-shell-integration-features = no-title
+shell-integration-features = no-title, no-cursor
 ```
 
 

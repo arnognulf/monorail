@@ -174,10 +174,14 @@ i=0
 [[ ${t[*]} ]]||t[0]="255;255;255"
 while [[ $i -lt $e ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
-c+="\["$'\e['$((e+1))C$'\e'["$((e+1))"D$'\e[48;2;'${!j}m$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m\]${d[i]}"
+c+="\["$'\e[48;2;'${!j}m$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m\]${d[i]}"
 i=$((i+1))
 done
-c+="\["$'\e'"[0;8m"$'\e'"[38;2;$((0x${_mr_e[17]:0:2}));$((0x${_mr_e[17]:2:2}));$((0x${_mr_e[17]:4:2}))m\]|"
+case $TERM in
+xterm|xterm-kitty)c+="\["$'\e'"[0m\] "
+;;
+*)c+="\["$'\e'"[0;8m\]|"
+esac
 j=$(($#*$((e+1))/$((COLUMNS+1))))
 w=${!j}
 D=${w%%;*}
@@ -555,12 +559,13 @@ elif [[ $MC_TMPDIR ]];then
 MONORAIL_COMPAT=1
 else
 case $TERM in
-xterm-color|xterm-16color|rio|rxvt-unicode-256color|mlterm|st-256color|foot|alacritty)MONORAIL_COMPAT=1
+xterm-color|xterm-16color)MONORAIL_COMPAT=1
+;;
+kmscon|foot|st-256color|rio|alacritty|rxvt-unicode-256color|mlterm)
 ;;
 xterm*)printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "$COLUMNS" >/dev/tty 2>&-
 [[ $TERM == xterm-ghostty ]]&&unalias ssh 2>/dev/null
 [[ $(tty) =~ "/dev/ttyv"* ]]&&MONORAIL_COMPAT=1
-[[ $WINDOWID == 0 ]]&&MONORAIL_COMPAT=1
 case $XTERM_LOCALE in
 ""|*.UTF-8):;;
 *)MONORAIL_COMPAT=1
