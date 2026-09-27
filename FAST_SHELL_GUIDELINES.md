@@ -3,7 +3,7 @@ fast shell coding guidelines
 
 Intro
 -----
-This guide was written for 'monorail.sh' where heavy optimization were needed
+This guide was written for 'monorail.bash' / 'monorail.zsh' where heavy optimization were needed
 in order to make the prompt render fast.
 Using these optimizations hampers readability and is not normally recommended for bash scripts.
 
