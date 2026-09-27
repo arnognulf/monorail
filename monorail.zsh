@@ -94,14 +94,14 @@ v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-[[ ${t[*]} ]]||t[0]="255;255;255"
+[[ $t ]]||t[0]="255;255;255"
 while [[ $i -lt $e ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 c+="%{"$'\e[48;2;'${!j}m$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m%}${d[i]}"
 i=$((i+1))
 done
 case $TERM in
-xterm|xterm-kitty)c+="%{"$'\e'"[0m%} "
+xterm|xterm-kitty|rxvt*)c+="%{"$'\e'"[0m%} "
 ;;
 *)c+="%{"$'\e'"[0;8m%}|"
 esac
@@ -324,7 +324,7 @@ while [[ $i -lt $COLUMNS ]];do
 v+=$'\xe2\x96\x81'
 i=$((i+1))
 done
-c="%{"$'\e[0;7m'"%}"$b"%{"$'\e[0m'"%}"
+c="%{"$'\e[0;7m'%}"$b"%{$'\e[0m'"%}"
 fi
 glob__cache="$COLUMNS$b"
 if [[ $r ]];then
@@ -336,7 +336,7 @@ PS1+=$'\e[?7l\e]0;''$glob__title''\a\e[0m\r'"$v
 $c%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e[0m'"%}"
 fi
 unset glob__nostyling
-[[ ${glob__colors[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a"
+[[ ${glob__colors[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r"
 } 2>/dev/null
 }
 _TITLE(){

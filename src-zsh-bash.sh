@@ -154,6 +154,11 @@ const_color_cursor=21     #discard_for_all
 	PROMPT_COMMAND+=($'glob__trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\nglob__install') #keep_for_bash
 	preexec() {
 		{
+			# bash 5.2 calls preexec after first precmd, ignore first preexec.
+			if [[ ${BASH_VERSINFO[1]} -le 2 ]] && [[ ${BASH_VERSINFO[0]} -le 5 ]] && [[ -z $glob__initial_preexec_workaround ]]; then #keep_for_bash
+				glob__initial_preexec_workaround=1                                                                                       #keep_for_bash
+			fi                                                                                                                        #keep_for_bash
+
 			# TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 			[[ $(fc -l -1) = "$glob__prev_cmd" ]] && return
 			glob__prev_cmd=$(fc -l -1)
@@ -222,7 +227,7 @@ const_color_cursor=21     #discard_for_all
 			i=$((i + 1))
 		done
 		i=0
-		[[ ${var__prompt_text_lut[*]} ]] || var__prompt_text_lut[0]="255;255;255"
+		[[ $var__prompt_text_lut ]] || var__prompt_text_lut[0]="255;255;255"
 		while [[ $i -lt ${var__monorail_text_array_len} ]]; do
 			j=$((1 + $# * i / $((COLUMNS + 1))))
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e[48;2;'${!j}m$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * i / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[i]}"
@@ -482,11 +487,12 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 						var__monorail_line+=$'\xe2\x96\x81'
 						i=$((i + 1))
 					done
-					var__monorail_text_formatted="@PROMPT_PREHIDE@"$'\e[0;7m'"@PROMPT_POSTHIDE@"$var__monorail_text"@PROMPT_PREHIDE@"$'\e[0m'"@PROMPT_POSTHIDE@"
+					var__monorail_text_formatted="@PROMPT_PREHIDE@"$'\e[0;7m'@PROMPT_POSTHIDE@"$var__monorail_text"@PROMPT_PREHIDE@$'\e[0m'"@PROMPT_POSTHIDE@"
 				fi
 
 				glob__cache="$COLUMNS$var__monorail_text"
 				if [[ $var__hex_cursor_color ]]; then
+					# shellcheck disable=SC2025 # no need to enclose in \[ \] as cursor position is calculated from after newline
 					PS1="\e]12;#$var__hex_cursor_color\a"
 				else
 					PS1=""
@@ -509,8 +515,12 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 
 			fi
 			unset glob__nostyling
+			# CUF ^[[<n>C : move cursor to rightmost column
+			#               on broken terminals only the rightmost character will print
+			#               unhandled control sequencies
+			# CR  \r      : move back to initial position with a carrage return
 			# shellcheck disable=SC2059 # keep printf compact
-			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a"
+			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r"
 			{             #discard_for_all
 				:            #discard_for_all
 			} 2>/dev/null #keep_for_zsh
