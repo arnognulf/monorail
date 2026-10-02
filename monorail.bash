@@ -56,8 +56,7 @@ g="${g#"${g%%[![:space:]]*}"}"
 g="${g%"${g##*[![:space:]]}"}"
 [[ $g == "$h" ]]&&return
 done
-local a
-a=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
+local a=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
 a="${a#*[[:digit:]][* ] }"
 [[ $a ]]||return
 local L
@@ -79,13 +78,11 @@ if [[ $O ]];then
 eval '_mr_B(){ '"$O"';}'
 preexec_functions+=(_mr_B)
 fi
-local k
-k="${HISTCONTROL:-}"
+local k="${HISTCONTROL:-}"
 k="${k//ignorespace/}"
 [[ $k == *"ignoreboth"* ]]&&k="ignoredups:${k//ignoreboth/}"
 export HISTCONTROL="$k"
-local f
-f="${PROMPT_COMMAND:-}"
+local f="${PROMPT_COMMAND:-}"
 f="${f//$'_mr_D="$(trap -p DEBUG)"\ntrap - DEBUG\n_mr_C'/:}"
 f="${f//$'\n':$'\n'/$'\n'}"
 f="${f//$'\n':;/$'\n'}"
@@ -111,13 +108,13 @@ _mr_t=
 PROMPT_COMMAND+=($'_mr_D="$(trap -p DEBUG)"\ntrap - DEBUG\n_mr_C')
 preexec(){
 {
-if [[ ${BASH_VERSINFO[1]} -le 2 ]]&&[[ ${BASH_VERSINFO[0]} -le 5 ]]&&[[ -z $glob__initial_preexec_workaround ]];then
-glob__initial_preexec_workaround=1
+if [[ ${BASH_VERSINFO[1]} -le 2 ]]&&[[ $BASH_VERSINFO -le 5 ]]&&[[ -z $_mr_I ]];then
+_mr_I=1
+return
 fi
 [[ $(fc -l -1) == "$_mr_t" ]]&&return
 _mr_t=$(fc -l -1)
-local C B N
-C=${1/\\\a/\\\\\a}
+local B N C=${1/\\\a/\\\\\a}
 C=${C/\\\b/\\\\\b}
 C=${C/\\\c/\\\\\c}
 C=${C/\\\d/\\\\\d}
@@ -166,8 +163,7 @@ printf "$p"
 } >&- 2>&-
 }
 _monorail_gradient(){
-local i=0
-local j
+local j i=0
 while [[ $i -le $COLUMNS ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
@@ -220,8 +216,7 @@ precmd(){
 {
 if [[ $_mr_u ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
-local T U V W X m
-m=$((SECONDS-_mr_s))
+local T U V W X m=$((SECONDS-_mr_s))
 if [[ $_mr_r ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
 T=$((m%3600))
 U=$((m/3600))
@@ -238,8 +233,7 @@ echo "$X"
 _mr_m=1
 fi
 unset _mr_r
-local M
-M=$?
+local M=$?
 printf "%$((COLUMNS-1))s\\r"
 HISTCONTROL=
 _mr_k=$(fc -l -1)
@@ -290,10 +284,9 @@ unset _mr_m
 else
 case $PWD in
 /run/user/*/gvfs/*)_mr_p=;;
-*)local x y
-x=$PWD
+*)local y x=$PWD
 y=
-while [[ "$x" ]];do
+while [[ $x ]];do
 if [[ -d "$x/.repo" ]];then
 y=1
 break
@@ -301,8 +294,7 @@ fi
 x="${x%/*}"
 done
 if [[ -z $_mr_v ]];then
-local u
-u=$PWD
+local u=$PWD
 while [[ $u ]];do
 if [[ -e "$u/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
@@ -317,8 +309,7 @@ shift
 }
 TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
-local B S
-S=${PWD##*/}
+local B S=${PWD##*/}
 if [[ $y ]];then
 B=${_mr_f[5]}
 elif [[ $_mr_p ]];then
@@ -372,7 +363,7 @@ for ((I=0; I<${#b}; I++));do
 d[I]=${b:I:1}
 done
 local e=${#d[@]}
-local w D E F G
+local w D E F G i=0
 if [[ $_mr_o != "$COLUMNS$b" ]];then
 unset _mr_o _mr_r
 if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]];then
@@ -393,10 +384,8 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 fi
 fi
 _mr_e=()
-local i=0
 local v=
-local p=
-local r
+local r p=
 local c=
 . "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
 if [[ -z $c ]];then
@@ -512,16 +501,11 @@ _monorail_cmd_ignored(){
 _mr_l[${#_mr_l[@]}]=$1
 }
 [[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
-. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"||{
-. "$MONORAIL_DIR"/monorail.sh
-_MONORAIL_UPDATE
-return
-}
+. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
 __git_ps1(){ :;}
 _mr_q(){
-local s A i
+local s A i=0
 A=
-i=0
 case "$RANDOM" in
 *[0-4])case "$RANDOM" in
 *0)s="IT IS CERTAIN.";;

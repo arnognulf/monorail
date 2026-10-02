@@ -97,13 +97,13 @@ const_color_cursor=21     #discard_for_all
 			[[ $var__trimmed_command = "$var__trimmed_arg" ]] && return                             #keep_for_bash
 		done                                                                                     #keep_for_bash
 
-		local var__this_command                                           #keep_for_bash
-		var__this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1) #keep_for_bash
-		var__this_command="${var__this_command#*[[:digit:]][* ] }"        #keep_for_bash
-		[[ $var__this_command ]] || return                                #keep_for_bash
-		local var__preexec_function                                       #keep_for_bash
-		for var__preexec_function in "${preexec_functions[@]:-}"; do      #keep_for_bash
-			if type -t "$var__preexec_function" >/dev/null; then             #keep_for_bash
+		# shellcheck disable=SC2155 # its OK if we mask the return value from `builtin history` as it is not expected to fail
+		local var__this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1) #keep_for_bash
+		var__this_command="${var__this_command#*[[:digit:]][* ] }"              #keep_for_bash
+		[[ $var__this_command ]] || return                                      #keep_for_bash
+		local var__preexec_function                                             #keep_for_bash
+		for var__preexec_function in "${preexec_functions[@]:-}"; do            #keep_for_bash
+			if type -t "$var__preexec_function" >/dev/null; then                   #keep_for_bash
 				# TODO: glob__last_ret_value is never set! accidently removed?
 				[[ ${glob__last_ret_value-0} = 0 ]] || (exit "${glob__last_ret_value-0}")                                                            #keep_for_bash
 				"$var__preexec_function" "$var__this_command"                                                                                        #keep_for_bash
@@ -121,13 +121,11 @@ const_color_cursor=21     #discard_for_all
 			eval 'glob__original_debug_trap(){ '"$var__prior_trap"';}'                                                                            #keep_for_bash
 			preexec_functions+=(glob__original_debug_trap)                                                                                        #keep_for_bash
 		fi                                                                                                                                     #keep_for_bash
-		local var__histcontrol                                                                                                                 #keep_for_bash
-		var__histcontrol="${HISTCONTROL:-}"                                                                                                    #keep_for_bash
+		local var__histcontrol="${HISTCONTROL:-}"                                                                                              #keep_for_bash
 		var__histcontrol="${var__histcontrol//ignorespace/}"                                                                                   #keep_for_bash
 		[[ $var__histcontrol = *"ignoreboth"* ]] && var__histcontrol="ignoredups:${var__histcontrol//ignoreboth/}"                             #keep_for_bash
 		export HISTCONTROL="$var__histcontrol"                                                                                                 #keep_for_bash
-		local var__existing_prompt_command                                                                                                     #keep_for_bash
-		var__existing_prompt_command="${PROMPT_COMMAND:-}"                                                                                     #keep_for_bash
+		local var__existing_prompt_command="${PROMPT_COMMAND:-}"                                                                               #keep_for_bash
 		var__existing_prompt_command="${var__existing_prompt_command//$'glob__trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\nglob__install'/:}" #keep_for_bash
 		var__existing_prompt_command="${var__existing_prompt_command//$'\n':$'\n'/$'\n'}"                                                      #keep_for_bash
 		var__existing_prompt_command="${var__existing_prompt_command//$'\n':;/$'\n'}"                                                          #keep_for_bash
@@ -155,15 +153,17 @@ const_color_cursor=21     #discard_for_all
 	preexec() {
 		{
 			# bash 5.2 calls preexec after first precmd, ignore first preexec.
-			if [[ ${BASH_VERSINFO[1]} -le 2 ]] && [[ ${BASH_VERSINFO[0]} -le 5 ]] && [[ -z $glob__initial_preexec_workaround ]]; then #keep_for_bash
-				glob__initial_preexec_workaround=1                                                                                       #keep_for_bash
-			fi                                                                                                                        #keep_for_bash
+			# BASH_VERSINFO without index calls first element (0).
+			# shellcheck disable=SC2128 # save 5 bytes of source code by reading $BASH_VERSINFO instead of ${BASH_VERSINFO[0]}
+			if [[ ${BASH_VERSINFO[1]} -le 2 ]] && [[ $BASH_VERSINFO -le 5 ]] && [[ -z $glob__initial_preexec_workaround ]]; then #keep_for_bash
+				glob__initial_preexec_workaround=1                                                                                  #keep_for_bash
+				return                                                                                                              #keep_for_bash
+			fi                                                                                                                   #keep_for_bash
 
 			# TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 			[[ $(fc -l -1) = "$glob__prev_cmd" ]] && return
 			glob__prev_cmd=$(fc -l -1)
-			local var__escaped_command var__icon var__cmd
-			var__escaped_command=${1/\\\a/\\\\\a}
+			local var__icon var__cmd var__escaped_command=${1/\\\a/\\\\\a}
 			var__escaped_command=${var__escaped_command/\\\b/\\\\\b}
 			var__escaped_command=${var__escaped_command/\\\c/\\\\\c}
 			var__escaped_command=${var__escaped_command/\\\d/\\\\\d}
@@ -219,8 +219,7 @@ const_color_cursor=21     #discard_for_all
 		} >&- 2>&-     #keep_for_bash
 	}
 	_monorail_gradient() {
-		local i=0
-		local j
+		local j i=0
 		while [[ $i -le $COLUMNS ]]; do
 			j=$((1 + $# * i / $((COLUMNS + 1))))
 			var__monorail_line+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
@@ -282,8 +281,7 @@ const_color_cursor=21     #discard_for_all
 				# bash line editor (ble.sh) do not like others messing with the tty
 				# enable stty echo in case some command has disabled it up
 				[[ $BLE_ATTACHED ]] || LC_MESSAGES=C LC_ALL=C stty echo
-				local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration var__diff
-				var__diff=$((SECONDS - glob__start_seconds))
+				local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration var__diff=$((SECONDS - glob__start_seconds))
 				if [[ $glob__measure ]] && [[ $var__diff -gt ${MONORAIL_TIMEOUT-30} ]]; then
 					var__seconds_m=$((var__diff % 3600))
 					var__duration_h=$((var__diff / 3600))
@@ -300,8 +298,7 @@ const_color_cursor=21     #discard_for_all
 					glob__longrunning=1
 				fi
 				unset glob__measure
-				local var__cmd_status
-				var__cmd_status=$?
+				local var__cmd_status=$?
 				printf "%$((COLUMNS - 1))s\\r"
 				HISTCONTROL=
 				glob__histcmd_prev=$(fc -l -1)
@@ -356,10 +353,9 @@ const_color_cursor=21     #discard_for_all
 				case $PWD in
 				/run/user/*/gvfs/*) glob__git_ps1= ;;
 				*)
-					local var__prompt_pwd var__monorail_repo
-					var__prompt_pwd=$PWD
+					local var__monorail_repo var__prompt_pwd=$PWD
 					var__monorail_repo=
-					while [[ "$var__prompt_pwd" ]]; do
+					while [[ $var__prompt_pwd ]]; do
 						if [[ -d "$var__prompt_pwd/.repo" ]]; then
 							var__monorail_repo=1
 							break
@@ -367,8 +363,7 @@ const_color_cursor=21     #discard_for_all
 						var__prompt_pwd="${var__prompt_pwd%/*}"
 					done
 					if [[ -z $glob__git_loaded ]]; then
-						local var__dir
-						var__dir=$PWD
+						local var__dir=$PWD
 						while [[ $var__dir ]]; do
 							if [[ -e "$var__dir/.git" ]] && [[ -e /usr/lib/git-core/git-sh-prompt ]]; then
 								. /usr/lib/git-core/git-sh-prompt
@@ -387,8 +382,7 @@ const_color_cursor=21     #discard_for_all
 					)
 					;;
 				esac
-				local var__icon var__title_base
-				var__title_base=${PWD##*/}
+				local var__icon var__title_base=${PWD##*/}
 				if [[ $var__monorail_repo ]]; then
 					var__icon=${glob__icons[const_repo]}
 				elif [[ $glob__git_ps1 ]]; then
@@ -450,7 +444,7 @@ const_color_cursor=21     #discard_for_all
 				var__monorail_text_array[I]=${var__monorail_text:I:1} #keep_for_bash
 			done                                                   #keep_for_bash
 			local var__monorail_text_array_len=${#var__monorail_text_array[@]}
-			local var__rgb_cur_color var__rgb_cur_r var__rgb_cur_gb var__rgb_cur_g var__rgb_cur_b
+			local var__rgb_cur_color var__rgb_cur_r var__rgb_cur_gb var__rgb_cur_g var__rgb_cur_b i=0
 			if [[ $glob__cache != "$COLUMNS$var__monorail_text" ]]; then
 				unset glob__cache glob__measure
 				if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]]; then
@@ -472,10 +466,8 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 					fi
 				fi
 				glob__colors=()
-				local i=0
 				local var__monorail_line=
-				local var__monorail_title_formatted=
-				local var__hex_cursor_color
+				local var__hex_cursor_color var__monorail_title_formatted=
 				local var__monorail_text_formatted=
 				# here _monorail_gradient _monorail_textgradient _monorail_colors are called
 				# shellcheck source=scripts/dummy.conf
@@ -637,16 +629,11 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	}
 	[[ -e $MONORAIL_CONFIG/settings-${_mr_hostname}.conf ]] || cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-${_mr_hostname}.conf"
 	# shellcheck source=scripts/dummy.conf
-	. "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf" || {
-		. "$MONORAIL_DIR"/monorail.sh
-		_MONORAIL_UPDATE
-		return
-	}
+	. "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf"
 	__git_ps1() { :; }
 	glob__magic_shellball() {
-		local var__answer var__spaces i
+		local var__answer var__spaces i=0
 		var__spaces=
-		i=0
 		case "$RANDOM" in
 		*[0-4])
 			case "$RANDOM" in

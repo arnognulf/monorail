@@ -36,8 +36,7 @@ preexec(){
 {
 [[ $(fc -l -1) == "$glob__prev_cmd" ]]&&return
 glob__prev_cmd=$(fc -l -1)
-local C B N
-C=${1/\\\a/\\\\\a}
+local B N C=${1/\\\a/\\\\\a}
 C=${C/\\\b/\\\\\b}
 C=${C/\\\c/\\\\\c}
 C=${C/\\\d/\\\\\d}
@@ -86,8 +85,7 @@ printf "$p"
 } &>/dev/null
 }
 _monorail_gradient(){
-local i=0
-local j
+local j i=0
 while [[ $i -le $COLUMNS ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
@@ -140,8 +138,7 @@ precmd(){
 {
 if [[ $glob__launched ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
-local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration m
-m=$((SECONDS-glob__start_seconds))
+local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration m=$((SECONDS-glob__start_seconds))
 if [[ $glob__measure ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
 var__seconds_m=$((m%3600))
 var__duration_h=$((m/3600))
@@ -158,8 +155,7 @@ echo "$var__duration"
 glob__longrunning=1
 fi
 unset glob__measure
-local M
-M=$?
+local M=$?
 printf "%$((COLUMNS-1))s\\r"
 HISTCONTROL=
 glob__histcmd_prev=$(fc -l -1)
@@ -209,10 +205,9 @@ unset glob__longrunning
 else
 case $PWD in
 /run/user/*/gvfs/*)glob__git_ps1=;;
-*)local x y
-x=$PWD
+*)local y x=$PWD
 y=
-while [[ "$x" ]];do
+while [[ $x ]];do
 if [[ -d "$x/.repo" ]];then
 y=1
 break
@@ -220,8 +215,7 @@ fi
 x="${x%/*}"
 done
 if [[ -z $glob__git_loaded ]];then
-local u
-u=$PWD
+local u=$PWD
 while [[ $u ]];do
 if [[ -e "$u/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
@@ -236,8 +230,7 @@ shift
 }
 TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
-local B S
-S=${PWD##*/}
+local B S=${PWD##*/}
 if [[ $y ]];then
 B=${glob__icons[5]}
 elif [[ $glob__git_ps1 ]];then
@@ -291,7 +284,7 @@ for ((I=0; I<${#b}; I++));do
 d[I]=${b[I]}
 done
 local e=${#d[@]}
-local w D E F G
+local w D E F G i=0
 if [[ $glob__cache != "$COLUMNS$b" ]];then
 unset glob__cache glob__measure
 if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]];then
@@ -312,10 +305,8 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 fi
 fi
 glob__colors=()
-local i=0
 local v=
-local p=
-local r
+local r p=
 local c=
 . "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
 if [[ -z $c ]];then
@@ -431,16 +422,11 @@ _monorail_cmd_ignored(){
 glob__cmd_ignored[${#glob__cmd_ignored[@]}]=$1
 }
 [[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
-. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"||{
-. "$MONORAIL_DIR"/monorail.sh
-_MONORAIL_UPDATE
-return
-}
+. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
 __git_ps1(){ :;}
 glob__magic_shellball(){
-local s A i
+local s A i=0
 A=
-i=0
 case "$RANDOM" in
 *[0-4])case "$RANDOM" in
 *0)s="IT IS CERTAIN.";;
