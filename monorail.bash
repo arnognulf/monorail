@@ -247,7 +247,7 @@ if [[ -z $_mr_g ]]&&[[ $M == 0 ]]&&[[ -z $_mr_n ]];then
 case "$_mr_h" in
 0)ls
 _mr_h=3
-if \git status >&-;then
+if \git status >/dev/null;then
 _mr_h=1
 else
 printf "\e[J\n\n"
@@ -570,4 +570,4 @@ alias monorail_gradient="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CO
 alias monorail_image="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/image.sh"
 alias monorail_textgradient="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh --text"
 alias rgb="sh $MONORAIL_DIR/scripts/rgb.sh"
-} >&- 2>&-
+} 2>&-

@@ -313,7 +313,8 @@ const_color_cursor=21     #discard_for_all
 						0)
 							ls
 							glob__cr_level=3
-							if \git status >&-; then
+# use /dev/null otherwise zsh will complain
+							if \git status >/dev/null; then
 								glob__cr_level=1
 							else
 								printf "\e[J\n\n"
@@ -715,4 +716,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	alias monorail_textgradient="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh --text"
 	# shellcheck disable=SC2139
 	alias rgb="sh $MONORAIL_DIR/scripts/rgb.sh"
-} >&- 2>&-
+	{             #discard_for_all
+		:            #discard_for_all
+	} 2>/dev/null #keep_for_zsh
+} 2>&-         #keep_for_bash
