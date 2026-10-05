@@ -174,12 +174,13 @@ v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-[[ ${t[*]} ]]||t="255;255;255"
+[[ $t ]]||t="255;255;255"
 while [[ $i -lt $e ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 c+="\["$'\e[48;2;'${!j}m$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m\]${d[i]}"
 i=$((i+1))
 done
+i=0
 case $TERM in
 xterm|xterm-kitty|rxvt*)c+="\["$'\e'"[0m\] "
 ;;
@@ -363,8 +364,8 @@ local b=" $z$_mr_p "
 b=${b//\.\.\./$'\xe2\x80\xa6'}
 [[ ${#b} -gt $((COLUMNS/3)) ]]&&b=$' \xe2\x80\xa6'"${b:$((${#b}-$((COLUMNS/3))))}"
 local d=()
-for ((I=0; I<${#b}; I++));do
-d[I]=${b:I:1}
+for ((i=0; i<${#b}; i++));do
+d[i]=${b:i:1}
 done
 local w D E F G e=${#d[@]}
 if [[ $_mr_o != "$COLUMNS$b" ]];then
@@ -390,8 +391,7 @@ _mr_e=()
 local i=0
 local v=
 local p=
-local r
-local c=
+local r c=
 . "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
 if [[ -z $c ]];then
 v=
@@ -399,7 +399,7 @@ while [[ $i -lt $COLUMNS ]];do
 v+=$'\xe2\x96\x81'
 i=$((i+1))
 done
-c="\["$'\e[0;7m'"\]"$b"\["$'\e[0m'"\]"
+c="\["$'\e[0;7m'"\]$b\["$'\e[0m'"\]"
 fi
 _mr_o="$COLUMNS$b"
 if [[ $r ]];then
@@ -407,7 +407,7 @@ PS1="\e]12;#$r\a"
 else
 PS1=""
 fi
-PS1+='\e[?7l\e]0;$_mr_E\a\e[0m\r'"$v
+PS1+=$'\e[?7l\e]0;$_mr_E\a\e[0m\r'"$v
 $c\["$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e[0m'"\]"
 fi
 unset _mr_G
@@ -472,7 +472,8 @@ _LOW_PRIO "$@"
 }
 _monorail_icon(){
 case "$2" in
-home)_mr_f[0]=$1;;
+home)_mr_f=$1
+;;
 ssh)_mr_f[1]=$1;;
 docker)_mr_f[2]=$1;;
 podman)_mr_f[3]=$1;;

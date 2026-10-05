@@ -5,7 +5,7 @@
 # Copyright (c) 2017 Ryan Caloras and contributors (see https://github.com/rcaloras/bash-preexec)
 # SPDX-License-Identifier: BSD-3-Clause
 # see FAST_SHELL_GUIDELINES.md on coding guidelines for this file.
-const_home=0              #discard_for_all
+#const_home=0              #discard_for_all
 const_ssh=1               #discard_for_all
 const_docker=2            #discard_for_all
 const_podman=3            #discard_for_all
@@ -223,18 +223,36 @@ const_color_cursor=21     #discard_for_all
 	}
 	_monorail_gradient() {
 		local j i=0
-		while [[ $i -le $COLUMNS ]]; do
-			j=$((1 + $# * i / $((COLUMNS + 1))))
-			var__monorail_line+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
-			i=$((i + 1))
-		done
+
+		# need separate code-paths for bash and zsh as zsh does not support the argument indexing syntax
+		while [[ $i -le $COLUMNS ]]; do                         #keep_for_bash
+			j=$((1 + $# * i / $((COLUMNS + 1))))                   #keep_for_bash
+			var__monorail_line+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81' #keep_for_bash
+			i=$((i + 1))                                           #keep_for_bash
+		done                                                    #keep_for_bash
+		i=0                                                     #keep_for_bash
+		[[ $var__prompt_text_lut ]] || var__prompt_text_lut="255;255;255"
+		while [[ $i -lt ${var__monorail_text_array_len} ]]; do                                                                                                                                                          #keep_for_bash
+			j=$((1 + $# * i / $((COLUMNS + 1))))                                                                                                                                                                           #keep_for_bash
+			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e[48;2;'${!j}m$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * i / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[i]}" #keep_for_bash
+			i=$((i + 1))                                                                                                                                                                                                   #keep_for_bash
+		done                                                                                                                                                                                                            #keep_for_bash
+		# here we put all arguments in an array to support zsh
+		# this essentially amounts to 200 variable writes
+		# and then readout of $COLUMNS variables
+		var__prompt_lut=()     #keep_for_zsh
+		var__prompt_lut=("$@") #keep_for_zsh
 		i=0
-		[[ ${var__prompt_text_lut[*]} ]] || var__prompt_text_lut="255;255;255"
-		while [[ $i -lt ${var__monorail_text_array_len} ]]; do
-			j=$((1 + $# * i / $((COLUMNS + 1))))
-			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e[48;2;'${!j}m$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * i / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[i]}"
-			i=$((i + 1))
-		done
+		while [[ $i -le $COLUMNS ]]; do                                                                                                                                                                                                                                                  #keep_for_zsh
+			var__monorail_line+=$'\e[38;2;'${var__prompt_lut[$((${#var__prompt_lut[*]} * i / $((COLUMNS + 1))))]}m$'\xe2\x96\x81'                                                                                                                                                           #keep_for_zsh
+			i=$((i + 1))                                                                                                                                                                                                                                                                    #keep_for_zsh
+		done                                                                                                                                                                                                                                                                             #keep_for_zsh
+		i=0                                                                                                                                                                                                                                                                              #keep_for_zsh
+		while [[ $i -lt ${var__monorail_text_array_len} ]]; do                                                                                                                                                                                                                           #keep_for_zsh
+			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e[48;2;'${var__prompt_lut[$((${#var__prompt_lut[*]} * i / $((COLUMNS + 1))))]}m$'\e[38;2;'${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * i / $((COLUMNS + 1))))]}m"@PROMPT_POSTHIDE@${var__monorail_text_array[i]}" #keep_for_zsh
+			i=$((i + 1))                                                                                                                                                                                                                                                                    #keep_for_zsh
+		done                                                                                                                                                                                                                                                                             #keep_for_zsh
+
 		# The invisible vertical bar is added to make the prompt more readable when copied to a chat or text doc.
 		# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
 		# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
@@ -248,7 +266,9 @@ const_color_cursor=21     #discard_for_all
 			;;
 		esac
 		j=$(($# * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))
-		var__rgb_cur_color=${!j}
+		var__rgb_cur_color=${!j}                                                                  #keep_for_bash
+		var__rgb_cur_color=${var__prompt_lut[$((${#var__prompt_lut[*]} * i / $((COLUMNS + 1))))]} #keep_for_zsh
+
 		var__rgb_cur_r=${var__rgb_cur_color%%;*}
 		var__rgb_cur_gb=${var__rgb_cur_color#*;}
 		var__rgb_cur_g=${var__rgb_cur_gb%%;*}
@@ -271,7 +291,7 @@ const_color_cursor=21     #discard_for_all
 	}
 	_TITLE_RAW() {
 		[[ $glob__nostyling ]] && return 0
-		printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
+		printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&- #keep_for_zsh
 	}
 	[[ $MONORAIL_CONFIG ]] || MONORAIL_CONFIG=$HOME/.config/monorail
 	monorail_name() {
@@ -440,13 +460,13 @@ const_color_cursor=21     #discard_for_all
 			# frequently, the last of the text is the most relevant, cut beginning if too long path
 			[[ ${#var__monorail_text} -gt $((COLUMNS / 3)) ]] && var__monorail_text=$' \xe2\x80\xa6'"${var__monorail_text:$((${#var__monorail_text} - $((COLUMNS / 3))))}"
 			local var__monorail_text_array=()
-			for ((I = 0; I < ${#var__monorail_text}; I++)); do #keep_for_zsh
+			for ((i = 0; i < ${#var__monorail_text}; i++)); do #keep_for_zsh
 				#keep_for_zsh
-				var__monorail_text_array[I]=${var__monorail_text[I]} #keep_for_zsh
+				var__monorail_text_array[i]=${var__monorail_text[i]} #keep_for_zsh
 			done                                                  #keep_for_zsh
-			for ((I = 0; I < ${#var__monorail_text}; I++)); do    #keep_for_bash
+			for ((i = 0; i < ${#var__monorail_text}; i++)); do    #keep_for_bash
 				#keep_for_bash
-				var__monorail_text_array[I]=${var__monorail_text:I:1} #keep_for_bash
+				var__monorail_text_array[i]=${var__monorail_text:i:1} #keep_for_bash
 			done                                                   #keep_for_bash
 			local var__rgb_cur_color var__rgb_cur_r var__rgb_cur_gb var__rgb_cur_g var__rgb_cur_b var__monorail_text_array_len=${#var__monorail_text_array[@]}
 			if [[ $glob__cache != "$COLUMNS$var__monorail_text" ]]; then
@@ -477,14 +497,13 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 				# here _monorail_gradient _monorail_textgradient _monorail_colors are called
 				# shellcheck source=scripts/dummy.conf
 				. "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
-
 				if [[ -z $var__monorail_text_formatted ]]; then
 					var__monorail_line=
 					while [[ $i -lt $COLUMNS ]]; do
 						var__monorail_line+=$'\xe2\x96\x81'
 						i=$((i + 1))
 					done
-					var__monorail_text_formatted="@PROMPT_PREHIDE@"$'\e[0;7m'"@PROMPT_POSTHIDE@"$var__monorail_text"@PROMPT_PREHIDE@"$'\e[0m'"@PROMPT_POSTHIDE@"
+					var__monorail_text_formatted="@PROMPT_PREHIDE@"$'\e[0;7m'"@PROMPT_POSTHIDE@$var__monorail_text@PROMPT_PREHIDE@"$'\e[0m'"@PROMPT_POSTHIDE@"
 				fi
 
 				glob__cache="$COLUMNS$var__monorail_text"
@@ -506,7 +525,7 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 				# DECTCEM Text cursor enable On CSI ? 25 h
 				# DECTCEM Text cursor enable Off CSI ? 25 l
 				# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-				PS1+='\e[?7l\e]0;$glob__title\a\e[0m\r'"$var__monorail_line
+				PS1+=$'\e[?7l\e]0;$glob__title\a\e[0m\r'"$var__monorail_line
 $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e[0m'"@PROMPT_POSTHIDE@"
 
 			fi
@@ -516,7 +535,8 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 			{             #discard_for_all
 				:            #discard_for_all
 			} 2>/dev/null #keep_for_zsh
-		} 2>&-         #keep_for_bash
+
+		} 2>&- #keep_for_bash
 	}
 	_TITLE() {
 		local glob__title="$*"
@@ -558,7 +578,10 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 				else
 					_TITLE "${glob__icon_override-${var__icon}}  ${FIRST_NON_OPTION##*/}"
 				fi
-			) >&- 2>&-
+				( #discard_for_all
+					:            #discard_for_all
+				) &>/dev/null #keep_for_zsh
+			) >&- 2>&-     #keep_for_bash
 		fi
 		"$@"
 	}
@@ -583,14 +606,20 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 				# `nice -n19` is the lowest priority on non-Linux systems
 				nice -n19 "$@"
 			}
-		fi >/dev/null 2>&-
+			if :; then        #discard_for_all
+				:                #discard_for_all
+			fi &>/dev/null    #keep_for_zsh
+		fi >/dev/null 2>&- #keep_for_bash
 		_LOW_PRIO "$@"
 	}
 	# shellcheck disable=SC2329
 	_monorail_icon() {
 		# I'd prefer to use associative arrays here. but for unknown reasons, it does not work as of bash 5.3.9(1)-release
 		case "$2" in
-		home) glob__icons[const_home]=$1 ;;
+		home)
+			#glob__icons[const_home]=$1
+			glob__icons=$1
+			;;
 		ssh) glob__icons[const_ssh]=$1 ;;
 		docker) glob__icons[const_docker]=$1 ;;
 		podman) glob__icons[const_podman]=$1 ;;
@@ -719,4 +748,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	alias monorail_textgradient="_mr_hostname=$_mr_hostname MONORAIL_CONFIG=$MONORAIL_CONFIG MONORAIL_DIR=$MONORAIL_DIR sh $MONORAIL_DIR/scripts/gradient.sh --text"
 	# shellcheck disable=SC2139
 	alias rgb="sh $MONORAIL_DIR/scripts/rgb.sh"
-} >&- 2>&-
+	{             #discard_for_all
+		:            #discard_for_all
+	} &>/dev/null #keep_for_zsh
+} >&- 2>&-     #keep_for_bash
