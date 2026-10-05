@@ -535,32 +535,40 @@ __git_ps1() {
 	return 0
 }
 
-_ICON () 
-{ 
-    local B="$1";
-    shift;
-        FIRST_ARG="$1";
-        ( case "$FIRST_ARG" in 
-            _*)
-                shift
-            ;;
-        esac;
-        FIRST_ARG="$1";
-        FIRST_NON_OPTION="$2";
-        while [[ ${FIRST_NON_OPTION:0:1} == '-' ]] || [ "${FIRST_NON_OPTION:0:1}" = '_' ] || [ "$FIRST_NON_OPTION" = '.' ]; do
-            if [ "$FIRST_NON_OPTION" = '-u' ]; then
-                shift 2;
-            else
-                shift;
-            fi;
-            FIRST_NON_OPTION="$2";
-        done;
-        [[ -n $B ]] && if [[ -z $FIRST_NON_OPTION ]]; then
-            _TITLE "${FIRST_ARG##*/}";
-        else
-            _TITLE "${FIRST_NON_OPTION##*/}";
-        fi ) 1>&- 2>&-;
-    "$@"
+_ICON() {
+	B="$1"
+	shift
+	FIRST_ARG="$1"
+	(
+		case "$FIRST_ARG" in
+		_*)
+			shift
+			;;
+		esac
+		FIRST_ARG="$1"
+		FIRST_NON_OPTION="$2"
+		while true; do
+			case "$FIRST_NON_OPTION" in
+			'-' | '_' | '.')
+				if [ "$FIRST_NON_OPTION" = '-u' ]; then
+					shift 2
+				else
+					shift
+				fi
+				FIRST_NON_OPTION=$2
+				;;
+			*)
+				break
+				;;
+			esac
+		done
+		[ -n "$B" ] && if [ -z "$FIRST_NON_OPTION" ]; then
+			_TITLE "${FIRST_ARG##*/}"
+		else
+			_TITLE "${FIRST_NON_OPTION##*/}"
+		fi
+	) 1>&- 2>&-
+	"$@"
 }
 
 # update monorail on window resizing

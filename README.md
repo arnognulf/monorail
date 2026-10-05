@@ -333,7 +333,11 @@ Add the following to ~/.config/ghostty/config:
 ```
 shell-integration-features = no-title, no-cursor
 ```
+Q: Why is prompt icon not working in Konsole?
 
+A: Konsole overrides the title set by monorail.
+
+Go to Settings -> General -> [X] Show window title on the titlebar.
 
 Contributions
 =============

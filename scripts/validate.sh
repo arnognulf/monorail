@@ -70,6 +70,7 @@ cat "$SRC" |
 		-e 's/glob__icon_override/_mr_F/g' \
 		-e 's/glob__nostyling/_mr_G/g' \
 		-e 's/glob__sanitized/_mr_H/g' \
+		-e s'/glob__initial_preexec_workaround/_mr_I/g' \
 		-e 's/var__this_command/a/g' \
 		-e 's/var__monorail_text_formatted/c/g' \
 		-e 's/var__monorail_text_array_len/e/g' \

@@ -86,22 +86,21 @@ printf "$p"
 } &>/dev/null
 }
 _monorail_gradient(){
-local i=0
-local j
+local j i=0
 while [[ $i -le $COLUMNS ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-[[ ${t[*]} ]]||t[0]="255;255;255"
+[[ ${t[*]} ]]||t="255;255;255"
 while [[ $i -lt $e ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 c+="%{"$'\e[48;2;'${!j}m$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m%}${d[i]}"
 i=$((i+1))
 done
 case $TERM in
-xterm|xterm-kitty)c+="%{"$'\e'"[0m%} "
+xterm|xterm-kitty|rxvt*)c+="%{"$'\e'"[0m%} "
 ;;
 *)c+="%{"$'\e'"[0;8m%}|"
 esac
@@ -140,8 +139,7 @@ precmd(){
 {
 if [[ $glob__launched ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
-local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration m
-m=$((SECONDS-glob__start_seconds))
+local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration m=$((SECONDS-glob__start_seconds))
 if [[ $glob__measure ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
 var__seconds_m=$((m%3600))
 var__duration_h=$((m/3600))
@@ -158,8 +156,7 @@ echo "$var__duration"
 glob__longrunning=1
 fi
 unset glob__measure
-local M
-M=$?
+local M=$?
 printf "%$((COLUMNS-1))s\\r"
 HISTCONTROL=
 glob__histcmd_prev=$(fc -l -1)
@@ -170,7 +167,7 @@ glob__cr_level=0
 unset glob__ctrlc
 elif [[ $glob__histcmd_penultimate == "$glob__histcmd_prev" ]];then
 if [[ -z $glob__cr_first ]]&&[[ $M == 0 ]]&&[[ -z $glob__ctrlc ]];then
-case "$glob__cr_level" in
+case $glob__cr_level in
 0)ls
 glob__cr_level=3
 if \git status >&-;then
@@ -209,10 +206,9 @@ unset glob__longrunning
 else
 case $PWD in
 /run/user/*/gvfs/*)glob__git_ps1=;;
-*)local x y
-x=$PWD
+*)local x y=$PWD
 y=
-while [[ "$x" ]];do
+while [[ $x ]];do
 if [[ -d "$x/.repo" ]];then
 y=1
 break
@@ -220,8 +216,7 @@ fi
 x="${x%/*}"
 done
 if [[ -z $glob__git_loaded ]];then
-local u
-u=$PWD
+local u=$PWD
 while [[ $u ]];do
 if [[ -e "$u/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
@@ -236,8 +231,7 @@ shift
 }
 TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
-local B S
-S=${PWD##*/}
+local B S=${PWD##*/}
 if [[ $y ]];then
 B=${glob__icons[5]}
 elif [[ $glob__git_ps1 ]];then
@@ -268,7 +262,7 @@ B=${glob__icons[2]}
 elif [[ -e /run/containerenv ]];then
 B=${glob__icons[3]}
 else
-B=${glob__icons[0]}
+B=$glob__icons
 fi
 ;;
 *)
@@ -290,8 +284,7 @@ local d=()
 for ((I=0; I<${#b}; I++));do
 d[I]=${b[I]}
 done
-local e=${#d[@]}
-local w D E F G
+local w D E F G e=${#d[@]}
 if [[ $glob__cache != "$COLUMNS$b" ]];then
 unset glob__cache glob__measure
 if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]];then
@@ -332,11 +325,11 @@ PS1="\e]12;#$r\a"
 else
 PS1=""
 fi
-PS1+=$'\e[?7l\e]0;''$glob__title''\a\e[0m\r'"$v
+PS1+='\e[?7l\e]0;$glob__title\a\e[0m\r'"$v
 $c%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e[0m'"%}"
 fi
 unset glob__nostyling
-[[ ${glob__colors[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a"
+[[ ${glob__colors[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[17]}\a\e]10;#${glob__colors[16]}\a\e]4;0;#$glob__colors\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r"
 } 2>/dev/null
 }
 _TITLE(){
@@ -360,7 +353,7 @@ local B="$1"
 shift
 if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} == "_NO_MEASURE" ]];then
 local FIRST_ARG="$1"
-(case "$FIRST_ARG" in
+(case $FIRST_ARG in
 _*)shift
 esac
 FIRST_ARG="$1"
@@ -438,11 +431,10 @@ return
 }
 __git_ps1(){ :;}
 glob__magic_shellball(){
-local s A i
-A=
+local s i A=
 i=0
-case "$RANDOM" in
-*[0-4])case "$RANDOM" in
+case $RANDOM in
+*[0-4])case $RANDOM in
 *0)s="IT IS CERTAIN.";;
 *1)s="IT IS DECIDEDLY SO.";;
 *2)s="WITHOUT A DOUBT.";;
@@ -455,7 +447,7 @@ case "$RANDOM" in
 *)s="SIGNS POINT TO YES."
 esac
 ;;
-*)case "$RANDOM" in
+*)case $RANDOM in
 *0)s="REPLY HAZY, TRY AGAIN.";;
 *1)s="ASK AGAIN LATER.";;
 *2)s="BETTER NOT TELL YOU NOW.";;

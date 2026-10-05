@@ -111,6 +111,10 @@ _mr_t=
 PROMPT_COMMAND+=($'_mr_D="$(trap -p DEBUG)"\ntrap - DEBUG\n_mr_C')
 preexec(){
 {
+if [[ ${BASH_VERSINFO[1]} -le 2 ]]&&[[ $BASH_VERSINFO -le 5 ]]&&[[ -z $_mr_I ]];then
+_mr_I=1
+return
+fi
 [[ $(fc -l -1) == "$_mr_t" ]]&&return
 _mr_t=$(fc -l -1)
 local C B N
@@ -163,22 +167,21 @@ printf "$p"
 } >&- 2>&-
 }
 _monorail_gradient(){
-local i=0
-local j
+local j i=0
 while [[ $i -le $COLUMNS ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 v+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 i=$((i+1))
 done
 i=0
-[[ ${t[*]} ]]||t[0]="255;255;255"
+[[ ${t[*]} ]]||t="255;255;255"
 while [[ $i -lt $e ]];do
 j=$((1+$#*i/$((COLUMNS+1))))
 c+="\["$'\e[48;2;'${!j}m$'\e'"[38;2;${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m\]${d[i]}"
 i=$((i+1))
 done
 case $TERM in
-xterm|xterm-kitty)c+="\["$'\e'"[0m\] "
+xterm|xterm-kitty|rxvt*)c+="\["$'\e'"[0m\] "
 ;;
 *)c+="\["$'\e'"[0;8m\]|"
 esac
@@ -217,8 +220,7 @@ precmd(){
 {
 if [[ $_mr_u ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
-local T U V W X m
-m=$((SECONDS-_mr_s))
+local T U V W X m=$((SECONDS-_mr_s))
 if [[ $_mr_r ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
 T=$((m%3600))
 U=$((m/3600))
@@ -235,8 +237,7 @@ echo "$X"
 _mr_m=1
 fi
 unset _mr_r
-local M
-M=$?
+local M=$?
 printf "%$((COLUMNS-1))s\\r"
 HISTCONTROL=
 _mr_k=$(fc -l -1)
@@ -247,7 +248,7 @@ _mr_h=0
 unset _mr_n
 elif [[ $_mr_j == "$_mr_k" ]];then
 if [[ -z $_mr_g ]]&&[[ $M == 0 ]]&&[[ -z $_mr_n ]];then
-case "$_mr_h" in
+case $_mr_h in
 0)ls
 _mr_h=3
 if \git status >&-;then
@@ -287,10 +288,9 @@ unset _mr_m
 else
 case $PWD in
 /run/user/*/gvfs/*)_mr_p=;;
-*)local x y
-x=$PWD
+*)local x y=$PWD
 y=
-while [[ "$x" ]];do
+while [[ $x ]];do
 if [[ -d "$x/.repo" ]];then
 y=1
 break
@@ -298,8 +298,7 @@ fi
 x="${x%/*}"
 done
 if [[ -z $_mr_v ]];then
-local u
-u=$PWD
+local u=$PWD
 while [[ $u ]];do
 if [[ -e "$u/.git" ]]&&[[ -e /usr/lib/git-core/git-sh-prompt ]];then
 . /usr/lib/git-core/git-sh-prompt
@@ -314,8 +313,7 @@ shift
 }
 TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
-local B S
-S=${PWD##*/}
+local B S=${PWD##*/}
 if [[ $y ]];then
 B=${_mr_f[5]}
 elif [[ $_mr_p ]];then
@@ -346,7 +344,7 @@ B=${_mr_f[2]}
 elif [[ -e /run/containerenv ]];then
 B=${_mr_f[3]}
 else
-B=${_mr_f[0]}
+B=$_mr_f
 fi
 ;;
 *)
@@ -368,8 +366,7 @@ local d=()
 for ((I=0; I<${#b}; I++));do
 d[I]=${b:I:1}
 done
-local e=${#d[@]}
-local w D E F G
+local w D E F G e=${#d[@]}
 if [[ $_mr_o != "$COLUMNS$b" ]];then
 unset _mr_o _mr_r
 if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]];then
@@ -410,11 +407,11 @@ PS1="\e]12;#$r\a"
 else
 PS1=""
 fi
-PS1+=$'\e[?7l\e]0;''$_mr_E''\a\e[0m\r'"$v
+PS1+='\e[?7l\e]0;$_mr_E\a\e[0m\r'"$v
 $c\["$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e[0m'"\]"
 fi
 unset _mr_G
-[[ ${_mr_e[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]4;0;#${_mr_e[0]}\a\e]4;1;#${_mr_e[1]}\a\e]4;2;#${_mr_e[2]}\a\e]4;3;#${_mr_e[3]}\a\e]4;4;#${_mr_e[4]}\a\e]4;5;#${_mr_e[5]}\a\e]4;6;#${_mr_e[6]}\a\e]4;7;#${_mr_e[7]}\a\e]4;8;#${_mr_e[8]}\a\e]4;9;#${_mr_e[9]}\a\e]4;12;#${_mr_e[12]}\a\e]4;13;#${_mr_e[13]}\a\e]4;14;#${_mr_e[14]}\a\e]4;15;#${_mr_e[15]}\a"
+[[ ${_mr_e[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]4;0;#$_mr_e\a\e]4;1;#${_mr_e[1]}\a\e]4;2;#${_mr_e[2]}\a\e]4;3;#${_mr_e[3]}\a\e]4;4;#${_mr_e[4]}\a\e]4;5;#${_mr_e[5]}\a\e]4;6;#${_mr_e[6]}\a\e]4;7;#${_mr_e[7]}\a\e]4;8;#${_mr_e[8]}\a\e]4;9;#${_mr_e[9]}\a\e]4;12;#${_mr_e[12]}\a\e]4;13;#${_mr_e[13]}\a\e]4;14;#${_mr_e[14]}\a\e]4;15;#${_mr_e[15]}\a\r"
 } 2>&-
 }
 _TITLE(){
@@ -438,7 +435,7 @@ local B="$1"
 shift
 if [[ -z ${FUNCNAME[1]} ]]||[[ ${FUNCNAME[1]} == "_NO_MEASURE" ]];then
 local FIRST_ARG="$1"
-(case "$FIRST_ARG" in
+(case $FIRST_ARG in
 _*)shift
 esac
 FIRST_ARG="$1"
@@ -516,11 +513,10 @@ return
 }
 __git_ps1(){ :;}
 _mr_q(){
-local s A i
-A=
+local s i A=
 i=0
-case "$RANDOM" in
-*[0-4])case "$RANDOM" in
+case $RANDOM in
+*[0-4])case $RANDOM in
 *0)s="IT IS CERTAIN.";;
 *1)s="IT IS DECIDEDLY SO.";;
 *2)s="WITHOUT A DOUBT.";;
@@ -533,7 +529,7 @@ case "$RANDOM" in
 *)s="SIGNS POINT TO YES."
 esac
 ;;
-*)case "$RANDOM" in
+*)case $RANDOM in
 *0)s="REPLY HAZY, TRY AGAIN.";;
 *1)s="ASK AGAIN LATER.";;
 *2)s="BETTER NOT TELL YOU NOW.";;

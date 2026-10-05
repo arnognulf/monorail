@@ -154,6 +154,14 @@ const_color_cursor=21     #discard_for_all
 	PROMPT_COMMAND+=($'glob__trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\nglob__install') #keep_for_bash
 	preexec() {
 		{
+			# bash 5.2 calls preexec after first precmd, ignore first preexec.
+			# BASH_VERSINFO without index calls first element (0).
+			# shellcheck disable=SC2128 # save 5 bytes of source code by reading $BASH_VERSINFO instead of ${BASH_VERSINFO[0]}
+			if [[ ${BASH_VERSINFO[1]} -le 2 ]] && [[ $BASH_VERSINFO -le 5 ]] && [[ -z $glob__initial_preexec_workaround ]]; then #keep_for_bash
+				glob__initial_preexec_workaround=1                                                                                  #keep_for_bash
+				return                                                                                                              #keep_for_bash
+			fi                                                                                                                   #keep_for_bash
+
 			# TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 			[[ $(fc -l -1) = "$glob__prev_cmd" ]] && return
 			glob__prev_cmd=$(fc -l -1)
@@ -214,15 +222,14 @@ const_color_cursor=21     #discard_for_all
 		} >&- 2>&-     #keep_for_bash
 	}
 	_monorail_gradient() {
-		local i=0
-		local j
+		local j i=0
 		while [[ $i -le $COLUMNS ]]; do
 			j=$((1 + $# * i / $((COLUMNS + 1))))
 			var__monorail_line+=$'\e'"[38;2;${!j}m"$'\xe2\x96\x81'
 			i=$((i + 1))
 		done
 		i=0
-		[[ ${var__prompt_text_lut[*]} ]] || var__prompt_text_lut[0]="255;255;255"
+		[[ ${var__prompt_text_lut[*]} ]] || var__prompt_text_lut="255;255;255"
 		while [[ $i -lt ${var__monorail_text_array_len} ]]; do
 			j=$((1 + $# * i / $((COLUMNS + 1))))
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e[48;2;'${!j}m$'\e'"[38;2;${var__prompt_text_lut[$((${#var__prompt_text_lut[*]} * i / $((COLUMNS + 1))))]}m@PROMPT_POSTHIDE@${var__monorail_text_array[i]}"
@@ -277,8 +284,7 @@ const_color_cursor=21     #discard_for_all
 				# bash line editor (ble.sh) do not like others messing with the tty
 				# enable stty echo in case some command has disabled it up
 				[[ $BLE_ATTACHED ]] || LC_MESSAGES=C LC_ALL=C stty echo
-				local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration var__diff
-				var__diff=$((SECONDS - glob__start_seconds))
+				local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration var__diff=$((SECONDS - glob__start_seconds))
 				if [[ $glob__measure ]] && [[ $var__diff -gt ${MONORAIL_TIMEOUT-30} ]]; then
 					var__seconds_m=$((var__diff % 3600))
 					var__duration_h=$((var__diff / 3600))
@@ -295,8 +301,7 @@ const_color_cursor=21     #discard_for_all
 					glob__longrunning=1
 				fi
 				unset glob__measure
-				local var__cmd_status
-				var__cmd_status=$?
+				local var__cmd_status=$?
 				printf "%$((COLUMNS - 1))s\\r"
 				HISTCONTROL=
 				glob__histcmd_prev=$(fc -l -1)
@@ -307,7 +312,7 @@ const_color_cursor=21     #discard_for_all
 					unset glob__ctrlc
 				elif [[ $glob__histcmd_penultimate = "$glob__histcmd_prev" ]]; then
 					if [[ -z $glob__cr_first ]] && [[ $var__cmd_status = 0 ]] && [[ -z $glob__ctrlc ]]; then
-						case "$glob__cr_level" in
+						case $glob__cr_level in
 						0)
 							ls
 							glob__cr_level=3
@@ -351,10 +356,9 @@ const_color_cursor=21     #discard_for_all
 				case $PWD in
 				/run/user/*/gvfs/*) glob__git_ps1= ;;
 				*)
-					local var__prompt_pwd var__monorail_repo
-					var__prompt_pwd=$PWD
+					local var__prompt_pwd var__monorail_repo=$PWD
 					var__monorail_repo=
-					while [[ "$var__prompt_pwd" ]]; do
+					while [[ $var__prompt_pwd ]]; do
 						if [[ -d "$var__prompt_pwd/.repo" ]]; then
 							var__monorail_repo=1
 							break
@@ -362,8 +366,7 @@ const_color_cursor=21     #discard_for_all
 						var__prompt_pwd="${var__prompt_pwd%/*}"
 					done
 					if [[ -z $glob__git_loaded ]]; then
-						local var__dir
-						var__dir=$PWD
+						local var__dir=$PWD
 						while [[ $var__dir ]]; do
 							if [[ -e "$var__dir/.git" ]] && [[ -e /usr/lib/git-core/git-sh-prompt ]]; then
 								. /usr/lib/git-core/git-sh-prompt
@@ -382,8 +385,7 @@ const_color_cursor=21     #discard_for_all
 					)
 					;;
 				esac
-				local var__icon var__title_base
-				var__title_base=${PWD##*/}
+				local var__icon var__title_base=${PWD##*/}
 				if [[ $var__monorail_repo ]]; then
 					var__icon=${glob__icons[const_repo]}
 				elif [[ $glob__git_ps1 ]]; then
@@ -416,7 +418,9 @@ const_color_cursor=21     #discard_for_all
 						elif [[ -e /run/containerenv ]]; then
 							var__icon=${glob__icons[const_podman]}
 						else
-							var__icon=${glob__icons[const_home]}
+							#var__icon=${glob__icons[const_home]}
+							var__icon=$glob__icons
+
 						fi
 						;;
 					*) ;;
@@ -444,8 +448,7 @@ const_color_cursor=21     #discard_for_all
 				#keep_for_bash
 				var__monorail_text_array[I]=${var__monorail_text:I:1} #keep_for_bash
 			done                                                   #keep_for_bash
-			local var__monorail_text_array_len=${#var__monorail_text_array[@]}
-			local var__rgb_cur_color var__rgb_cur_r var__rgb_cur_gb var__rgb_cur_g var__rgb_cur_b
+			local var__rgb_cur_color var__rgb_cur_r var__rgb_cur_gb var__rgb_cur_g var__rgb_cur_b var__monorail_text_array_len=${#var__monorail_text_array[@]}
 			if [[ $glob__cache != "$COLUMNS$var__monorail_text" ]]; then
 				unset glob__cache glob__measure
 				if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]]; then
@@ -470,8 +473,7 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 				local i=0
 				local var__monorail_line=
 				local var__monorail_title_formatted=
-				local var__hex_cursor_color
-				local var__monorail_text_formatted=
+				local var__hex_cursor_color var__monorail_text_formatted=
 				# here _monorail_gradient _monorail_textgradient _monorail_colors are called
 				# shellcheck source=scripts/dummy.conf
 				. "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
@@ -504,13 +506,13 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 				# DECTCEM Text cursor enable On CSI ? 25 h
 				# DECTCEM Text cursor enable Off CSI ? 25 l
 				# shellcheck disable=SC2025,SC1078,SC1079 # no need to enclose in \[ \] as cursor position is calculated from after newline, quoting is supposed to span multiple lines
-				PS1+=$'\e[?7l\e]0;''$glob__title''\a\e[0m\r'"$var__monorail_line
+				PS1+='\e[?7l\e]0;$glob__title\a\e[0m\r'"$var__monorail_line
 $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} + 1))C$'\e[?7h\e[?25h\e[0m'"@PROMPT_POSTHIDE@"
 
 			fi
 			unset glob__nostyling
 			# shellcheck disable=SC2059 # keep printf compact
-			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a"
+			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#$glob__colors\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r"
 			{             #discard_for_all
 				:            #discard_for_all
 			} 2>/dev/null #keep_for_zsh
@@ -538,7 +540,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		if [[ -z ${FUNCNAME[1]} ]] || [[ ${FUNCNAME[1]} = "_NO_MEASURE" ]]; then
 			local FIRST_ARG="$1"
 			(
-				case "$FIRST_ARG" in
+				case $FIRST_ARG in
 				_*) shift ;;
 				esac
 				FIRST_ARG="$1"
@@ -634,12 +636,11 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	}
 	__git_ps1() { :; }
 	glob__magic_shellball() {
-		local var__answer var__spaces i
-		var__spaces=
+		local var__answer i var__spaces=
 		i=0
-		case "$RANDOM" in
+		case $RANDOM in
 		*[0-4])
-			case "$RANDOM" in
+			case $RANDOM in
 			*0) var__answer="IT IS CERTAIN." ;;
 			*1) var__answer="IT IS DECIDEDLY SO." ;;
 			*2) var__answer="WITHOUT A DOUBT." ;;
@@ -652,7 +653,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 			*) var__answer="SIGNS POINT TO YES." ;;
 			esac
 			;;
-		*) case "$RANDOM" in
+		*) case $RANDOM in
 			*0) var__answer="REPLY HAZY, TRY AGAIN." ;;
 			*1) var__answer="ASK AGAIN LATER." ;;
 			*2) var__answer="BETTER NOT TELL YOU NOW." ;;

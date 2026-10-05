@@ -182,12 +182,7 @@ _GRADIENT() {
 		exit 0
 		;;
 	esac
-	if command -v bc >/dev/null 2>/dev/null; then
-		:
-	else
-		echo "error: please install bc"
-		exit 42
-	fi
+
 	ARGC=0
 	for _ in "$@"; do
 		ARGC=$((ARGC + 1))
@@ -239,6 +234,12 @@ or \"None\" to use text color"
 			} | less
 			return 1
 		fi
+	fi
+	if command -v bc >/dev/null 2>/dev/null; then
+		:
+	else
+		echo "error: please install bc"
+		exit 42
 	fi
 	SRC_L=""
 	SRC_a=""
