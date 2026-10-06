@@ -255,16 +255,14 @@ const_color_cursor=21     #discard_for_all
 
 		# The invisible vertical bar is added to make the prompt more readable when copied to a chat or text doc.
 		# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
-		# Notably PuTTY, Kitty, rxvt-unicode, zutty, and cool-retro-term does not support these.
+		# Notably PuTTY, Kitty, rxvt-unicode and zutty does not support these.
 		# In this case the horizontal bar is colored with background color.
-		case $TERM in
-		xterm | xterm-kitty | rxvt*)
+if [[ $MONORAIL_NOBAR ]] ;
+then
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0m@PROMPT_POSTHIDE@ "
-			;;
-		*)
+else
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m@PROMPT_POSTHIDE@|"
-			;;
-		esac
+fi
 		j=$(($# * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))
 		var__rgb_cur_color=${!j}                                                                  #keep_for_bash
 		var__rgb_cur_color=${var__prompt_lut[$((${#var__prompt_lut[*]} * i / $((COLUMNS + 1))))]} #keep_for_zsh
@@ -701,9 +699,10 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		echo -e "\e[?25l\e[3A\r\e[K$var__spaces$var__answer"
 	}
 	if [[ $TERM = xterm-256color ]]; then
+[[ $TERM = xterm-kitty ]] && MONORAIL_NOBAR=1
 		# zutty (vterm) doesn't handle background color, nor hidden text.
 		# thus the horizontal bar  "|" gets visible
-		[[ $ZUTTY_VERSION ]] && MONORAIL_COMPAT=1
+		[[ $ZUTTY_VERSION ]] && MONORAIL_NOBAR=1
 		# vscode does not support disabling line wrapping
 		#
 		[[ $TERM_PROGRAM = vscode ]] && MONORAIL_COMPAT=1
@@ -714,9 +713,10 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		xterm-color | xterm-16color)
 			MONORAIL_COMPAT=1
 			;;
-		linux | kmscon | foot | st-256color | rio | alacritty | rxvt-unicode-256color | mlterm)
+		linux | kmscon | foot | st-256color | rio | alacritty | mlterm)
 			;;
-		xterm*)
+		xterm*|rxvt*)
+[[ $TERM =* "rxvt"* ]] && MONORAIL_NOBAR=1
 			printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "${COLUMNS}" >/dev/tty 2>&-
 			# ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
 			[[ $TERM = xterm-ghostty ]] && unalias ssh 2>/dev/null

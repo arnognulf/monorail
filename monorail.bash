@@ -546,7 +546,7 @@ done
 echo -e "\e[?25l\e[3A\r\e[K$A$s"
 }
 if [[ $TERM == xterm-256color ]];then
-[[ $ZUTTY_VERSION ]]&&MONORAIL_COMPAT=1
+[[ $ZUTTY_VERSION ]]&&MONORAIL_NOBAR=1
 [[ $TERM_PROGRAM == vscode ]]&&MONORAIL_COMPAT=1
 elif [[ $MC_TMPDIR ]];then
 MONORAIL_COMPAT=1
