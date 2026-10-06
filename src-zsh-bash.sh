@@ -5,7 +5,7 @@
 # Copyright (c) 2017 Ryan Caloras and contributors (see https://github.com/rcaloras/bash-preexec)
 # SPDX-License-Identifier: BSD-3-Clause
 # see FAST_SHELL_GUIDELINES.md on coding guidelines for this file.
-#const_home=0              #discard_for_all
+const_home=0              #discard_for_all
 const_ssh=1               #discard_for_all
 const_docker=2            #discard_for_all
 const_podman=3            #discard_for_all
@@ -439,7 +439,8 @@ const_color_cursor=21     #discard_for_all
 							var__icon=${glob__icons[const_podman]}
 						else
 							#var__icon=${glob__icons[const_home]}
-							var__icon=$glob__icons
+							var__icon=${glob__icons[const_home]} #keep_for_zsh
+							var__icon=$glob__icons               #keep_for_bash
 
 						fi
 						;;
@@ -530,11 +531,13 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 
 			fi
 			unset glob__nostyling
+			# ${array[0]} and ${array} is equivalent in bash, not so in zsh
 			# shellcheck disable=SC2059 # keep printf compact
-			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#$glob__colors\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r"
-			{             #discard_for_all
-				:            #discard_for_all
-			} 2>/dev/null #keep_for_zsh
+			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#${glob__colors[0]}\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r" #keep_for_zsh
+			[[ ${glob__colors[const_color_background]} ]] && printf "\e[?25l\e[${COLUMNS}C\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]4;0;#$glob__colors\a\e]4;1;#${glob__colors[1]}\a\e]4;2;#${glob__colors[2]}\a\e]4;3;#${glob__colors[3]}\a\e]4;4;#${glob__colors[4]}\a\e]4;5;#${glob__colors[5]}\a\e]4;6;#${glob__colors[6]}\a\e]4;7;#${glob__colors[7]}\a\e]4;8;#${glob__colors[8]}\a\e]4;9;#${glob__colors[9]}\a\e]4;12;#${glob__colors[12]}\a\e]4;13;#${glob__colors[13]}\a\e]4;14;#${glob__colors[14]}\a\e]4;15;#${glob__colors[15]}\a\r"      #keep_for_bash
+			{                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 #discard_for_all
+				:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                #discard_for_all
+			} 2>/dev/null                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     #keep_for_zsh
 
 		} 2>&- #keep_for_bash
 	}
@@ -617,8 +620,8 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		# I'd prefer to use associative arrays here. but for unknown reasons, it does not work as of bash 5.3.9(1)-release
 		case "$2" in
 		home)
-			#glob__icons[const_home]=$1
-			glob__icons=$1
+			glob__icons[const_home]=$1 #keep_for_zsh
+			glob__icons=$1             #keep_for_bash
 			;;
 		ssh) glob__icons[const_ssh]=$1 ;;
 		docker) glob__icons[const_docker]=$1 ;;

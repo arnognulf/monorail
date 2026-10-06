@@ -263,7 +263,7 @@ B=${_mr_f[2]}
 elif [[ -e /run/containerenv ]];then
 B=${_mr_f[3]}
 else
-B=$_mr_f
+B=${_mr_f[0]}
 fi
 ;;
 *)
@@ -329,7 +329,7 @@ PS1+=$'\e[?7l\e]0;$_mr_J\a\e[0m\r'"$v
 $c%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e[0m'"%}"
 fi
 unset _mr_G
-[[ ${_mr_e[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]4;0;#$_mr_e\a\e]4;1;#${_mr_e[1]}\a\e]4;2;#${_mr_e[2]}\a\e]4;3;#${_mr_e[3]}\a\e]4;4;#${_mr_e[4]}\a\e]4;5;#${_mr_e[5]}\a\e]4;6;#${_mr_e[6]}\a\e]4;7;#${_mr_e[7]}\a\e]4;8;#${_mr_e[8]}\a\e]4;9;#${_mr_e[9]}\a\e]4;12;#${_mr_e[12]}\a\e]4;13;#${_mr_e[13]}\a\e]4;14;#${_mr_e[14]}\a\e]4;15;#${_mr_e[15]}\a\r"
+[[ ${_mr_e[17]} ]]&&printf "\e[?25l\e[${COLUMNS}C\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]4;0;#${_mr_e[0]}\a\e]4;1;#${_mr_e[1]}\a\e]4;2;#${_mr_e[2]}\a\e]4;3;#${_mr_e[3]}\a\e]4;4;#${_mr_e[4]}\a\e]4;5;#${_mr_e[5]}\a\e]4;6;#${_mr_e[6]}\a\e]4;7;#${_mr_e[7]}\a\e]4;8;#${_mr_e[8]}\a\e]4;9;#${_mr_e[9]}\a\e]4;12;#${_mr_e[12]}\a\e]4;13;#${_mr_e[13]}\a\e]4;14;#${_mr_e[14]}\a\e]4;15;#${_mr_e[15]}\a\r"
 } 2>/dev/null
 }
 _TITLE(){
@@ -390,7 +390,7 @@ _LOW_PRIO "$@"
 }
 _monorail_icon(){
 case "$2" in
-home)_mr_f=$1
+home)_mr_f[0]=$1
 ;;
 ssh)_mr_f[1]=$1;;
 docker)_mr_f[2]=$1;;
