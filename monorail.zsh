@@ -5,25 +5,25 @@ if [[ $CRAFT_STATE_DIR ]];then
 _mr_hostname=snapcraft
 _mr_b=1
 _mr_c(){
-_mr_E="$_mr_E on $_mr_hostname"
+_mr_J="$_mr_J on $_mr_hostname"
 }
 elif [[ $SSH_CLIENT ]]||[[ $TMUX ]];then
 _mr_b=1
 _mr_c(){
-_mr_E="$_mr_E on $_mr_hostname"
+_mr_J="$_mr_J on $_mr_hostname"
 }
 _mr_hostname=${HOSTNAME%%.*}
 elif [[ -e /.dockerenv ]];then
 _mr_hostname=docker
 _mr_b=1
 _mr_c(){
-_mr_E="$_mr_E on $_mr_hostname"
+_mr_J="$_mr_J on $_mr_hostname"
 }
 elif [[ -e /run/containerenv ]];then
 _mr_b=1
 _mr_hostname=podman
 _mr_c(){
-_mr_E="$_mr_E on $_mr_hostname"
+_mr_J="$_mr_J on $_mr_hostname"
 }
 else
 _mr_hostname=${HOSTNAME%%.*}
@@ -70,14 +70,14 @@ for Q in "${_mr_l[@]}";do
 [[ $Q == "${_mr_i%% *}" ]]&&R=1
 done
 B=${_mr_f[15]}
-_mr_E="$B  $_mr_i"
+_mr_J="$B  $_mr_i"
 [[ $_mr_b ]]&&_mr_c
 N=${_mr_i%% *}
 N=${N%%;*}
 _mr_r=1
 _mr_s=$SECONDS
-_mr_E+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-[[ $R ]]||p=$'\e]0;'$_mr_E$'\a'
+_mr_J+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+[[ $R ]]||p=$'\e]0;'$_mr_J$'\a'
 [[ $_mr_b ]]&&_mr_c
 {
 printf "$p"
@@ -120,8 +120,8 @@ _monorail_colors(){
 _mr_e=("$@")
 }
 monorail_title(){
-unset _mr_E_override
-[[ $1 ]]&&_mr_E_override="$*"
+unset _mr_E
+[[ $1 ]]&&_mr_E="$*"
 }
 monorail_icon(){
 unset _mr_F
@@ -201,7 +201,7 @@ alias until='_mr_G=1;until'
 _mr_u=1
 fi
 if [[ $_mr_m ]];then
-_mr_E="${_mr_f[14]} Completed $_mr_i"
+_mr_J="${_mr_f[14]} Completed $_mr_i"
 [[ $_mr_b ]]&&_mr_c
 unset _mr_m
 else
@@ -230,7 +230,7 @@ _mr_p=$(_TITLE(){
 shift
 "$@"
 }
-TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 "")
+TERM=dumb GIT_CONFIG_GLOBAL= LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
 local B S=${PWD##*/}
 if [[ $y ]];then
@@ -269,7 +269,7 @@ fi
 *)
 esac
 fi
-_mr_E="${_mr_F-$B}  ${_mr_E_override-$S}"
+_mr_J="${_mr_F-$B}  ${_mr_E-$S}"
 [[ $PWD != "$HOME" ]]&&[[ $_mr_b ]]&&_mr_c
 fi
 local z="${PWD##*/}"
@@ -311,10 +311,10 @@ local v=
 local p=
 local r c=
 . "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
-if [[ -z $c ]];then
-v=
+if [[ -z $c ]]||[[ $TERM == linux ]];then
+v=$'\e[0m'
 while [[ $i -lt $COLUMNS ]];do
-v+=$'\xe2\x96\x81'
+v+=_
 i=$((i+1))
 done
 c="%{"$'\e[0;7m'"%}$b%{"$'\e[0m'"%}"
@@ -323,9 +323,9 @@ _mr_o="$COLUMNS$b"
 if [[ $r ]];then
 PS1="\e]12;#$r\a"
 else
-PS1=""
+PS1=
 fi
-PS1+=$'\e[?7l\e]0;$_mr_E\a\e[0m\r'"$v
+PS1+=$'\e[?7l\e]0;$_mr_J\a\e[0m\r'"$v
 $c%{"$'\r\e['$((${#b}+1))C$'\e[?7h\e[?25h\e[0m'"%}"
 fi
 unset _mr_G
@@ -333,16 +333,16 @@ unset _mr_G
 } 2>/dev/null
 }
 _TITLE(){
-local _mr_E="$*"
+local _mr_J="$*"
 if [[ $_mr_r ]];then
-_mr_E+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
+_mr_J+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
 elif [[ $PWD == "$HOME" ]];then
 :
 else
-_mr_E+=" in ${PWD##*/}"
+_mr_J+=" in ${PWD##*/}"
 fi
 [[ $_mr_b ]]&&_mr_c
-_TITLE_RAW "$_mr_E"
+_TITLE_RAW "$_mr_J"
 }
 _NO_MEASURE(){
 unset _mr_r
@@ -425,11 +425,7 @@ _monorail_cmd_ignored(){
 _mr_l[${#_mr_l[@]}]=$1
 }
 [[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
-. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"||{
-. "$MONORAIL_DIR"/monorail.sh
-_MONORAIL_UPDATE
-return
-}
+. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"||. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf" &>/dev/tty
 __git_ps1(){ :;}
 _mr_q(){
 local s i A=
@@ -476,7 +472,7 @@ else
 case $TERM in
 xterm-color|xterm-16color)MONORAIL_COMPAT=1
 ;;
-kmscon|foot|st-256color|rio|alacritty|rxvt-unicode-256color|mlterm)
+linux|kmscon|foot|st-256color|rio|alacritty|rxvt-unicode-256color|mlterm)
 ;;
 xterm*)printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "$COLUMNS" >/dev/tty 2>&-
 [[ $TERM == xterm-ghostty ]]&&unalias ssh 2>/dev/null

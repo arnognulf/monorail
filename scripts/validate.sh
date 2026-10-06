@@ -66,11 +66,12 @@ cat "$SRC" |
 		-e 's/glob__install/_mr_C/g' \
 		-e 's/glob__preexec_enabled/_mr_D/g' \
 		-e 's/glob__trap_string/_mr_D/g' \
-		-e 's/glob__title/_mr_E/g' \
+		-e 's/glob__title_override/_mr_E/g' \
 		-e 's/glob__icon_override/_mr_F/g' \
 		-e 's/glob__nostyling/_mr_G/g' \
 		-e 's/glob__sanitized/_mr_H/g' \
 		-e s'/glob__initial_preexec_workaround/_mr_I/g' \
+		-e 's/glob__title/_mr_J/g' \
 		-e 's/var__this_command/a/g' \
 		-e 's/var__monorail_text_formatted/c/g' \
 		-e 's/var__monorail_text_array_len/e/g' \
@@ -182,11 +183,12 @@ cat "$SRC" |
 		-e 's/glob__install/_mr_C/g' \
 		-e 's/glob__preexec_enabled/_mr_D/g' \
 		-e 's/glob__trap_string/_mr_D/g' \
-		-e 's/glob__title/_mr_E/g' \
+		-e 's/glob__title_override/_mr_E/g' \
 		-e 's/glob__icon_override/_mr_F/g' \
 		-e 's/glob__nostyling/_mr_G/g' \
 		-e 's/glob__sanitized/_mr_H/g' \
 		-e s'/glob__initial_preexec_workaround/_mr_I/g' \
+		-e 's/glob__title/_mr_J/g' \
 		-e 's/var__this_command/a/g' \
 		-e 's/var__monorail_text_formatted/c/g' \
 		-e 's/var__monorail_text_array_len/e/g' \

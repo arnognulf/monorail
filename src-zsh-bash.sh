@@ -291,7 +291,7 @@ const_color_cursor=21     #discard_for_all
 	}
 	_TITLE_RAW() {
 		[[ $glob__nostyling ]] && return 0
-		printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&- #keep_for_zsh
+		printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
 	}
 	[[ $MONORAIL_CONFIG ]] || MONORAIL_CONFIG=$HOME/.config/monorail
 	monorail_name() {
@@ -401,7 +401,7 @@ const_color_cursor=21     #discard_for_all
 							shift
 							"$@"
 						}
-						TERM=dumb GIT_CONFIG_GLOBAL="" LC_MESSAGES=C LC_ALL=C __git_ps1 ""
+						TERM=dumb GIT_CONFIG_GLOBAL= LC_MESSAGES=C LC_ALL=C __git_ps1 ""
 					)
 					;;
 				esac
@@ -497,10 +497,10 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 				# here _monorail_gradient _monorail_textgradient _monorail_colors are called
 				# shellcheck source=scripts/dummy.conf
 				. "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
-				if [[ -z $var__monorail_text_formatted ]]; then
-					var__monorail_line=
+				if [[ -z $var__monorail_text_formatted ]] || [[ $TERM = linux ]]; then
+					var__monorail_line=$'\e[0m'
 					while [[ $i -lt $COLUMNS ]]; do
-						var__monorail_line+=$'\xe2\x96\x81'
+						var__monorail_line+=_
 						i=$((i + 1))
 					done
 					var__monorail_text_formatted="@PROMPT_PREHIDE@"$'\e[0;7m'"@PROMPT_POSTHIDE@$var__monorail_text@PROMPT_PREHIDE@"$'\e[0m'"@PROMPT_POSTHIDE@"
@@ -510,7 +510,7 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 				if [[ $var__hex_cursor_color ]]; then
 					PS1="\e]12;#$var__hex_cursor_color\a"
 				else
-					PS1=""
+					PS1=
 				fi
 				# DECAWN: Set autowrap off: CSI ? 7 l: https://vt100.net/docs/vt220-rm/chapter4.html
 				# DECAWN: Set autowrap on: CSI ? 7 h: https://vt100.net/docs/vt220-rm/chapter4.html
@@ -658,11 +658,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	}
 	[[ -e $MONORAIL_CONFIG/settings-${_mr_hostname}.conf ]] || cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-${_mr_hostname}.conf"
 	# shellcheck source=scripts/dummy.conf
-	. "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf" || {
-		. "$MONORAIL_DIR"/monorail.sh
-		_MONORAIL_UPDATE
-		return
-	}
+	. "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf" || . "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf" &>/dev/tty
 	__git_ps1() { :; }
 	glob__magic_shellball() {
 		local var__answer i var__spaces=
@@ -715,7 +711,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		xterm-color | xterm-16color)
 			MONORAIL_COMPAT=1
 			;;
-		kmscon | foot | st-256color | rio | alacritty | rxvt-unicode-256color | mlterm)
+		linux | kmscon | foot | st-256color | rio | alacritty | rxvt-unicode-256color | mlterm)
 			;;
 		xterm*)
 			printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "${COLUMNS}" >/dev/tty 2>&-
