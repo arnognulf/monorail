@@ -65,10 +65,7 @@ C=${C/\\\y/\\\\\y}
 C=${C/\\\z/\\\\\z}
 C=${C/\\\033/<ESC>}
 _mr_i=${C/\\\007/<BEL>}
-local Q l R=
-for Q in "${_mr_l[@]}";do
-[[ $Q == "${_mr_i%% *}" ]]&&R=1
-done
+local Q l
 B=${_mr_f[15]}
 _mr_J="$B  $_mr_i"
 [[ $_mr_b ]]&&_mr_c
@@ -77,10 +74,16 @@ N=${N%%;*}
 _mr_r=1
 _mr_s=$SECONDS
 _mr_J+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-[[ $R ]]||p=$'\e]0;'$_mr_J$'\a'
+p=$'\e]0;'$_mr_J$'\a'
 [[ $_mr_b ]]&&_mr_c
 {
-printf "$p"
+_mr_J_state=$XDG_RUNTIME_DIR/mr$RANDOM
+({
+sleep 0.5&&{
+[[ -f $_mr_J_state ]]||printf "$p" >/dev/tty
+/bin/rm -f "$_mr_J_state" >&-
+}
+}&)
 [[ ${_mr_e[17]} ]]&&printf "\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]12;#${_mr_e[21]}\a\r\e[K"
 } >/dev/tty
 } &>/dev/null
@@ -100,11 +103,11 @@ while [[ $i -lt $e ]];do
 c+="%{"$'\e[48;2;'${o[$((${#o[*]}*i/$((COLUMNS+1))))]}m$'\e[38;2;'${t[$((${#t[*]}*i/$((COLUMNS+1))))]}m"%}${d[i]}"
 i=$((i+1))
 done
-case $TERM in
-xterm|xterm-kitty|rxvt*)c+="%{"$'\e'"[0m%} "
-;;
-*)c+="%{"$'\e'"[0;8m%}|"
-esac
+if [[ $MONORAIL_NOBAR ]];then
+c+="%{"$'\e'"[0m%} "
+else
+c+="%{"$'\e'"[0;8m%}|"
+fi
 j=$(($#*$((e+1))/$((COLUMNS+1))))
 w=${o[$((${#o[*]}*i/$((COLUMNS+1))))]}
 D=${w%%;*}
@@ -140,6 +143,7 @@ precmd(){
 {
 if [[ $_mr_u ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
+: >"$_mr_J_state"
 local T U V W X m=$((SECONDS-_mr_s))
 if [[ $_mr_r ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
 T=$((m%3600))
@@ -333,6 +337,7 @@ unset _mr_G
 } 2>/dev/null
 }
 _TITLE(){
+: >"$_mr_J_state"
 local _mr_J="$*"
 if [[ $_mr_r ]];then
 _mr_J+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
@@ -420,10 +425,6 @@ command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 _monorail_cmd_batch(){
 command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
 }
-_mr_l=()
-_monorail_cmd_ignored(){
-_mr_l[${#_mr_l[@]}]=$1
-}
 [[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
 . "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"||. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf" &>/dev/tty
 __git_ps1(){ :;}
@@ -464,7 +465,8 @@ done
 echo -e "\e[?25l\e[3A\r\e[K$A$s"
 }
 if [[ $TERM == xterm-256color ]];then
-[[ $ZUTTY_VERSION ]]&&MONORAIL_COMPAT=1
+[[ $TERM == xterm-kitty ]]&&MONORAIL_NOBAR=1
+[[ $ZUTTY_VERSION ]]&&MONORAIL_NOBAR=1
 [[ $TERM_PROGRAM == vscode ]]&&MONORAIL_COMPAT=1
 elif [[ $MC_TMPDIR ]];then
 MONORAIL_COMPAT=1
@@ -472,9 +474,10 @@ else
 case $TERM in
 xterm-color|xterm-16color)MONORAIL_COMPAT=1
 ;;
-linux|kmscon|foot|st-256color|rio|alacritty|rxvt-unicode-256color|mlterm)
+linux|kmscon|foot|st-256color|rio|alacritty|mlterm)
 ;;
-xterm*)printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "$COLUMNS" >/dev/tty 2>&-
+xterm*|rxvt*)[[ $TERM =~ "rxvt"* ]]&&MONORAIL_NOBAR=1
+printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]0; \a\r\e[K" >/dev/tty 2>&-
 [[ $TERM == xterm-ghostty ]]&&unalias ssh 2>/dev/null
 [[ $(tty) =~ "/dev/ttyv"* ]]&&MONORAIL_COMPAT=1
 case $XTERM_LOCALE in

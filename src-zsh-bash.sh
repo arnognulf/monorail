@@ -194,10 +194,7 @@ const_color_cursor=21     #discard_for_all
 			var__escaped_command=${var__escaped_command/\\\z/\\\\\z}
 			var__escaped_command=${var__escaped_command/\\\033/<ESC>}
 			glob__timer_cmd=${var__escaped_command/\\\007/<BEL>}
-			local var__xcmd var__command var__ignored_title=
-			for var__xcmd in "${glob__cmd_ignored[@]}"; do
-				[[ $var__xcmd = "${glob__timer_cmd%% *}" ]] && var__ignored_title=1
-			done
+			local var__xcmd var__command
 			var__icon=${glob__icons[const_command]}
 			glob__title="$var__icon  $glob__timer_cmd"
 			[[ $glob__has_suffix ]] && glob__suffix
@@ -206,11 +203,18 @@ const_color_cursor=21     #discard_for_all
 			glob__measure=1
 			glob__start_seconds=$SECONDS
 			glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
-			[[ $var__ignored_title ]] || var__monorail_title_formatted=$'\e]0;'$glob__title$'\a'
+			var__monorail_title_formatted=$'\e]0;'$glob__title$'\a'
 			[[ $glob__has_suffix ]] && glob__suffix
 			{
+				glob__title_state=$XDG_RUNTIME_DIR/mr$RANDOM
 				# shellcheck disable=SC2059 # keep printf compact
-				printf "$var__monorail_title_formatted"
+				({
+
+					sleep 0.5 && {
+						[[ -f $glob__title_state ]] || printf "$var__monorail_title_formatted" >/dev/tty
+						/bin/rm -f "$glob__title_state" >&-
+					}
+				} &)
 				# shellcheck disable=SC2059 # keep printf compact
 				[[ ${glob__colors[const_color_background]} ]] && printf "\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]12;#${glob__colors[const_color_cursor]}\a\r\e[K"
 			} >/dev/tty
@@ -257,12 +261,11 @@ const_color_cursor=21     #discard_for_all
 		# This is not normally visible if your terminal supports "invisible SGR8" `^[8m`
 		# Notably PuTTY, Kitty, rxvt-unicode and zutty does not support these.
 		# In this case the horizontal bar is colored with background color.
-if [[ $MONORAIL_NOBAR ]] ;
-then
+		if [[ $MONORAIL_NOBAR ]]; then
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0m@PROMPT_POSTHIDE@ "
-else
+		else
 			var__monorail_text_formatted+="@PROMPT_PREHIDE@"$'\e'"[0;8m@PROMPT_POSTHIDE@|"
-fi
+		fi
 		j=$(($# * $((var__monorail_text_array_len + 1)) / $((COLUMNS + 1))))
 		var__rgb_cur_color=${!j}                                                                  #keep_for_bash
 		var__rgb_cur_color=${var__prompt_lut[$((${#var__prompt_lut[*]} * i / $((COLUMNS + 1))))]} #keep_for_zsh
@@ -302,6 +305,7 @@ fi
 				# bash line editor (ble.sh) do not like others messing with the tty
 				# enable stty echo in case some command has disabled it up
 				[[ $BLE_ATTACHED ]] || LC_MESSAGES=C LC_ALL=C stty echo
+				: >"$glob__title_state"
 				local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration var__diff=$((SECONDS - glob__start_seconds))
 				if [[ $glob__measure ]] && [[ $var__diff -gt ${MONORAIL_TIMEOUT-30} ]]; then
 					var__seconds_m=$((var__diff % 3600))
@@ -540,6 +544,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		} 2>&- #keep_for_bash
 	}
 	_TITLE() {
+		: >"$glob__title_state"
 		local glob__title="$*"
 		if [[ $glob__measure ]]; then
 			glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
@@ -653,10 +658,6 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		# shellcheck disable=SC2139
 		command -v "$2" && alias "$2=_ICON $1 _LOW_PRIO $2"
 	}
-	glob__cmd_ignored=()
-	_monorail_cmd_ignored() {
-		glob__cmd_ignored[${#glob__cmd_ignored[@]}]=$1
-	}
 	[[ -e $MONORAIL_CONFIG/settings-${_mr_hostname}.conf ]] || cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-${_mr_hostname}.conf"
 	# shellcheck source=scripts/dummy.conf
 	. "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf" || . "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf" &>/dev/tty
@@ -699,7 +700,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		echo -e "\e[?25l\e[3A\r\e[K$var__spaces$var__answer"
 	}
 	if [[ $TERM = xterm-256color ]]; then
-[[ $TERM = xterm-kitty ]] && MONORAIL_NOBAR=1
+		[[ $TERM = xterm-kitty ]] && MONORAIL_NOBAR=1
 		# zutty (vterm) doesn't handle background color, nor hidden text.
 		# thus the horizontal bar  "|" gets visible
 		[[ $ZUTTY_VERSION ]] && MONORAIL_NOBAR=1
@@ -715,9 +716,9 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 			;;
 		linux | kmscon | foot | st-256color | rio | alacritty | mlterm)
 			;;
-		xterm*|rxvt*)
-[[ $TERM =* "rxvt"* ]] && MONORAIL_NOBAR=1
-			printf "\e[?25l\e[?7l\e[%sC\e]0; \a\r\e[K" "${COLUMNS}" >/dev/tty 2>&-
+		xterm* | rxvt*)
+			[[ $TERM =~ "rxvt"* ]] && MONORAIL_NOBAR=1
+			printf "\e[?25l\e[?7l\e[${COLUMNS}C\e]0; \a\r\e[K" >/dev/tty 2>&-
 			# ghostty adds a ssh function which causes parsing error since monorail adds an ssh alias
 			[[ $TERM = xterm-ghostty ]] && unalias ssh 2>/dev/null
 			# FreeBSD console lacks UTF-8 and truecolor
