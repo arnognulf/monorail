@@ -46,7 +46,7 @@ cat "$SRC" |
 		-e 's/glob__timer_cmd/_mr_i/g' \
 		-e 's/glob__histcmd_penultimate/_mr_j/g' \
 		-e 's/glob__histcmd_prev/_mr_k/g' \
-		-e 's/glob__cmd_ignored/_mr_l/g' \
+		-e 's/glob__title_state/_mr_l/g' \
 		-e 's/glob__longrunning/_mr_m/g' \
 		-e 's/glob__ctrlc/_mr_n/g' \
 		-e 's/glob__cache/_mr_o/g' \
@@ -110,7 +110,6 @@ cat "$SRC" |
 		-e 's/var__prior_trap/O/g' \
 		-e 's/var__trap_argv/P/g' \
 		-e 's/var__xcmd/Q/g' \
-		-e 's/var__ignored_title/R/g' \
 		-e 's/var__title_base/S/g' \
 		-e 's/var__seconds_m/T/g' \
 		-e 's/var__duration_h/U/g' \
@@ -163,7 +162,7 @@ cat "$SRC" |
 		-e 's/glob__timer_cmd/_mr_i/g' \
 		-e 's/glob__histcmd_penultimate/_mr_j/g' \
 		-e 's/glob__histcmd_prev/_mr_k/g' \
-		-e 's/glob__cmd_ignored/_mr_l/g' \
+		-e 's/glob__title_state/_mr_l/g' \
 		-e 's/glob__longrunning/_mr_m/g' \
 		-e 's/glob__ctrlc/_mr_n/g' \
 		-e 's/glob__cache/_mr_o/g' \
@@ -227,7 +226,6 @@ cat "$SRC" |
 		-e 's/var__prior_trap/O/g' \
 		-e 's/var__trap_argv/P/g' \
 		-e 's/var__xcmd/Q/g' \
-		-e 's/var__ignored_title/R/g' \
 		-e 's/var__title_base/S/g' \
 		-e 's/var__seconds_m/T/g' \
 		-e 's/var__duration_h/U/g' \

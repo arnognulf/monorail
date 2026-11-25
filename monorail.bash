@@ -158,11 +158,11 @@ _mr_J+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 p=$'\e]0;'$_mr_J$'\a'
 [[ $_mr_b ]]&&_mr_c
 {
-_mr_J_state=$XDG_RUNTIME_DIR/mr$RANDOM
+_mr_l=$XDG_RUNTIME_DIR/mr$PPID
 ({
 sleep 0.5&&{
-[[ -f $_mr_J_state ]]||printf "$p" >/dev/tty
-/bin/rm -f "$_mr_J_state" >&-
+[[ -f $_mr_l ]]||printf "$p" >/dev/tty
+/bin/rm -f "$_mr_l" >&-
 }
 }&)
 [[ ${_mr_e[17]} ]]&&printf "\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]12;#${_mr_e[21]}\a\r\e[K"
@@ -213,7 +213,7 @@ unset _mr_F
 }
 _TITLE_RAW(){
 [[ $_mr_G ]]&&return 0
-printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
+printf "\e]0;$*\a\r\e[K" >/dev/tty 2>&-
 }
 [[ $MONORAIL_CONFIG ]]||MONORAIL_CONFIG=$HOME/.config/monorail
 monorail_name(){
@@ -224,7 +224,7 @@ precmd(){
 {
 if [[ $_mr_u ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
-: >"$_mr_J_state"
+: >"$_mr_l"
 local T U V W X m=$((SECONDS-_mr_s))
 if [[ $_mr_r ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
 T=$((m%3600))
@@ -419,7 +419,7 @@ unset _mr_G
 } 2>&-
 }
 _TITLE(){
-: >"$_mr_J_state"
+: >"$_mr_l"
 local _mr_J="$*"
 if [[ $_mr_r ]];then
 _mr_J+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"

@@ -206,7 +206,7 @@ const_color_cursor=21     #discard_for_all
 			var__monorail_title_formatted=$'\e]0;'$glob__title$'\a'
 			[[ $glob__has_suffix ]] && glob__suffix
 			{
-				glob__title_state=$XDG_RUNTIME_DIR/mr$RANDOM
+				glob__title_state=$XDG_RUNTIME_DIR/mr$PPID
 				# shellcheck disable=SC2059 # keep printf compact
 				({
 
@@ -292,7 +292,7 @@ const_color_cursor=21     #discard_for_all
 	}
 	_TITLE_RAW() {
 		[[ $glob__nostyling ]] && return 0
-		printf "\e]0;%s\a\r\e[K" "$*" >/dev/tty 2>&-
+		printf "\e]0;$*\a\r\e[K" >/dev/tty 2>&-
 	}
 	[[ $MONORAIL_CONFIG ]] || MONORAIL_CONFIG=$HOME/.config/monorail
 	monorail_name() {
