@@ -165,8 +165,7 @@ const_color_cursor=21     #discard_for_all
 			# TODO: report and move to bash-preexec: SIGWINCH causes preexec to run again
 			[[ $(fc -l -1) = "$glob__prev_cmd" ]] && return
 			glob__prev_cmd=$(fc -l -1)
-			local var__escaped_command var__icon var__cmd
-			var__escaped_command=${1/\\\a/\\\\\a}
+			local var__icon var__cmd var__escaped_command=${1/\\\a/\\\\\a}
 			var__escaped_command=${var__escaped_command/\\\b/\\\\\b}
 			var__escaped_command=${var__escaped_command/\\\c/\\\\\c}
 			var__escaped_command=${var__escaped_command/\\\d/\\\\\d}
@@ -194,7 +193,6 @@ const_color_cursor=21     #discard_for_all
 			var__escaped_command=${var__escaped_command/\\\z/\\\\\z}
 			var__escaped_command=${var__escaped_command/\\\033/<ESC>}
 			glob__timer_cmd=${var__escaped_command/\\\007/<BEL>}
-			local var__xcmd var__command
 			var__icon=${glob__icons[const_command]}
 			glob__title="$var__icon  $glob__timer_cmd"
 			[[ $glob__has_suffix ]] && glob__suffix
@@ -205,16 +203,19 @@ const_color_cursor=21     #discard_for_all
 			glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 			var__monorail_title_formatted=$'\e]0;'$glob__title$'\a'
 			[[ $glob__has_suffix ]] && glob__suffix
-			{
-				glob__title_state=$XDG_RUNTIME_DIR/mr$PPID
-				# shellcheck disable=SC2059 # keep printf compact
-				({
+			glob__title_state=$XDG_RUNTIME_DIR/mr$RANDOM
+			# shellcheck disable=SC2059 # keep printf compact
+			(
+				{
 
-					sleep 0.5 && {
-						[[ -f $glob__title_state ]] || printf "$var__monorail_title_formatted" >/dev/tty
-						/bin/rm -f "$glob__title_state" >&-
+					sleep 0.2 && {
+						[[ $glob__nostyling ]] || { [[ -f $glob__title_state ]] || printf "$var__monorail_title_formatted" >/dev/tty; }
+						/bin/rm -f "$glob__title_state"
 					}
-				} &)
+				} &
+			)
+
+			{
 				# shellcheck disable=SC2059 # keep printf compact
 				[[ ${glob__colors[const_color_background]} ]] && printf "\e]11;#${glob__colors[const_color_background]}\a\e]10;#${glob__colors[const_color_foreground]}\a\e]12;#${glob__colors[const_color_cursor]}\a\r\e[K"
 			} >/dev/tty
@@ -290,10 +291,6 @@ const_color_cursor=21     #discard_for_all
 		unset glob__icon_override
 		[[ $1 ]] && glob__icon_override="$*"
 	}
-	_TITLE_RAW() {
-		[[ $glob__nostyling ]] && return 0
-		printf "\e]0;$*\a\r\e[K" >/dev/tty 2>&-
-	}
 	[[ $MONORAIL_CONFIG ]] || MONORAIL_CONFIG=$HOME/.config/monorail
 	monorail_name() {
 		unset NAME
@@ -305,7 +302,7 @@ const_color_cursor=21     #discard_for_all
 				# bash line editor (ble.sh) do not like others messing with the tty
 				# enable stty echo in case some command has disabled it up
 				[[ $BLE_ATTACHED ]] || LC_MESSAGES=C LC_ALL=C stty echo
-				: >"$glob__title_state"
+				printf 1 >"$glob__title_state"
 				local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration var__diff=$((SECONDS - glob__start_seconds))
 				if [[ $glob__measure ]] && [[ $var__diff -gt ${MONORAIL_TIMEOUT-30} ]]; then
 					var__seconds_m=$((var__diff % 3600))
@@ -544,17 +541,23 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		} 2>&- #keep_for_bash
 	}
 	_TITLE() {
-		: >"$glob__title_state"
-		local glob__title="$*"
-		if [[ $glob__measure ]]; then
-			glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
-		elif [[ $PWD = "$HOME" ]]; then
-			:
-		else
-			glob__title+=" in ${PWD##*/}"
-		fi
-		[[ $glob__has_suffix ]] && glob__suffix
-		_TITLE_RAW "$glob__title"
+		{
+			: >"$glob__title_state"
+			local var__title="$*"
+			if [[ $glob__measure ]]; then
+				var__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
+			elif [[ $PWD = "$HOME" ]]; then
+				:
+			else
+				var__title+=" in ${PWD##*/}"
+			fi
+			[[ $glob__has_suffix ]] && glob__suffix
+			(
+				sleep 0.2 && {
+					[[ $glob__nostyling ]] || { [[ -s $glob__title_state ]] || printf $'\e]0;'"$var__title"$'\a' >/dev/tty; }
+				} &
+			)
+		} 2>&-
 	}
 	_NO_MEASURE() {
 		unset glob__measure

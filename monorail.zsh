@@ -36,8 +36,7 @@ preexec(){
 {
 [[ $(fc -l -1) == "$_mr_t" ]]&&return
 _mr_t=$(fc -l -1)
-local C B N
-C=${1/\\\a/\\\\\a}
+local B N C=${1/\\\a/\\\\\a}
 C=${C/\\\b/\\\\\b}
 C=${C/\\\c/\\\\\c}
 C=${C/\\\d/\\\\\d}
@@ -65,7 +64,6 @@ C=${C/\\\y/\\\\\y}
 C=${C/\\\z/\\\\\z}
 C=${C/\\\033/<ESC>}
 _mr_i=${C/\\\007/<BEL>}
-local Q l
 B=${_mr_f[15]}
 _mr_J="$B  $_mr_i"
 [[ $_mr_b ]]&&_mr_c
@@ -76,14 +74,14 @@ _mr_s=$SECONDS
 _mr_J+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 p=$'\e]0;'$_mr_J$'\a'
 [[ $_mr_b ]]&&_mr_c
-{
-_mr_l=$XDG_RUNTIME_DIR/mr$PPID
+_mr_l=$XDG_RUNTIME_DIR/mr$RANDOM
 ({
-sleep 0.5&&{
-[[ -f $_mr_l ]]||printf "$p" >/dev/tty
-/bin/rm -f "$_mr_l" >&-
+sleep 0.2&&{
+[[ $_mr_G ]]||{ [[ -f $_mr_l ]]||printf "$p" >/dev/tty;}
+/bin/rm -f "$_mr_l"
 }
 }&)
+{
 [[ ${_mr_e[17]} ]]&&printf "\e]11;#${_mr_e[17]}\a\e]10;#${_mr_e[16]}\a\e]12;#${_mr_e[21]}\a\r\e[K"
 } >/dev/tty
 } &>/dev/null
@@ -130,10 +128,6 @@ monorail_icon(){
 unset _mr_F
 [[ $1 ]]&&_mr_F="$*"
 }
-_TITLE_RAW(){
-[[ $_mr_G ]]&&return 0
-printf "\e]0;$*\a\r\e[K" >/dev/tty 2>&-
-}
 [[ $MONORAIL_CONFIG ]]||MONORAIL_CONFIG=$HOME/.config/monorail
 monorail_name(){
 unset NAME
@@ -143,7 +137,7 @@ precmd(){
 {
 if [[ $_mr_u ]];then
 [[ $BLE_ATTACHED ]]||LC_MESSAGES=C LC_ALL=C stty echo
-: >"$_mr_l"
+printf 1 >"$_mr_l"
 local T U V W X m=$((SECONDS-_mr_s))
 if [[ $_mr_r ]]&&[[ $m -gt ${MONORAIL_TIMEOUT-30} ]];then
 T=$((m%3600))
@@ -236,7 +230,7 @@ shift
 }
 TERM=dumb GIT_CONFIG_GLOBAL= LC_MESSAGES=C LC_ALL=C __git_ps1 "")
 esac
-local B S=${PWD##*/}
+local B Q=${PWD##*/}
 if [[ $y ]];then
 B=${_mr_f[5]}
 elif [[ $_mr_p ]];then
@@ -245,7 +239,7 @@ else
 case $PWD in
 "$HOME/Trash"*|"$HOME/.local/share/Trash/files"*)B=${_mr_f[6]};;
 /)B=${_mr_f[16]}
-S=/
+Q=/
 ;;
 /media/*)B=${_mr_f[8]};;
 /proc/*|/sys/*|/dev/*|/proc|/sys|/dev)B=${_mr_f[17]};;
@@ -257,7 +251,7 @@ S=/
 *)B=${_mr_f[13]}
 esac
 case $PWD in
-"$HOME")S=$_mr_hostname
+"$HOME")Q=$_mr_hostname
 if [[ $CRAFT_STATE_DIR ]];then
 B=${_mr_f[18]}
 elif [[ $SSH_CLIENT ]];then
@@ -273,7 +267,7 @@ fi
 *)
 esac
 fi
-_mr_J="${_mr_F-$B}  ${_mr_E-$S}"
+_mr_J="${_mr_F-$B}  ${_mr_E-$Q}"
 [[ $PWD != "$HOME" ]]&&[[ $_mr_b ]]&&_mr_c
 fi
 local z="${PWD##*/}"
@@ -337,17 +331,21 @@ unset _mr_G
 } 2>/dev/null
 }
 _TITLE(){
+{
 : >"$_mr_l"
-local _mr_J="$*"
+local R="$*"
 if [[ $_mr_r ]];then
-_mr_J+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M 2>&-)"
+R+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 elif [[ $PWD == "$HOME" ]];then
 :
 else
-_mr_J+=" in ${PWD##*/}"
+R+=" in ${PWD##*/}"
 fi
 [[ $_mr_b ]]&&_mr_c
-_TITLE_RAW "$_mr_J"
+(sleep 0.2&&{
+[[ $_mr_G ]]||{ [[ -s $_mr_l ]]||printf $'\e]0;'"$R"$'\a' >/dev/tty;}
+}&)
+} 2>&-
 }
 _NO_MEASURE(){
 unset _mr_r

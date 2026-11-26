@@ -109,8 +109,8 @@ cat "$SRC" |
 		-e 's/var__cmd/N/g' \
 		-e 's/var__prior_trap/O/g' \
 		-e 's/var__trap_argv/P/g' \
-		-e 's/var__xcmd/Q/g' \
-		-e 's/var__title_base/S/g' \
+		-e 's/var__title_base/Q/g' \
+		-e 's/var__title/R/g' \
 		-e 's/var__seconds_m/T/g' \
 		-e 's/var__duration_h/U/g' \
 		-e 's/var__duration_m/V/g' \
@@ -225,8 +225,8 @@ cat "$SRC" |
 		-e 's/var__cmd/N/g' \
 		-e 's/var__prior_trap/O/g' \
 		-e 's/var__trap_argv/P/g' \
-		-e 's/var__xcmd/Q/g' \
-		-e 's/var__title_base/S/g' \
+		-e 's/var__title_base/Q/g' \
+		-e 's/var__title/R/g' \
 		-e 's/var__seconds_m/T/g' \
 		-e 's/var__duration_h/U/g' \
 		-e 's/var__duration_m/V/g' \
