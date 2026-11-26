@@ -203,14 +203,14 @@ const_color_cursor=21     #discard_for_all
 			glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 			var__monorail_title_formatted=$'\e]0;'$glob__title$'\a'
 			[[ $glob__has_suffix ]] && glob__suffix
-			glob__title_state=$XDG_RUNTIME_DIR/mr$RANDOM
+			glob__lazy_title=$XDG_RUNTIME_DIR/mr$RANDOM
 			# shellcheck disable=SC2059 # keep printf compact
 			(
 				{
 
 					sleep 0.2 && {
-						[[ $glob__nostyling ]] || { [[ -f $glob__title_state ]] || printf "$var__monorail_title_formatted" >/dev/tty; }
-						/bin/rm -f "$glob__title_state"
+						[[ $glob__nostyling ]] || { [[ -f $glob__lazy_title ]] || printf "$var__monorail_title_formatted" >/dev/tty; }
+						/bin/rm -f "$glob__lazy_title"
 					}
 				} &
 			)
@@ -302,7 +302,7 @@ const_color_cursor=21     #discard_for_all
 				# bash line editor (ble.sh) do not like others messing with the tty
 				# enable stty echo in case some command has disabled it up
 				[[ $BLE_ATTACHED ]] || LC_MESSAGES=C LC_ALL=C stty echo
-				printf 1 >"$glob__title_state"
+				printf 1 >"$glob__lazy_title"
 				local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration var__diff=$((SECONDS - glob__start_seconds))
 				if [[ $glob__measure ]] && [[ $var__diff -gt ${MONORAIL_TIMEOUT-30} ]]; then
 					var__seconds_m=$((var__diff % 3600))
@@ -542,7 +542,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 	}
 	_TITLE() {
 		{
-			: >"$glob__title_state"
+			: >"$glob__lazy_title"
 			local var__title="$*"
 			if [[ $glob__measure ]]; then
 				var__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
@@ -554,7 +554,7 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 			[[ $glob__has_suffix ]] && glob__suffix
 			(
 				sleep 0.2 && {
-					[[ $glob__nostyling ]] || { [[ -s $glob__title_state ]] || printf $'\e]0;'"$var__title"$'\a' >/dev/tty; }
+					[[ $glob__nostyling ]] || { [[ -s $glob__lazy_title ]] || printf $'\e]0;'"$var__title"$'\a' >/dev/tty; }
 				} &
 			)
 		} 2>&-

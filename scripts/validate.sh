@@ -46,7 +46,7 @@ cat "$SRC" |
 		-e 's/glob__timer_cmd/_mr_i/g' \
 		-e 's/glob__histcmd_penultimate/_mr_j/g' \
 		-e 's/glob__histcmd_prev/_mr_k/g' \
-		-e 's/glob__title_state/_mr_l/g' \
+		-e 's/glob__lazy_title/_mr_l/g' \
 		-e 's/glob__longrunning/_mr_m/g' \
 		-e 's/glob__ctrlc/_mr_n/g' \
 		-e 's/glob__cache/_mr_o/g' \
@@ -162,7 +162,7 @@ cat "$SRC" |
 		-e 's/glob__timer_cmd/_mr_i/g' \
 		-e 's/glob__histcmd_penultimate/_mr_j/g' \
 		-e 's/glob__histcmd_prev/_mr_k/g' \
-		-e 's/glob__title_state/_mr_l/g' \
+		-e 's/glob__lazy_title/_mr_l/g' \
 		-e 's/glob__longrunning/_mr_m/g' \
 		-e 's/glob__ctrlc/_mr_n/g' \
 		-e 's/glob__cache/_mr_o/g' \
