@@ -33,6 +33,7 @@ const_color_cursor=21     #discard_for_all
 	# for XDG compliance, the user may set MONORAIL_DIR=$XDG_LOCAL_SHARE/monorail and MONORAIL_CONFIG=$XDG_CONFIG_HOME/monorail
 	[[ $MONORAIL_DIR ]] || MONORAIL_DIR=$HOME/.local/share/monorail
 	[[ $HOSTNAME ]] || HOSTNAME=$(hostname)
+	[[ $XDG_RUNTIME_DIR ]] || XDG_RUNTIME_DIR=$(mktemp)
 	if [[ $CRAFT_STATE_DIR ]]; then
 		_mr_hostname=snapcraft
 		glob__has_suffix=1
@@ -83,13 +84,11 @@ const_color_cursor=21     #discard_for_all
 			[[ 0 -eq ${BASH_SUBSHELL:-} ]] && glob__preexec_interactive_mode="" #keep_for_bash
 		fi                                                                   #keep_for_bash
 
-		local var__prompt_command_array IFS=$'\n;'                                  #keep_for_bash
-		read -rd '' -a var__prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"        #keep_for_bash
-		local var__trimmed_arg="${BASH_COMMAND:-}"                                  #keep_for_bash
-		var__trimmed_arg="${var__trimmed_arg#"${var__trimmed_arg%%[![:space:]]*}"}" #keep_for_bash
-		var__trimmed_arg="${var__trimmed_arg%"${var__trimmed_arg##*[![:space:]]}"}" #keep_for_bash
+		local var__preexec_function var__this_command var__command var__trimmed_command var__trimmed_arg="${BASH_COMMAND:-}" var__prompt_command_array IFS=$'\n;' #keep_for_bash
+		read -rd '' -a var__prompt_command_array <<<"${PROMPT_COMMAND[*]:-}"                                                                                      #keep_for_bash
+		var__trimmed_arg="${var__trimmed_arg#"${var__trimmed_arg%%[![:space:]]*}"}"                                                                               #keep_for_bash
+		var__trimmed_arg="${var__trimmed_arg%"${var__trimmed_arg##*[![:space:]]}"}"                                                                               #keep_for_bash
 
-		local var__command var__trimmed_command                                                  #keep_for_bash
 		for var__command in "${var__prompt_command_array[@]:-}"; do                              #keep_for_bash
 			var__trimmed_command=${var__command}                                                    #keep_for_bash
 			var__trimmed_command="${var__trimmed_command#"${var__trimmed_command%%[![:space:]]*}"}" #keep_for_bash
@@ -97,11 +96,9 @@ const_color_cursor=21     #discard_for_all
 			[[ $var__trimmed_command = "$var__trimmed_arg" ]] && return                             #keep_for_bash
 		done                                                                                     #keep_for_bash
 
-		local var__this_command                                           #keep_for_bash
 		var__this_command=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1) #keep_for_bash
 		var__this_command="${var__this_command#*[[:digit:]][* ] }"        #keep_for_bash
 		[[ $var__this_command ]] || return                                #keep_for_bash
-		local var__preexec_function                                       #keep_for_bash
 		for var__preexec_function in "${preexec_functions[@]:-}"; do      #keep_for_bash
 			if type -t "$var__preexec_function" >/dev/null; then             #keep_for_bash
 				# TODO: glob__last_ret_value is never set! accidently removed?
@@ -115,18 +112,16 @@ const_color_cursor=21     #discard_for_all
 		[[ ${PROMPT_COMMAND[*]:-} = *"precmd"* ]] && return 1                                                                                  #keep_for_bash
 		trap 'glob__preexec_invoke_exec "$_"' DEBUG                                                                                            #keep_for_bash
 		eval "local var__trap_argv=(${glob__trap_string:-})"                                                                                   #keep_for_bash
-		local var__prior_trap=${var__trap_argv[2]:-}                                                                                           #keep_for_bash
+		local var__histcontrol var__existing_prompt_command var__prior_trap=${var__trap_argv[2]:-}                                             #keep_for_bash
 		unset glob__trap_string                                                                                                                #keep_for_bash
 		if [[ $var__prior_trap ]]; then                                                                                                        #keep_for_bash
 			eval 'glob__original_debug_trap(){ '"$var__prior_trap"';}'                                                                            #keep_for_bash
 			preexec_functions+=(glob__original_debug_trap)                                                                                        #keep_for_bash
 		fi                                                                                                                                     #keep_for_bash
-		local var__histcontrol                                                                                                                 #keep_for_bash
 		var__histcontrol="${HISTCONTROL:-}"                                                                                                    #keep_for_bash
 		var__histcontrol="${var__histcontrol//ignorespace/}"                                                                                   #keep_for_bash
 		[[ $var__histcontrol = *"ignoreboth"* ]] && var__histcontrol="ignoredups:${var__histcontrol//ignoreboth/}"                             #keep_for_bash
 		export HISTCONTROL="$var__histcontrol"                                                                                                 #keep_for_bash
-		local var__existing_prompt_command                                                                                                     #keep_for_bash
 		var__existing_prompt_command="${PROMPT_COMMAND:-}"                                                                                     #keep_for_bash
 		var__existing_prompt_command="${var__existing_prompt_command//$'glob__trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\nglob__install'/:}" #keep_for_bash
 		var__existing_prompt_command="${var__existing_prompt_command//$'\n':$'\n'/$'\n'}"                                                      #keep_for_bash
@@ -203,14 +198,14 @@ const_color_cursor=21     #discard_for_all
 			glob__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 			var__monorail_title_formatted=$'\e]0;'$glob__title$'\a'
 			[[ $glob__has_suffix ]] && glob__suffix
-			glob__lazy_title=$XDG_RUNTIME_DIR/mr$RANDOM
+			glob__delayed_title=$XDG_RUNTIME_DIR/mr$RANDOM
 			# shellcheck disable=SC2059 # keep printf compact
 			(
 				{
 
 					sleep 0.2 && {
-						[[ $glob__nostyling ]] || { [[ -f $glob__lazy_title ]] || printf "$var__monorail_title_formatted" >/dev/tty; }
-						/bin/rm -f "$glob__lazy_title"
+						[[ $glob__nostyling ]] || { [[ -f $glob__delayed_title ]] || printf "$var__monorail_title_formatted" >/dev/tty; }
+						/bin/rm -f "$glob__delayed_title"
 					}
 				} &
 			)
@@ -302,7 +297,7 @@ const_color_cursor=21     #discard_for_all
 				# bash line editor (ble.sh) do not like others messing with the tty
 				# enable stty echo in case some command has disabled it up
 				[[ $BLE_ATTACHED ]] || LC_MESSAGES=C LC_ALL=C stty echo
-				printf 1 >"$glob__lazy_title"
+				printf 1 >"$glob__delayed_title"
 				local var__seconds_m var__duration_h var__duration_m var__duration_s var__duration var__diff=$((SECONDS - glob__start_seconds))
 				if [[ $glob__measure ]] && [[ $var__diff -gt ${MONORAIL_TIMEOUT-30} ]]; then
 					var__seconds_m=$((var__diff % 3600))
@@ -472,7 +467,6 @@ const_color_cursor=21     #discard_for_all
 			if [[ $glob__cache != "$COLUMNS$var__monorail_text" ]]; then
 				unset glob__cache glob__measure
 				if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]]; then
-					mkdir -p "$MONORAIL_CONFIG"
 					if [[ -f "$MONORAIL_DIR/gradients/Default.conf" ]]; then
 						if [[ $(gsettings get org.gnome.desktop.interface color-scheme) = prefer-dark ]]; then
 							LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf
@@ -490,10 +484,7 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 					fi
 				fi
 				glob__colors=()
-				local i=0
-				local var__monorail_line=
-				local var__monorail_title_formatted=
-				local var__hex_cursor_color var__monorail_text_formatted=
+				local i=0 var__monorail_line="" var__monorail_title_formatted="" var__hex_cursor_color var__monorail_text_formatted=
 				# here _monorail_gradient _monorail_textgradient _monorail_colors are called
 				# shellcheck source=scripts/dummy.conf
 				. "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
@@ -541,9 +532,10 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		} 2>&- #keep_for_bash
 	}
 	_TITLE() {
-		{
-			: >"$glob__lazy_title"
-			local var__title="$*"
+		(
+			: >"$glob__delayed_title"
+			# local not needed since we have fork()'ed
+			var__title="$*"
 			if [[ $glob__measure ]]; then
 				var__title+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 			elif [[ $PWD = "$HOME" ]]; then
@@ -552,12 +544,10 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 				var__title+=" in ${PWD##*/}"
 			fi
 			[[ $glob__has_suffix ]] && glob__suffix
-			(
-				sleep 0.2 && {
-					[[ $glob__nostyling ]] || { [[ -s $glob__lazy_title ]] || printf $'\e]0;'"$var__title"$'\a' >/dev/tty; }
-				} &
-			)
-		} 2>&-
+			sleep 0.2 && {
+				[[ $glob__nostyling ]] || { [[ -s $glob__delayed_title ]] || printf $'\e]0;'"$var__title"$'\a' >/dev/tty; }
+			} &
+		) >&- 2>&-
 	}
 	_NO_MEASURE() {
 		unset glob__measure
@@ -661,13 +651,15 @@ $var__monorail_text_formatted@PROMPT_PREHIDE@"$'\r\e['$((${#var__monorail_text} 
 		# shellcheck disable=SC2139
 		command -v "$2" && alias "$2=_ICON $1 _LOW_PRIO $2"
 	}
-	[[ -e $MONORAIL_CONFIG/settings-${_mr_hostname}.conf ]] || cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-${_mr_hostname}.conf"
+	[[ -e $MONORAIL_CONFIG/settings-${_mr_hostname}.conf ]] || {
+		mkdir -p "$MONORAIL_CONFIG"
+		\cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-${_mr_hostname}.conf"
+	}
 	# shellcheck source=scripts/dummy.conf
 	. "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf" || . "$MONORAIL_CONFIG/settings-${_mr_hostname}.conf" &>/dev/tty
 	__git_ps1() { :; }
 	glob__magic_shellball() {
-		local var__answer i var__spaces=
-		i=0
+		local var__answer i=0 var__spaces=
 		case $RANDOM in
 		*[0-4])
 			case $RANDOM in

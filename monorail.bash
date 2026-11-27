@@ -1,6 +1,7 @@
 {
 [[ $MONORAIL_DIR ]]||MONORAIL_DIR=$HOME/.local/share/monorail
 [[ $HOSTNAME ]]||HOSTNAME=$(hostname)
+[[ $XDG_RUNTIME_DIR ]]||XDG_RUNTIME_DIR=$(mktemp)
 if [[ $CRAFT_STATE_DIR ]];then
 _mr_hostname=snapcraft
 _mr_b=1
@@ -44,23 +45,19 @@ return
 else
 [[ 0 -eq ${BASH_SUBSHELL:-} ]]&&_mr_w=""
 fi
-local H IFS=$'\n;'
+local L a l g h="${BASH_COMMAND:-}" H IFS=$'\n;'
 read -rd '' -a H <<<"${PROMPT_COMMAND[*]:-}"
-local h="${BASH_COMMAND:-}"
 h="${h#"${h%%[![:space:]]*}"}"
 h="${h%"${h##*[![:space:]]}"}"
-local l g
 for l in "${H[@]:-}";do
 g=$l
 g="${g#"${g%%[![:space:]]*}"}"
 g="${g%"${g##*[![:space:]]}"}"
 [[ $g == "$h" ]]&&return
 done
-local a
 a=$(LC_ALL=C HISTTIMEFORMAT='' builtin history 1)
 a="${a#*[[:digit:]][* ] }"
 [[ $a ]]||return
-local L
 for L in "${preexec_functions[@]:-}";do
 if type -t "$L" >/dev/null;then
 [[ ${_mr_y-0} == 0 ]]||(exit "${_mr_y-0}")
@@ -73,18 +70,16 @@ _mr_C(){
 [[ ${PROMPT_COMMAND[*]:-} == *"precmd"* ]]&&return 1
 trap '_mr_x "$_"' DEBUG
 eval "local P=(${_mr_D:-})"
-local O=${P[2]:-}
+local k f O=${P[2]:-}
 unset _mr_D
 if [[ $O ]];then
 eval '_mr_B(){ '"$O"';}'
 preexec_functions+=(_mr_B)
 fi
-local k
 k="${HISTCONTROL:-}"
 k="${k//ignorespace/}"
 [[ $k == *"ignoreboth"* ]]&&k="ignoredups:${k//ignoreboth/}"
 export HISTCONTROL="$k"
-local f
 f="${PROMPT_COMMAND:-}"
 f="${f//$'_mr_D="$(trap -p DEBUG)"\ntrap - DEBUG\n_mr_C'/:}"
 f="${f//$'\n':$'\n'/$'\n'}"
@@ -369,7 +364,6 @@ local w D E F G e=${#d[@]}
 if [[ $_mr_o != "$COLUMNS$b" ]];then
 unset _mr_o _mr_r
 if [[ ! -f "$MONORAIL_CONFIG/colors-$_mr_hostname".conf ]];then
-mkdir -p "$MONORAIL_CONFIG"
 if [[ -f "$MONORAIL_DIR/gradients/Default.conf" ]];then
 if [[ $(gsettings get org.gnome.desktop.interface color-scheme) == prefer-dark ]];then
 LC_ALL=C LC_MESSAGES=C \cat "$MONORAIL_DIR"/colors/DefaultDark.conf "$MONORAIL_DIR"/gradients/Default.conf >"$MONORAIL_CONFIG/colors-$_mr_hostname".conf
@@ -386,10 +380,7 @@ monorail: warning: Monorail was not found in $MONORAIL_DIR.
 fi
 fi
 _mr_e=()
-local i=0
-local v=
-local p=
-local r c=
+local i=0 v="" p="" r c=
 . "$MONORAIL_CONFIG/colors-$_mr_hostname".conf
 if [[ -z $c ]]||[[ $TERM == linux ]];then
 v=$'\e[0m'
@@ -413,9 +404,8 @@ unset _mr_G
 } 2>&-
 }
 _TITLE(){
-{
-: >"$_mr_l"
-local R="$*"
+(: >"$_mr_l"
+R="$*"
 if [[ $_mr_r ]];then
 R+=" in ${PWD##*/} at $(LC_MESSAGES=C LC_ALL=C date +%H:%M)"
 elif [[ $PWD == "$HOME" ]];then
@@ -424,10 +414,10 @@ else
 R+=" in ${PWD##*/}"
 fi
 [[ $_mr_b ]]&&_mr_c
-(sleep 0.2&&{
+sleep 0.2&&{
 [[ $_mr_G ]]||{ [[ -s $_mr_l ]]||printf $'\e]0;'"$R"$'\a' >/dev/tty;}
-}&)
-} 2>&-
+}&) >& \
+- 2>&-
 }
 _NO_MEASURE(){
 unset _mr_r
@@ -505,12 +495,14 @@ command -v "$2"&&alias "$2=_NO_MEASURE _ICON $1 $2"
 _monorail_cmd_batch(){
 command -v "$2"&&alias "$2=_ICON $1 _LOW_PRIO $2"
 }
-[[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
+[[ -e $MONORAIL_CONFIG/settings-$_mr_hostname.conf ]]||{
+mkdir -p "$MONORAIL_CONFIG"
+\cat "$MONORAIL_DIR/default_settings.conf" >"$MONORAIL_CONFIG/settings-$_mr_hostname.conf"
+}
 . "$MONORAIL_CONFIG/settings-$_mr_hostname.conf"||. "$MONORAIL_CONFIG/settings-$_mr_hostname.conf" &>/dev/tty
 __git_ps1(){ :;}
 _mr_q(){
-local s i A=
-i=0
+local s i=0 A=
 case $RANDOM in
 *[0-4])case $RANDOM in
 *0)s="IT IS CERTAIN.";;
